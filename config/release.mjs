@@ -3,17 +3,22 @@ import fs from "fs";
 
 // Release a new version. Usage:
 //
-//   pnpm release patch|minor|major|<version> [--skip-ci-check]
+//   pnpm release patch|minor|major|<version> [--skip-ci-check] [--dry-run]
 //
 // This bumps the version in package.json (which regenerates src/version.ts),
 // moves the unreleased changes in CHANGELOG.md to the new version, commits,
 // tags v<version> and pushes. The Release workflow on GitHub then runs the
 // checks, publishes to npm and creates the GitHub release.
+//
+// With --dry-run the version bump and changelog change are shown as a diff and
+// then reverted, without committing or pushing.
 
 const branch = "master";
 
+// Returns the trimmed output. With stdio "inherit" there is no output to
+// return, and execFileSync gives null.
 const run = (command, args, options = {}) =>
-  execFileSync(command, args, { encoding: "utf8", ...options }).trim();
+  (execFileSync(command, args, { encoding: "utf8", ...options }) ?? "").trim();
 
 const git = (...args) => run("git", args);
 
@@ -75,17 +80,29 @@ const checkPreconditions = ({ skipCiCheck }) => {
 const readVersion = () =>
   JSON.parse(fs.readFileSync("package.json", "utf8")).version;
 
+// The "version" script stages src/version.ts, so restore from HEAD rather
+// than from the index.
 const restore = () => {
-  git("checkout", "--", "package.json", "CHANGELOG.md", "src/version.ts");
+  git(
+    "checkout",
+    "HEAD",
+    "--",
+    "package.json",
+    "CHANGELOG.md",
+    "src/version.ts",
+  );
 };
 
 const main = () => {
   const args = process.argv.slice(2);
   const skipCiCheck = args.includes("--skip-ci-check");
+  const dryRun = args.includes("--dry-run");
   const [bump] = args.filter((arg) => !arg.startsWith("--"));
 
   if (!bump) {
-    fail("Usage: pnpm release patch|minor|major|<version> [--skip-ci-check]");
+    fail(
+      "Usage: pnpm release patch|minor|major|<version> [--skip-ci-check] [--dry-run]",
+    );
   }
 
   checkPreconditions({ skipCiCheck });
@@ -107,6 +124,15 @@ const main = () => {
   }
 
   const tag = `v${version}`;
+
+  if (dryRun) {
+    run("git", ["--no-pager", "diff", "HEAD"], { stdio: "inherit" });
+    restore();
+    console.log(
+      `Dry run: would commit, tag and push ${tag} (was ${previousVersion})`,
+    );
+    return;
+  }
 
   git("add", "package.json", "CHANGELOG.md", "src/version.ts");
   git("commit", "--message", `Release ${tag}`);

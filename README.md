@@ -225,6 +225,8 @@ make sure `master` is pushed and CI is green, then run:
 pnpm release patch    # or minor, major, or an explicit version
 ```
 
+Add `--dry-run` to see the version bump and changelog change without committing.
+
 This bumps the version, moves the unreleased changes in the changelog to the new
 version, commits, tags `v<version>` and pushes. The
 [Release workflow](.github/workflows/release.yml) then runs the checks, publishes
