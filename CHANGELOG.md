@@ -6,6 +6,8 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+## 0.1.1 - 2026-09-06
+
 ### Changed
 
 - `tree.load_failed` is also dispatched when a request fails with a network error.

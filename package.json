@@ -1,6 +1,6 @@
 {
   "name": "tree-element",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tree widget in plain javascript",
   "keywords": [
     "tree"
