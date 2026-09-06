@@ -216,6 +216,20 @@ pnpm ci            # lint, typecheck, check the docs and test
 
 `pnpm test` runs the vitest unit tests and the playwright browser tests.
 
+### Releasing
+
+Describe the changes under "Unreleased" in `CHANGELOG.md` as you go. To release,
+make sure `master` is pushed and CI is green, then run:
+
+```sh
+pnpm release patch    # or minor, major, or an explicit version
+```
+
+This bumps the version, moves the unreleased changes in the changelog to the new
+version, commits, tags `v<version>` and pushes. The
+[Release workflow](.github/workflows/release.yml) then runs the checks, publishes
+to npm with provenance and creates the GitHub release.
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
