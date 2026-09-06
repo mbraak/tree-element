@@ -49,6 +49,8 @@
     "prettier": "prettier src/*.ts --write --tab-width 4",
     "tsc": "tsc --noEmit --project tsconfig.json",
     "version": "node config/generateVersion.mjs && git add src/version.ts",
+    "prepublishOnly": "pnpm run production",
+    "release": "node config/release.mjs",
     "playwright": "pnpm build-with-coverage && playwright test --config playwright/playwright.config.js",
     "test": "pnpm vitest && pnpm playwright",
     "docs-check": "kiira check"
