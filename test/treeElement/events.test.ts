@@ -441,4 +441,65 @@ describe("events", () => {
       expect(onLoaded).not.toHaveBeenCalled();
     });
   });
+
+  describe("tree.load_failed", () => {
+    const server = setupServer();
+
+    beforeAll(() => {
+      server.listen();
+    });
+
+    afterEach(() => {
+      server.resetHandlers();
+    });
+
+    afterAll(() => {
+      server.close();
+    });
+
+    it("fires tree.load_failed with the response when the request returns an error status", async () => {
+      server.use(
+        http.get("/tree/", () => new HttpResponse("", { status: 500 })),
+      );
+
+      const onLoaded = listenToEvent("tree.loaded_data");
+      const onLoadFailed = listenToEvent("tree.load_failed");
+
+      createTreeElement({ dataUrl: "/tree/" });
+
+      await waitFor(() => {
+        expect(onLoadFailed).toHaveBeenCalledExactlyOnceWith({
+          response: expect.objectContaining({ status: 500 }) as Response,
+        });
+      });
+
+      expect(onLoaded).toHaveBeenCalledExactlyOnceWith({
+        element: htmlElement,
+        node: undefined,
+      });
+    });
+
+    it("fires tree.load_failed with the error when the request fails with a network error", async () => {
+      server.use(http.get("/tree/", () => HttpResponse.error()));
+
+      const onLoaded = listenToEvent("tree.loaded_data");
+      const onLoadFailed = listenToEvent("tree.load_failed");
+
+      createTreeElement({ dataUrl: "/tree/" });
+
+      await waitFor(() => {
+        expect(onLoadFailed).toHaveBeenCalledExactlyOnceWith({
+          error: expect.objectContaining({
+            message: "Failed to fetch",
+            name: "TypeError",
+          }) as TypeError,
+        });
+      });
+
+      expect(onLoaded).toHaveBeenCalledExactlyOnceWith({
+        element: htmlElement,
+        node: undefined,
+      });
+    });
+  });
 });

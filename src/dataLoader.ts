@@ -86,7 +86,8 @@ export default class DataLoader {
                     return;
                 }
 
-                throw error;
+                stopLoading();
+                this.triggerEvent("tree.load_failed", { error });
             });
     }
 }

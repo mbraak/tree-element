@@ -119,7 +119,10 @@ var TreeElement = (function () {
             // The request was aborted by deinit.
             return;
           }
-          throw error;
+          stopLoading();
+          this._triggerEvent("tree.load_failed", {
+            error
+          });
         });
       }
     }

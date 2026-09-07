@@ -17,6 +17,7 @@ export default defineConfig({
     nav: [
       { link: "/guide/getting-started", text: "Guide" },
       { link: "/reference/options", text: "Reference" },
+      { link: "/changelog", text: "Changelog" },
       { link: "https://github.com/mbraak/tree-element", text: "GitHub" },
     ],
     search: {
@@ -43,6 +44,10 @@ export default defineConfig({
           { link: "/reference/node", text: "Node" },
         ],
         text: "Reference",
+      },
+      {
+        items: [{ link: "/changelog", text: "Changelog" }],
+        text: "Changelog",
       },
     ],
     socialLinks: [

@@ -1,0 +1,81 @@
+name: Release
+
+# Triggered by the tag that `pnpm release` pushes. Runs the checks, publishes
+# the package to npm and creates the GitHub release with the changelog section
+# as its notes. Publishing uses npm trusted publishing: npmjs.com is configured
+# to trust this workflow, so no token is needed and npm adds provenance.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # create the GitHub release
+  id-token: write # npm trusted publishing and provenance
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+
+  publish:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v7
+      - name: Setup node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - name: Install pnpm and a recent npm
+        run: npm install -g npm@latest pnpm
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v6
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Install packages
+        run: pnpm install
+      - name: Check that the tag matches the version in package.json
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Build
+        run: pnpm run production
+      - name: Pack
+        run: npm pack
+      - name: Publish to npm
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if npm view "tree-element@$VERSION" version > /dev/null 2>&1; then
+            echo "tree-element@$VERSION is already on npm, skipping publish"
+          else
+            npm publish --access public
+          fi
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists, skipping"
+          else
+            node config/changelog.mjs notes "$VERSION" > release-notes.md
+            gh release create "$GITHUB_REF_NAME" \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file release-notes.md \
+              "tree-element-$VERSION.tgz"
+          fi

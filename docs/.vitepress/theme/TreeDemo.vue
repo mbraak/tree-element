@@ -70,7 +70,9 @@ const describe = (name: string, detail: unknown): string => {
   }
 
   if (name === "tree.load_failed") {
-    return `status: ${values.response.status}`;
+    return values.response
+      ? `status: ${values.response.status}`
+      : `error: ${String(values.error)}`;
   }
 
   if (name === "tree.set_data") {

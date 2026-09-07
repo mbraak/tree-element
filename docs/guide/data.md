@@ -122,11 +122,16 @@ new TreeElement({
 ```
 
 When the request fails, the tree dispatches a [`tree.load_failed`](../reference/events#tree-load-failed)
-event with the `Response`:
+event. It has the `Response` when the server returned an error status, or the
+`error` when the request failed with a network error:
 
 ```js
 element.addEventListener("tree.load_failed", (e) => {
-  console.error("loading the tree failed", e.detail.response.status);
+  if (e.detail.response) {
+    console.error("loading the tree failed", e.detail.response.status);
+  } else {
+    console.error("loading the tree failed", e.detail.error);
+  }
 });
 ```
 

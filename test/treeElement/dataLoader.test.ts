@@ -108,6 +108,25 @@ describe("loadFromUrl", () => {
         });
     });
 
+    it("triggers tree.load_failed when fetch fails with a network error", async () => {
+        server.use(
+            http.get("/test", () => HttpResponse.error()),
+        );
+
+        const { dataLoader, triggerEvent } = createDataLoader();
+        await dataLoader.loadFromUrl(new RequestUrl("/test"));
+
+        expect(triggerEvent).toHaveBeenCalledWith(
+            "tree.load_failed",
+            expect.objectContaining({
+                error: expect.objectContaining({
+                    message: "Failed to fetch",
+                    name: "TypeError",
+                }) as TypeError,
+            }),
+        );
+    });
+
     it("triggers tree.loading_data and tree.loaded_data events", async () => {
         setupResponse();
 

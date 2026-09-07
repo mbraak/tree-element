@@ -206,19 +206,26 @@ export interface TreeEvents {
         node?: Node;
     };
     /**
-     * Dispatched when a request returns an error status, after
-     * `tree.loaded_data`:
+     * Dispatched when a request returns an error status or fails with a
+     * network error, after `tree.loaded_data`:
      *
      * ```js
      * element.addEventListener("tree.load_failed", (e) => {
-     *   console.error("loading the tree failed", e.detail.response.status);
+     *   if (e.detail.response) {
+     *     console.error("loading the tree failed", e.detail.response.status);
+     *   } else {
+     *     console.error("loading the tree failed", e.detail.error);
+     *   }
      * });
      * ```
      *
      * @group Loading data
      */
     "tree.load_failed": {
-        response: Response;
+        /** The error thrown by `fetch`, if the request failed with a network error. */
+        error?: unknown;
+        /** The response, if the request returned an error status. */
+        response?: Response;
     };
 }
 /* eslint-enable perfectionist/sort-interfaces */

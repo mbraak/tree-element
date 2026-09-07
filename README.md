@@ -1,4 +1,4 @@
-# Html-tree
+# Tree-element
 
 Tree widget in plain javascript. No jQuery, no framework, no runtime dependencies.
 
@@ -10,6 +10,8 @@ Tree widget in plain javascript. No jQuery, no framework, no runtime dependencie
 - Written in Typescript, ships with type declarations
 
 Full documentation: https://mbraak.github.io/tree-element/
+
+npm package: https://www.npmjs.com/package/tree-element
 
 ## Install
 
@@ -75,32 +77,32 @@ new TreeElement({
 
 ## Options
 
-| Option            | Default              | Description                                                                       |
-| ----------------- | -------------------- | --------------------------------------------------------------------------------- |
-| `animationSpeed`  | `"fast"`             | `"fast"`, `"slow"`, or a number of milliseconds                                   |
-| `autoEscape`      | `true`               | Escape node names. Set to `false` to render html in a name                        |
-| `autoOpen`        | `false`              | `true` opens everything, a number opens that many levels (`0` is the first level) |
-| `buttonLeft`      | `true`               | Put the open/close button left of the title                                       |
+| Option            | Default                 | Description                                                                       |
+| ----------------- | ----------------------- | --------------------------------------------------------------------------------- |
+| `animationSpeed`  | `"fast"`                | `"fast"`, `"slow"`, or a number of milliseconds                                   |
+| `autoEscape`      | `true`                  | Escape node names. Set to `false` to render html in a name                        |
+| `autoOpen`        | `false`                 | `true` opens everything, a number opens that many levels (`0` is the first level) |
+| `buttonLeft`      | `true`                  | Put the open/close button left of the title                                       |
 | `classPrefix`     | `"tree-element"`        | The prefix of all css classes                                                     |
-| `closedIcon`      | `►` (`◄` in rtl)     | Html string or element                                                            |
+| `closedIcon`      | `►` (`◄` in rtl)        | Html string or element                                                            |
 | `commonClassName` | `"tree-element-common"` | The class that every element gets                                                 |
-| `data`            |                      | The nodes to display                                                              |
-| `dataFilter`      |                      | Transforms the response of `dataUrl` into node data                               |
-| `dataUrl`         | `data-url` attribute | Url, or a function returning a url                                                |
-| `dragAndDrop`     | `false`              | Enable drag and drop                                                              |
-| `keyboardSupport` | `true`               | Navigate with the arrow keys                                                      |
-| `nodeClass`       | `Node`               | Subclass of `Node` to use for nodes                                               |
-| `openFolderDelay` | `500`                | Milliseconds before a folder opens while dragging over it. `false` disables it    |
-| `openedIcon`      | `▼`                  | Html string or element                                                            |
-| `rtl`             | `data-rtl` attribute | Right-to-left rendering                                                           |
-| `saveState`       | `false`              | `true`, or a string to use as the storage key                                     |
-| `selectable`      | `true`               | Allow selecting nodes                                                             |
-| `showEmptyFolder` | `false`              | Show the open/close button for nodes without children                             |
-| `slide`           | `true`               | Animate opening and closing                                                       |
-| `startDndDelay`   | `300`                | Milliseconds to hold before a drag starts                                         |
-| `tabIndex`        | `0`                  | Tab index of the tree element                                                     |
+| `data`            |                         | The nodes to display                                                              |
+| `dataFilter`      |                         | Transforms the response of `dataUrl` into node data                               |
+| `dataUrl`         | `data-url` attribute    | Url, or a function returning a url                                                |
+| `dragAndDrop`     | `false`                 | Enable drag and drop                                                              |
+| `keyboardSupport` | `true`                  | Navigate with the arrow keys                                                      |
+| `nodeClass`       | `Node`                  | Subclass of `Node` to use for nodes                                               |
+| `openFolderDelay` | `500`                   | Milliseconds before a folder opens while dragging over it. `false` disables it    |
+| `openedIcon`      | `▼`                     | Html string or element                                                            |
+| `rtl`             | `data-rtl` attribute    | Right-to-left rendering                                                           |
+| `saveState`       | `false`                 | `true`, or a string to use as the storage key                                     |
+| `selectable`      | `true`                  | Allow selecting nodes                                                             |
+| `showEmptyFolder` | `false`                 | Show the open/close button for nodes without children                             |
+| `slide`           | `true`                  | Animate opening and closing                                                       |
+| `startDndDelay`   | `300`                   | Milliseconds to hold before a drag starts                                         |
+| `tabIndex`        | `0`                     | Tab index of the tree element                                                     |
 | `treeClassName`   | `"tree-element"`        | The class of the root `ul`                                                        |
-| `useContextMenu`  | `true`               | Fire `tree.contextmenu` on right click                                            |
+| `useContextMenu`  | `true`                  | Fire `tree.contextmenu` on right click                                            |
 
 ### Callbacks
 
@@ -188,11 +190,11 @@ const data: NodeData[] = [{ name: "root", id: 1 }];
 
 ## Entry points
 
-|                           |                                                              |
-| ------------------------- | ------------------------------------------------------------ |
-| `import "tree-element"`      | `lib/index.js`, unbundled es modules                         |
-| `require`, script tag     | `tree_element.js`, minified iife exposing the global `TreeElement` |
-| `tree-element/tree_element.css` | The stylesheet                                               |
+|                                 |                                                                    |
+| ------------------------------- | ------------------------------------------------------------------ |
+| `import "tree-element"`         | `lib/index.js`, unbundled es modules                               |
+| `require`, script tag           | `tree_element.js`, minified iife exposing the global `TreeElement` |
+| `tree-element/tree_element.css` | The stylesheet                                                     |
 
 `tree_element.debug.js` is the same bundle without minification.
 
@@ -215,6 +217,22 @@ pnpm ci            # lint, typecheck, check the docs and test
 ```
 
 `pnpm test` runs the vitest unit tests and the playwright browser tests.
+
+### Releasing
+
+Describe the changes under "Unreleased" in `CHANGELOG.md` as you go. To release,
+make sure `master` is pushed and CI is green, then run:
+
+```sh
+pnpm release patch    # or minor, major, or an explicit version
+```
+
+Add `--dry-run` to see the version bump and changelog change without committing.
+
+This bumps the version, moves the unreleased changes in the changelog to the new
+version, commits, tags `v<version>` and pushes. The
+[Release workflow](.github/workflows/release.yml) then runs the checks, publishes
+to npm with provenance and creates the GitHub release.
 
 ## License
 
