@@ -21,6 +21,6 @@ jobs:
         with:
           build-script: production
           pattern: |
-            "./tree_element.js"
-            "./lib/**/*.js"
+            tree_element.js
+            lib/**/*.js
           compression: "none"
