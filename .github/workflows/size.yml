@@ -21,7 +21,6 @@ jobs:
         with:
           build-script: production
           pattern: |
-            "./lib/**/*.js"
             "./tree_element.js"
-          exclude: "{./lib/**/*.d.js,./lib/playwright/**,./lib/test/**}"
+            "./lib/**/*.js"
           compression: "none"
