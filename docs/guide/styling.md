@@ -4,7 +4,7 @@ The widget needs `tree_element.css` to look like a tree: it removes the list bul
 levels, hides closed folders and draws the drag-and-drop hints. Everything else — colors, fonts,
 spacing — is meant to be overridden.
 
-The stylesheet is generated from `css/tree_element.postcss` by `npm run production`.
+The stylesheet is generated from `css/tree_element.postcss` by `pnpm production`.
 
 ## Markup
 

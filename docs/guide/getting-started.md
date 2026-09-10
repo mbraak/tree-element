@@ -1,27 +1,26 @@
 # Getting started
 
-## What you need
+## Install
 
-Build the distribution files from a checkout:
+`tree-element` is published on [npm](https://www.npmjs.com/package/tree-element):
 
 ```sh
-npm install
-npm run production
+npm install tree-element
 ```
 
-That produces:
+The package contains:
 
-| File                 | What it is                                                                                                      |
-| -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| File                    | What it is                                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `lib/`                  | The source compiled to ES modules, with type declarations. This is what `import "tree-element"` resolves to.       |
 | `tree_element.js`       | The bundle: an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE) that defines a global `TreeElement`. |
-| `tree_element.debug.js` | The same bundle, unminified.                                                                                    |
-| `tree_element.css`      | The stylesheet.                                                                                                 |
-| `lib/`               | The source compiled to ES modules, for bundlers.                                                                |
+| `tree_element.debug.js` | The same bundle, unminified.                                                                                       |
+| `tree_element.css`      | The stylesheet.                                                                                                    |
 
-::: info
-`tree-element` is not published on npm yet, so there is no `npm install tree-element`. Copy the built
-files into your project, or point your bundler at a checkout.
-:::
+If you do not use a bundler, copy `tree_element.js` and `tree_element.css` from
+`node_modules/tree-element` into your project and load them with a `<link>` and a `<script>` tag, as
+in the example below. You can also build these files yourself from a checkout with
+`pnpm install && pnpm production`.
 
 ## Create a tree
 
@@ -78,11 +77,11 @@ from what a page says, the page is wrong — please
 
 ## With a bundler
 
-`tree_element.js` is an IIFE, so importing it does not give you the class. Import from the `lib`
-build instead, which is the source compiled to ES modules:
+Import the package entry point. Bundlers pick up the ES modules in `lib`, so the class is the
+default export and the types come along:
 
 ```js fixture=standalone
-import TreeElement from "tree-element/lib/index.js";
+import TreeElement from "tree-element";
 
 const tree = new TreeElement({
   data: [{ name: "node1" }, { name: "node2" }],
@@ -102,7 +101,8 @@ The repository contains a dev server with a working example
 (`devserver/index.html` and `devserver/devserver.js`):
 
 ```sh
-npm run devserver
+pnpm install
+pnpm devserver
 ```
 
 It builds the bundle, watches `src`, and serves the example on `http://localhost:8080`.
