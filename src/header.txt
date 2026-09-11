@@ -1,4 +1,4 @@
-Html-tree <%= version %>
+Tree-element <%= version %>
 
 Copyright <%= year %> Marco Braak
 
