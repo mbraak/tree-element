@@ -390,14 +390,17 @@ const findExportedClass = (
             if (node.source) {
                 return {
                     redirect: {
-                        exportName: specifier.local.name,
+                        exportName: getModuleExportName(specifier.local),
                         source: node.source.value,
                     },
                 };
             }
 
             return {
-                classNode: findLocalClass(programNode, specifier.local.name),
+                classNode: findLocalClass(
+                    programNode,
+                    getModuleExportName(specifier.local),
+                ),
             };
         }
     }

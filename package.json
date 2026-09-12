@@ -56,9 +56,9 @@
     "docs-check": "kiira check"
   },
   "devDependencies": {
-    "@babel/cli": "^8.0.4",
-    "@babel/core": "^8.0.1",
-    "@babel/preset-env": "^8.0.2",
+    "@babel/cli": "^8.0.5",
+    "@babel/core": "^8.0.5",
+    "@babel/preset-env": "^8.0.5",
     "@babel/preset-typescript": "^8.0.1",
     "@cspell/eslint-plugin": "^10.3.0",
     "@eslint/js": "^10.0.1",
@@ -73,7 +73,7 @@
     "@types/node": "^26.5.1",
     "@vitest/coverage-istanbul": "^4.1.11",
     "@vitest/eslint-plugin": "^1.6.27",
-    "autoprefixer": "^10.5.5",
+    "autoprefixer": "^10.5.6",
     "axe-core": "^4.13.0",
     "babel-plugin-istanbul": "^8.0.0",
     "eslint": "^10.10.0",
