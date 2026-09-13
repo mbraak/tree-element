@@ -2,3 +2,5 @@ allowBuilds:
   esbuild: true
   msw: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - babel-plugin-prefix-private-members@0.1.0
