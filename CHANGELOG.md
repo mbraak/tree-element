@@ -6,6 +6,10 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Changed
+
+- Make rendering faster by using templates.
+
 ## 0.1.1 - 2026-09-06
 
 ### Changed
