@@ -2,5 +2,6 @@ allowBuilds:
   esbuild: true
   msw: true
   unrs-resolver: true
+  babel-plugin-prefix-private-members@https://codeload.github.com/mbraak/babel-plugin-prefix-private-members/tar.gz/93a25ec200d651c9030c1f58052b9c3ed459287b: true
 minimumReleaseAgeExclude:
   - babel-plugin-prefix-private-members@0.1.0

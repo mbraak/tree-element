@@ -1,11 +1,5 @@
 {
-    "presets": ["@babel/preset-typescript", "@babel/preset-env"],
-    "plugins": [
-        [
-            "babel-plugin-prefix-private-members",
-            { "aliases": { "treeElement/": "./src/" } }
-        ],
-        "istanbul"
-    ],
-    "targets": "defaults"
+  "presets": ["@babel/preset-typescript", "@babel/preset-env"],
+  "plugins": [[{ "aliases": { "treeElement/": "./src/" } }], "istanbul"],
+  "targets": "defaults"
 }

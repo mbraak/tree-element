@@ -65,11 +65,11 @@ var TreeElement = (function () {
       _treeElement;
       _triggerEvent;
       constructor({
-        classNames,
-        dataFilter,
-        loadData,
-        treeElement,
-        triggerEvent
+        _classNames: classNames,
+        _dataFilter: dataFilter,
+        _loadData: loadData,
+        _treeElement: treeElement,
+        _triggerEvent: triggerEvent
       }) {
         this._abortController = new AbortController();
         this._classNames = classNames;
@@ -78,10 +78,10 @@ var TreeElement = (function () {
         this._treeElement = treeElement;
         this._triggerEvent = triggerEvent;
       }
-      deinit() {
+      _deinit() {
         this._abortController.abort();
       }
-      async loadFromUrl(url, node) {
+      async _loadFromUrl(url, node) {
         const element = node?.element ?? this._treeElement;
         element.classList.add(this._classNames.loading);
         this._triggerEvent("tree.loading_data", {
@@ -108,7 +108,7 @@ var TreeElement = (function () {
           }
         };
         const signal = this._abortController.signal;
-        url.setSearchParam("_", Date.now().toString());
+        url._setSearchParam("_", Date.now().toString());
         return fetch(url.toString(), {
           headers: {
             "Content-Type": "application/json"
@@ -165,23 +165,23 @@ var TreeElement = (function () {
       _offsetX;
       _offsetY;
       constructor({
-        autoEscape,
-        classNames,
-        nodeName,
-        offsetX,
-        offsetY,
-        treeElement
+        _autoEscape: autoEscape,
+        _classNames: classNames,
+        _nodeName: nodeName,
+        _offsetX: offsetX,
+        _offsetY: offsetY,
+        _treeElement: treeElement
       }) {
         this._offsetX = offsetX;
         this._offsetY = offsetY;
         this._element = this._createElement(nodeName, autoEscape, classNames);
         treeElement.appendChild(this._element);
       }
-      move(pageX, pageY) {
+      _move(pageX, pageY) {
         this._element.style.left = `${pageX - this._offsetX}px`;
         this._element.style.top = `${pageY - this._offsetY}px`;
       }
-      remove() {
+      _remove() {
         this._element.remove();
       }
       _createElement(nodeName, autoEscape, classNames) {
@@ -400,23 +400,23 @@ var TreeElement = (function () {
       _treeElement;
       _triggerEvent;
       constructor({
-        autoEscape,
-        classNames,
-        getNodeElement,
-        getNodeElementForNode,
-        getScrollLeft,
-        getTree,
-        onCanMove,
-        onCanMoveTo,
-        onDragMove,
-        onDragStop,
-        onIsMoveHandle,
-        openFolderDelay,
-        openNode,
-        refreshElements,
-        slide,
-        treeElement,
-        triggerEvent
+        _autoEscape: autoEscape,
+        _classNames: classNames,
+        _getNodeElement: getNodeElement,
+        _getNodeElementForNode: getNodeElementForNode,
+        _getScrollLeft: getScrollLeft,
+        _getTree: getTree,
+        _onCanMove: onCanMove,
+        _onCanMoveTo: onCanMoveTo,
+        _onDragMove: onDragMove,
+        _onDragStop: onDragStop,
+        _onIsMoveHandle: onIsMoveHandle,
+        _openFolderDelay: openFolderDelay,
+        _openNode: openNode,
+        _refreshElements: refreshElements,
+        _slide: slide,
+        _treeElement: treeElement,
+        _triggerEvent: triggerEvent
       }) {
         this._autoEscape = autoEscape;
         this._classNames = classNames;
@@ -443,7 +443,7 @@ var TreeElement = (function () {
         this._openFolderTimer = null;
         this._previousGhost = null;
       }
-      mouseCapture(positionInfo) {
+      _mouseCapture(positionInfo) {
         const element = positionInfo.target;
         if (!this._mustCaptureElement(element)) {
           return null;
@@ -460,11 +460,11 @@ var TreeElement = (function () {
         this.currentItem = nodeElement;
         return this.currentItem != null;
       }
-      mouseDrag(positionInfo) {
+      _mouseDrag(positionInfo) {
         if (!this.currentItem || !this._dragElement) {
           return false;
         }
-        this._dragElement.move(positionInfo.pageX, positionInfo.pageY);
+        this._dragElement._move(positionInfo.pageX, positionInfo.pageY);
         const area = this._findHoveredArea(positionInfo.pageX, positionInfo.pageY);
         if (area && this._canMoveToArea(area, this.currentItem)) {
           if (!area.node.isFolder()) {
@@ -493,29 +493,29 @@ var TreeElement = (function () {
         }
         return true;
       }
-      mouseStart(positionInfo) {
+      _mouseStart(positionInfo) {
         if (!this.currentItem) {
           return false;
         }
-        this.refresh();
+        this._refresh();
         const {
           left,
           top
         } = getElementPosition(positionInfo.target);
         const node = this.currentItem.node;
         this._dragElement = new DragElement({
-          autoEscape: this._autoEscape ?? true,
-          classNames: this._classNames,
-          nodeName: node.name,
-          offsetX: positionInfo.pageX - left,
-          offsetY: positionInfo.pageY - top,
-          treeElement: this._treeElement
+          _autoEscape: this._autoEscape ?? true,
+          _classNames: this._classNames,
+          _nodeName: node.name,
+          _offsetX: positionInfo.pageX - left,
+          _offsetY: positionInfo.pageY - top,
+          _treeElement: this._treeElement
         });
         this.isDragging = true;
         this.currentItem.element.classList.add(this._classNames.moving);
         return true;
       }
-      mouseStop(positionInfo) {
+      _mouseStop(positionInfo) {
         this._moveItem(positionInfo);
         this._clear();
         this._removeHover();
@@ -534,7 +534,7 @@ var TreeElement = (function () {
         }
         return false;
       }
-      refresh() {
+      _refresh() {
         this._removeHitAreas();
         if (this.currentItem) {
           const currentNode = this.currentItem.node;
@@ -553,7 +553,7 @@ var TreeElement = (function () {
       }
       _clear() {
         if (this._dragElement) {
-          this._dragElement.remove();
+          this._dragElement._remove();
           this._dragElement = null;
         }
       }
@@ -648,7 +648,7 @@ var TreeElement = (function () {
       _startOpenFolderTimer(folder) {
         const openFolder = () => {
           void this._openNode(folder, this._slide).then(() => {
-            this.refresh();
+            this._refresh();
             this._updateDropHint();
           });
         };
@@ -674,7 +674,7 @@ var TreeElement = (function () {
 
         // add new drop hint
         const nodeElement = this._getNodeElementForNode(this.hoveredArea.node);
-        this._previousGhost = nodeElement.addDropHint(this.hoveredArea.position);
+        this._previousGhost = nodeElement._addDropHint(this.hoveredArea.position);
       }
     }
 
@@ -713,20 +713,20 @@ var TreeElement = (function () {
       _showEmptyFolder;
       _tabIndex;
       constructor({
-        autoEscape,
-        buttonLeft,
-        classNames,
-        closedIcon,
-        dragAndDrop,
-        getTree,
-        htmlElement,
-        isNodeSelected,
-        onCreateLi,
-        openedIcon,
-        rtl,
-        setNodeElement,
-        showEmptyFolder,
-        tabIndex
+        _autoEscape: autoEscape,
+        _buttonLeft: buttonLeft,
+        _classNames: classNames,
+        _closedIcon: closedIcon,
+        _dragAndDrop: dragAndDrop,
+        _getTree: getTree,
+        _htmlElement: htmlElement,
+        _isNodeSelected: isNodeSelected,
+        _onCreateLi: onCreateLi,
+        _openedIcon: openedIcon,
+        _rtl: rtl,
+        _setNodeElement: setNodeElement,
+        _showEmptyFolder: showEmptyFolder,
+        _tabIndex: tabIndex
       }) {
         this._autoEscape = autoEscape;
         this._buttonLeft = buttonLeft;
@@ -748,24 +748,24 @@ var TreeElement = (function () {
         this._openedFolderTemplate = this._createFolderTemplate(true);
         this._closedFolderTemplate = this._createFolderTemplate(false);
       }
-      render(fromNode) {
+      _render(fromNode) {
         if (fromNode?.parent) {
-          this.renderFromNode(fromNode);
+          this._renderFromNode(fromNode);
         } else {
-          this.renderFromRoot();
+          this._renderFromRoot();
         }
       }
 
       /* Render the children of a rendered folder. Returns the new <ul>, or
        * null when the folder is not rendered or has no children.
        */
-      renderChildren(node) {
+      _renderChildren(node) {
         if (!node.element || !node.hasChildren()) {
           return null;
         }
         return this._createDomElements(node.element, node.children, false, node.getLevel() + 1);
       }
-      renderFromNode(node) {
+      _renderFromNode(node) {
         if (!node.element) {
           return;
         }
@@ -776,7 +776,7 @@ var TreeElement = (function () {
           this._createDomElements(newLi, node.children, false, node.getLevel() + 1);
         }
       }
-      renderFromRoot() {
+      _renderFromRoot() {
         this._htmlElement.textContent = "";
         const tree = this._getTree();
         if (tree) {
@@ -987,12 +987,12 @@ var TreeElement = (function () {
       _openNode;
       _originalSelectNode;
       constructor({
-        closeNode,
-        getSelectedNode,
-        isFocusOnTree,
-        keyboardSupport,
-        openNode,
-        selectNode
+        _closeNode: closeNode,
+        _getSelectedNode: getSelectedNode,
+        _isFocusOnTree: isFocusOnTree,
+        _keyboardSupport: keyboardSupport,
+        _openNode: openNode,
+        _selectNode: selectNode
       }) {
         this._closeNode = closeNode;
         this._getSelectedNode = getSelectedNode;
@@ -1004,15 +1004,15 @@ var TreeElement = (function () {
           document.addEventListener("keydown", this._handleKeyDown);
         }
       }
-      deinit() {
+      _deinit() {
         if (this._keyboardSupport) {
           document.removeEventListener("keydown", this._handleKeyDown);
         }
       }
-      moveDown(selectedNode) {
+      _moveDown(selectedNode) {
         return this._selectNode(selectedNode.getNextVisibleNode());
       }
-      moveUp(selectedNode) {
+      _moveUp(selectedNode) {
         return this._selectNode(selectedNode.getPreviousVisibleNode());
       }
       _canHandleKeyboard() {
@@ -1027,7 +1027,7 @@ var TreeElement = (function () {
         if (selectedNode) {
           switch (e.key) {
             case "ArrowDown":
-              isKeyHandled = this.moveDown(selectedNode);
+              isKeyHandled = this._moveDown(selectedNode);
               break;
             case "ArrowLeft":
               isKeyHandled = this._moveLeft(selectedNode);
@@ -1036,7 +1036,7 @@ var TreeElement = (function () {
               isKeyHandled = this._moveRight(selectedNode);
               break;
             case "ArrowUp":
-              isKeyHandled = this.moveUp(selectedNode);
+              isKeyHandled = this._moveUp(selectedNode);
               break;
           }
         }
@@ -1115,18 +1115,18 @@ var TreeElement = (function () {
       _triggerEvent;
       _useContextMenu;
       constructor({
-        classNames,
-        element,
-        getMouseDelay,
-        getNode,
-        onClickButton,
-        onClickTitle,
-        onMouseCapture,
-        onMouseDrag,
-        onMouseStart,
-        onMouseStop,
-        triggerEvent,
-        useContextMenu
+        _classNames: classNames,
+        _element: element,
+        _getMouseDelay: getMouseDelay,
+        _getNode: getNode,
+        _onClickButton: onClickButton,
+        _onClickTitle: onClickTitle,
+        _onMouseCapture: onMouseCapture,
+        _onMouseDrag: onMouseDrag,
+        _onMouseStart: onMouseStart,
+        _onMouseStop: onMouseStop,
+        _triggerEvent: triggerEvent,
+        _useContextMenu: useContextMenu
       }) {
         this._classNames = classNames;
         this._element = element;
@@ -1156,7 +1156,7 @@ var TreeElement = (function () {
         this._isMouseDelayMet = false;
         this._mouseDownInfo = null;
       }
-      deinit() {
+      _deinit() {
         this._element.removeEventListener("click", this._handleClick);
         this._element.removeEventListener("dblclick", this._handleDblclick);
         if (this._useContextMenu) {
@@ -2207,11 +2207,11 @@ var TreeElement = (function () {
       _tabIndex;
       _treeElement;
       constructor({
-        classNames,
-        getScrollLeft,
-        node,
-        tabIndex,
-        treeElement
+        _classNames: classNames,
+        _getScrollLeft: getScrollLeft,
+        _node: node,
+        _tabIndex: tabIndex,
+        _treeElement: treeElement
       }) {
         this._classNames = classNames;
         this._getScrollLeft = getScrollLeft;
@@ -2222,14 +2222,14 @@ var TreeElement = (function () {
         // The root node has no element of its own; it uses the tree element.
         this.element = node.element ?? this._treeElement;
       }
-      addDropHint(position) {
+      _addDropHint(position) {
         if (this._mustShowBorderDropHint(position)) {
           return new BorderDropHint(this.element, this._getScrollLeft(), this._classNames);
         } else {
           return new GhostDropHint(this.node, this.element, position, this._classNames);
         }
       }
-      deselect() {
+      _deselect() {
         if (!this._isRendered()) {
           return;
         }
@@ -2239,7 +2239,7 @@ var TreeElement = (function () {
         titleSpan.setAttribute("aria-selected", "false");
         titleSpan.blur();
       }
-      select(mustSetFocus) {
+      _select(mustSetFocus) {
         if (!this._isRendered()) {
           return;
         }
@@ -2317,29 +2317,29 @@ var TreeElement = (function () {
       _renderChildren;
       _triggerEvent;
       constructor({
-        classNames,
-        closedIconElement,
-        getScrollLeft,
-        node,
-        openedIconElement,
-        renderChildren,
-        tabIndex,
-        treeElement,
-        triggerEvent
+        _classNames: classNames,
+        _closedIconElement: closedIconElement,
+        _getScrollLeft: getScrollLeft,
+        _node: node,
+        _openedIconElement: openedIconElement,
+        _renderChildren: renderChildren,
+        _tabIndex: tabIndex,
+        _treeElement: treeElement,
+        _triggerEvent: triggerEvent
       }) {
         super({
-          classNames,
-          getScrollLeft,
-          node,
-          tabIndex,
-          treeElement
+          _classNames: classNames,
+          _getScrollLeft: getScrollLeft,
+          _node: node,
+          _tabIndex: tabIndex,
+          _treeElement: treeElement
         });
         this._closedIconElement = closedIconElement;
         this._openedIconElement = openedIconElement;
         this._renderChildren = renderChildren;
         this._triggerEvent = triggerEvent;
       }
-      close(slide, animationSpeed) {
+      _close(slide, animationSpeed) {
         if (!this.node.is_open) {
           return;
         }
@@ -2376,7 +2376,7 @@ var TreeElement = (function () {
           doClose();
         }
       }
-      async open(slide, animationSpeed) {
+      async _open(slide, animationSpeed) {
         return new Promise(resolve => {
           if (this.node.is_open) {
             resolve();
@@ -2452,7 +2452,7 @@ var TreeElement = (function () {
           this._isAbsolute = false;
         }
       }
-      setSearchParam(key, value) {
+      _setSearchParam(key, value) {
         this._url.searchParams.set(key, value);
       }
       toString() {
@@ -2476,16 +2476,16 @@ var TreeElement = (function () {
       _removeFromSelection;
       _saveStateOption;
       constructor({
-        addToSelection,
-        getNodeById,
-        getSelectedNodes,
-        getTree,
-        onGetStateFromStorage,
-        onSetStateFromStorage,
-        openNode,
-        refreshElements,
-        removeFromSelection,
-        saveState
+        _addToSelection: addToSelection,
+        _getNodeById: getNodeById,
+        _getSelectedNodes: getSelectedNodes,
+        _getTree: getTree,
+        _onGetStateFromStorage: onGetStateFromStorage,
+        _onSetStateFromStorage: onSetStateFromStorage,
+        _openNode: openNode,
+        _refreshElements: refreshElements,
+        _removeFromSelection: removeFromSelection,
+        _saveState: saveState
       }) {
         this._addToSelection = addToSelection;
         this._getNodeById = getNodeById;
@@ -2498,18 +2498,18 @@ var TreeElement = (function () {
         this._removeFromSelection = removeFromSelection;
         this._saveStateOption = saveState;
       }
-      getNodeIdToBeSelected() {
+      _getNodeIdToBeSelected() {
         if (!this._saveStateOption) {
           return null;
         }
-        const state = this.getStateFromStorage();
+        const state = this._getStateFromStorage();
         if (state?.selected_node) {
           return state.selected_node[0] ?? null;
         } else {
           return null;
         }
       }
-      getState() {
+      _getState() {
         const getOpenNodeIds = () => {
           const openNodes = [];
           this._getTree()?.iterate(node => {
@@ -2534,7 +2534,7 @@ var TreeElement = (function () {
           selected_node: getSelectedNodeIds()
         };
       }
-      getStateFromStorage() {
+      _getStateFromStorage() {
         if (!this._saveStateOption) {
           return null;
         }
@@ -2545,11 +2545,11 @@ var TreeElement = (function () {
           return null;
         }
       }
-      saveState() {
+      _saveState() {
         if (!this._saveStateOption) {
           return;
         }
-        const state = JSON.stringify(this.getState());
+        const state = JSON.stringify(this._getState());
         if (this._onSetStateFromStorage) {
           this._onSetStateFromStorage(state);
         } else {
@@ -2562,7 +2562,7 @@ var TreeElement = (function () {
       Don't handle nodes that are loaded on demand
        result: must load on demand (boolean)
       */
-      setInitialState(state) {
+      _setInitialState(state) {
         let mustLoadOnDemand = false;
         if (state.open_nodes) {
           mustLoadOnDemand = this._openInitialNodes(state.open_nodes);
@@ -2573,7 +2573,7 @@ var TreeElement = (function () {
         }
         return mustLoadOnDemand;
       }
-      async setInitialStateOnDemand(state) {
+      async _setInitialStateOnDemand(state) {
         let nodeIds = state.open_nodes;
         const openNodes = async () => {
           if (!nodeIds) {
@@ -2672,13 +2672,13 @@ var TreeElement = (function () {
       _verticalScrollDirection;
       _verticalScrollTimeout;
       constructor({
-        container,
-        refreshHitAreas
+        _container: container,
+        _refreshHitAreas: refreshHitAreas
       }) {
         this._container = container;
         this._refreshHitAreas = refreshHitAreas;
       }
-      checkHorizontalScrolling(pageX) {
+      _checkHorizontalScrolling(pageX) {
         const newHorizontalScrollDirection = this._getNewHorizontalScrollDirection(pageX);
         if (this._horizontalScrollDirection !== newHorizontalScrollDirection) {
           this._horizontalScrollDirection = newHorizontalScrollDirection;
@@ -2690,7 +2690,7 @@ var TreeElement = (function () {
           }
         }
       }
-      checkVerticalScrolling(pageY) {
+      _checkVerticalScrolling(pageY) {
         const newVerticalScrollDirection = this._getNewVerticalScrollDirection(pageY);
         if (this._verticalScrollDirection !== newVerticalScrollDirection) {
           this._verticalScrollDirection = newVerticalScrollDirection;
@@ -2703,13 +2703,13 @@ var TreeElement = (function () {
           }
         }
       }
-      getScrollLeft() {
+      _getScrollLeft() {
         return this._container.scrollLeft;
       }
-      scrollToY(top) {
+      _scrollToY(top) {
         this._container.scrollTop = top;
       }
-      stopScrolling() {
+      _stopScrolling() {
         this._horizontalScrollDirection = undefined;
         this._verticalScrollDirection = undefined;
       }
@@ -2744,8 +2744,8 @@ var TreeElement = (function () {
     class ContainerScrollParent extends ScrollParent {
       _scrollParentBottom;
       _scrollParentTop;
-      stopScrolling() {
-        super.stopScrolling();
+      _stopScrolling() {
+        super._stopScrolling();
         this._horizontalScrollDirection = undefined;
         this._verticalScrollDirection = undefined;
       }
@@ -2790,21 +2790,21 @@ var TreeElement = (function () {
       _documentScrollWidth;
       _treeElement;
       constructor({
-        refreshHitAreas,
-        treeElement
+        _refreshHitAreas: refreshHitAreas,
+        _treeElement: treeElement
       }) {
         super({
-          container: document.documentElement,
-          refreshHitAreas
+          _container: document.documentElement,
+          _refreshHitAreas: refreshHitAreas
         });
         this._treeElement = treeElement;
       }
-      scrollToY(top) {
+      _scrollToY(top) {
         const treeTop = getOffsetTop(this._treeElement);
-        super.scrollToY(top + treeTop);
+        super._scrollToY(top + treeTop);
       }
-      stopScrolling() {
-        super.stopScrolling();
+      _stopScrolling() {
+        super._stopScrolling();
         this._documentScrollHeight = undefined;
         this._documentScrollWidth = undefined;
       }
@@ -2873,13 +2873,13 @@ var TreeElement = (function () {
       const container = getParentWithOverflow(treeElement);
       if (container && container.tagName !== "HTML") {
         return new ContainerScrollParent({
-          container,
-          refreshHitAreas
+          _container: container,
+          _refreshHitAreas: refreshHitAreas
         });
       } else {
         return new DocumentScrollParent({
-          refreshHitAreas,
-          treeElement
+          _refreshHitAreas: refreshHitAreas,
+          _treeElement: treeElement
         });
       }
     };
@@ -2889,31 +2889,31 @@ var TreeElement = (function () {
       _scrollParent;
       _treeElement;
       constructor({
-        refreshHitAreas,
-        treeElement
+        _refreshHitAreas: refreshHitAreas,
+        _treeElement: treeElement
       }) {
         this._refreshHitAreas = refreshHitAreas;
         this._scrollParent = undefined;
         this._treeElement = treeElement;
       }
-      checkScrolling(positionInfo) {
+      _checkScrolling(positionInfo) {
         this._checkVerticalScrolling(positionInfo);
         this._checkHorizontalScrolling(positionInfo);
       }
-      getScrollLeft() {
-        return this._getScrollParent().getScrollLeft();
+      _getScrollLeft() {
+        return this._getScrollParent()._getScrollLeft();
       }
-      scrollToY(top) {
-        this._getScrollParent().scrollToY(top);
+      _scrollToY(top) {
+        this._getScrollParent()._scrollToY(top);
       }
-      stopScrolling() {
-        this._getScrollParent().stopScrolling();
+      _stopScrolling() {
+        this._getScrollParent()._stopScrolling();
       }
       _checkHorizontalScrolling(positionInfo) {
-        this._getScrollParent().checkHorizontalScrolling(positionInfo.pageX);
+        this._getScrollParent()._checkHorizontalScrolling(positionInfo.pageX);
       }
       _checkVerticalScrolling(positionInfo) {
-        this._getScrollParent().checkVerticalScrolling(positionInfo.pageY);
+        this._getScrollParent()._checkVerticalScrolling(positionInfo.pageY);
       }
       _getScrollParent() {
         this._scrollParent ??= createScrollParent(this._treeElement, this._refreshHitAreas);
@@ -2932,13 +2932,13 @@ var TreeElement = (function () {
       _selectedSingleNode;
       _triggerEvent;
       constructor({
-        getNodeById,
-        getNodeElementForNode,
-        getOnCanSelectNode,
-        getSelectable,
-        openParents,
-        saveState,
-        triggerEvent
+        _getNodeById: getNodeById,
+        _getNodeElementForNode: getNodeElementForNode,
+        _getOnCanSelectNode: getOnCanSelectNode,
+        _getSelectable: getSelectable,
+        _openParents: openParents,
+        _saveState: saveState,
+        _triggerEvent: triggerEvent
       }) {
         this._getNodeById = getNodeById;
         this._getNodeElementForNode = getNodeElementForNode;
@@ -2950,26 +2950,26 @@ var TreeElement = (function () {
         this._selectedSingleNode = null;
         this._triggerEvent = triggerEvent;
       }
-      addToSelection(node) {
+      _addToSelection(node) {
         if (node.id != null) {
           this._selectedNodes.add(node.id);
         } else {
           this._selectedSingleNode = node;
         }
       }
-      clear() {
+      _clear() {
         this._selectedNodes.clear();
         this._selectedSingleNode = null;
       }
-      getSelectedNode() {
-        const selectedNodes = this.getSelectedNodes();
+      _getSelectedNode() {
+        const selectedNodes = this._getSelectedNodes();
         if (selectedNodes.length) {
           return selectedNodes[0] ?? false;
         } else {
           return false;
         }
       }
-      getSelectedNodes() {
+      _getSelectedNodes() {
         if (this._selectedSingleNode) {
           return [this._selectedSingleNode];
         } else {
@@ -2983,7 +2983,7 @@ var TreeElement = (function () {
           return selectedNodes;
         }
       }
-      getSelectedNodesUnder(parent) {
+      _getSelectedNodesUnder(parent) {
         if (this._selectedSingleNode) {
           if (parent.isParentOf(this._selectedSingleNode)) {
             return [this._selectedSingleNode];
@@ -3001,7 +3001,7 @@ var TreeElement = (function () {
           return selectedNodes;
         }
       }
-      isNodeSelected(node) {
+      _isNodeSelected(node) {
         if (node.id != null) {
           return this._selectedNodes.has(node.id);
         } else if (this._selectedSingleNode) {
@@ -3010,7 +3010,7 @@ var TreeElement = (function () {
           return false;
         }
       }
-      removeFromSelection(node, includeChildren = false) {
+      _removeFromSelection(node, includeChildren = false) {
         if (node.id == null) {
           if (this._selectedSingleNode === node) {
             this._selectedSingleNode = null;
@@ -3038,7 +3038,7 @@ var TreeElement = (function () {
         * mustSetFocus: set the focus to the selected node
         * mustToggle: support deselecting the selected node
       */
-      selectSingleNode(node, optionsParam) {
+      _selectSingleNode(node, optionsParam) {
         const defaultOptions = {
           mustSetFocus: true,
           mustToggle: true
@@ -3058,10 +3058,10 @@ var TreeElement = (function () {
           return;
         }
         const deselectCurrentNode = deselectedNode => {
-          this.removeFromSelection(deselectedNode);
-          this._getNodeElementForNode(deselectedNode).deselect();
+          this._removeFromSelection(deselectedNode);
+          this._getNodeElementForNode(deselectedNode)._deselect();
         };
-        if (this.isNodeSelected(node)) {
+        if (this._isNodeSelected(node)) {
           if (selectOptions.mustToggle) {
             deselectCurrentNode(node);
             this._triggerEvent("tree.deselect", {
@@ -3069,13 +3069,13 @@ var TreeElement = (function () {
             });
           }
         } else {
-          const deselectedNode = this.getSelectedNode();
+          const deselectedNode = this._getSelectedNode();
           if (deselectedNode) {
             deselectCurrentNode(deselectedNode);
           }
-          this.addToSelection(node);
+          this._addToSelection(node);
           this._openParents(node);
-          this._getNodeElementForNode(node).select(selectOptions.mustSetFocus);
+          this._getNodeElementForNode(node)._select(selectOptions.mustSetFocus);
           this._triggerEvent("tree.select", {
             deselectedNode: deselectedNode || null,
             node
@@ -3256,89 +3256,89 @@ var TreeElement = (function () {
         const treeElement = this._htmlElement;
         const triggerEvent = this._triggerEvent.bind(this);
         const saveState = () => {
-          saveStateHandler.saveState();
+          saveStateHandler._saveState();
         };
         const selectNodeHandler = new SelectNodeHandler({
-          getNodeById,
-          getNodeElementForNode,
-          getOnCanSelectNode: () => this._options.onCanSelectNode,
-          getSelectable: () => this._options.selectable,
-          openParents,
-          saveState,
-          triggerEvent
+          _getNodeById: getNodeById,
+          _getNodeElementForNode: getNodeElementForNode,
+          _getOnCanSelectNode: () => this._options.onCanSelectNode,
+          _getSelectable: () => this._options.selectable,
+          _openParents: openParents,
+          _saveState: saveState,
+          _triggerEvent: triggerEvent
         });
-        const addToSelection = selectNodeHandler.addToSelection.bind(selectNodeHandler);
-        const getSelectedNodes = selectNodeHandler.getSelectedNodes.bind(selectNodeHandler);
-        const isNodeSelected = selectNodeHandler.isNodeSelected.bind(selectNodeHandler);
-        const removeFromSelection = selectNodeHandler.removeFromSelection.bind(selectNodeHandler);
-        const selectNode = selectNodeHandler.selectSingleNode.bind(selectNodeHandler);
+        const addToSelection = selectNodeHandler._addToSelection.bind(selectNodeHandler);
+        const getSelectedNodes = selectNodeHandler._getSelectedNodes.bind(selectNodeHandler);
+        const isNodeSelected = selectNodeHandler._isNodeSelected.bind(selectNodeHandler);
+        const removeFromSelection = selectNodeHandler._removeFromSelection.bind(selectNodeHandler);
+        const selectNode = selectNodeHandler._selectSingleNode.bind(selectNodeHandler);
         const getMouseDelay = () => this._options.startDndDelay ?? 0;
         const dataLoader = new DataLoader({
-          classNames,
-          dataFilter,
-          loadData,
-          treeElement,
-          triggerEvent
+          _classNames: classNames,
+          _dataFilter: dataFilter,
+          _loadData: loadData,
+          _treeElement: treeElement,
+          _triggerEvent: triggerEvent
         });
         const saveStateHandler = new SaveStateHandler({
-          addToSelection,
-          getNodeById,
-          getSelectedNodes,
-          getTree,
-          onGetStateFromStorage,
-          onSetStateFromStorage,
-          openNode,
-          refreshElements,
-          removeFromSelection,
-          saveState: saveStateOption
+          _addToSelection: addToSelection,
+          _getNodeById: getNodeById,
+          _getSelectedNodes: getSelectedNodes,
+          _getTree: getTree,
+          _onGetStateFromStorage: onGetStateFromStorage,
+          _onSetStateFromStorage: onSetStateFromStorage,
+          _openNode: openNode,
+          _refreshElements: refreshElements,
+          _removeFromSelection: removeFromSelection,
+          _saveState: saveStateOption
         });
         const scrollHandler = new ScrollHandler({
-          refreshHitAreas,
-          treeElement
+          _refreshHitAreas: refreshHitAreas,
+          _treeElement: treeElement
         });
-        const getScrollLeft = scrollHandler.getScrollLeft.bind(scrollHandler);
+        const getScrollLeft = scrollHandler._getScrollLeft.bind(scrollHandler);
         const dndHandler = new DragAndDropHandler({
-          autoEscape,
-          classNames,
-          getNodeElement,
-          getNodeElementForNode,
-          getScrollLeft,
-          getTree,
-          onCanMove,
-          onCanMoveTo,
-          onDragMove,
-          onDragStop,
-          onIsMoveHandle,
-          openFolderDelay,
-          openNode,
-          refreshElements,
-          slide,
-          treeElement,
-          triggerEvent
+          _autoEscape: autoEscape,
+          _classNames: classNames,
+          _getNodeElement: getNodeElement,
+          _getNodeElementForNode: getNodeElementForNode,
+          _getScrollLeft: getScrollLeft,
+          _getTree: getTree,
+          _onCanMove: onCanMove,
+          _onCanMoveTo: onCanMoveTo,
+          _onDragMove: onDragMove,
+          _onDragStop: onDragStop,
+          _onIsMoveHandle: onIsMoveHandle,
+          _openFolderDelay: openFolderDelay,
+          _openNode: openNode,
+          _refreshElements: refreshElements,
+          _slide: slide,
+          _treeElement: treeElement,
+          _triggerEvent: triggerEvent
         });
         const keyHandler = new KeyHandler({
-          closeNode,
-          getSelectedNode,
-          isFocusOnTree,
-          keyboardSupport,
-          openNode,
-          selectNode
+          _closeNode: closeNode,
+          _getSelectedNode: getSelectedNode,
+          _isFocusOnTree: isFocusOnTree,
+          _keyboardSupport: keyboardSupport,
+          _openNode: openNode,
+          _selectNode: selectNode
         });
         const renderer = new ElementsRenderer({
-          autoEscape,
-          buttonLeft,
-          classNames,
-          closedIcon,
-          dragAndDrop,
-          getTree,
-          htmlElement: treeElement,
-          isNodeSelected,
-          onCreateLi,
-          openedIcon,
-          rtl,
-          setNodeElement,
-          showEmptyFolder,
-          tabIndex
+          _autoEscape: autoEscape,
+          _buttonLeft: buttonLeft,
+          _classNames: classNames,
+          _closedIcon: closedIcon,
+          _dragAndDrop: dragAndDrop,
+          _getTree: getTree,
+          _htmlElement: treeElement,
+          _isNodeSelected: isNodeSelected,
+          _onCreateLi: onCreateLi,
+          _openedIcon: openedIcon,
+          _rtl: rtl,
+          _setNodeElement: setNodeElement,
+          _showEmptyFolder: showEmptyFolder,
+          _tabIndex: tabIndex
         });
         const getNode = this.getNode.bind(this);
         const onMouseCapture = this._mouseCapture.bind(this);
@@ -3346,18 +3346,18 @@ var TreeElement = (function () {
         const onMouseStart = this._mouseStart.bind(this);
         const onMouseStop = this._mouseStop.bind(this);
         const mouseHandler = new MouseHandler({
-          classNames,
-          element: treeElement,
-          getMouseDelay,
-          getNode,
-          onClickButton: this.toggle.bind(this),
-          onClickTitle: selectNode,
-          onMouseCapture,
-          onMouseDrag,
-          onMouseStart,
-          onMouseStop,
-          triggerEvent,
-          useContextMenu: this._options.useContextMenu
+          _classNames: classNames,
+          _element: treeElement,
+          _getMouseDelay: getMouseDelay,
+          _getNode: getNode,
+          _onClickButton: this.toggle.bind(this),
+          _onClickTitle: selectNode,
+          _onMouseCapture: onMouseCapture,
+          _onMouseDrag: onMouseDrag,
+          _onMouseStart: onMouseStart,
+          _onMouseStop: onMouseStop,
+          _triggerEvent: triggerEvent,
+          _useContextMenu: this._options.useContextMenu
         });
         this._dataLoader = dataLoader;
         this._dndHandler = dndHandler;
@@ -3420,9 +3420,9 @@ var TreeElement = (function () {
        * @group Selection
        */
       addToSelection(node, mustSetFocus) {
-        this._selectNodeHandler.addToSelection(node);
+        this._selectNodeHandler._addToSelection(node);
         this._openParents(node);
-        this._getNodeElementForNode(node).select(mustSetFocus ?? true);
+        this._getNodeElementForNode(node)._select(mustSetFocus ?? true);
         this._saveState();
       }
 
@@ -3451,7 +3451,7 @@ var TreeElement = (function () {
        */
       closeNode(node, slide) {
         if (node.isFolder() || node.isEmptyFolder) {
-          this._createFolderElement(node).close(slide ?? this._options.slide, this._options.animationSpeed);
+          this._createFolderElement(node)._close(slide ?? this._options.slide, this._options.animationSpeed);
           this._saveState();
         }
       }
@@ -3464,9 +3464,9 @@ var TreeElement = (function () {
        */
       deinit() {
         this._htmlElement.textContent = '';
-        this._dataLoader.deinit();
-        this._keyHandler.deinit();
-        this._mouseHandler.deinit();
+        this._dataLoader._deinit();
+        this._keyHandler._deinit();
+        this._mouseHandler._deinit();
         this.tree = new Node({}, true);
       }
 
@@ -3551,7 +3551,7 @@ var TreeElement = (function () {
        * @group Selection
        */
       getSelectedNode() {
-        return this._selectNodeHandler.getSelectedNode();
+        return this._selectNodeHandler._getSelectedNode();
       }
 
       /**
@@ -3560,7 +3560,7 @@ var TreeElement = (function () {
        * @group Selection
        */
       getSelectedNodes() {
-        return this._selectNodeHandler.getSelectedNodes();
+        return this._selectNodeHandler._getSelectedNodes();
       }
 
       /**
@@ -3570,7 +3570,7 @@ var TreeElement = (function () {
        * @group State
        */
       getState() {
-        return this._saveStateHandler.getState();
+        return this._saveStateHandler._getState();
       }
 
       /**
@@ -3579,7 +3579,7 @@ var TreeElement = (function () {
        * @group State
        */
       getStateFromStorage() {
-        return this._saveStateHandler.getStateFromStorage();
+        return this._saveStateHandler._getStateFromStorage();
       }
 
       /**
@@ -3616,7 +3616,7 @@ var TreeElement = (function () {
        * @group Selection
        */
       isNodeSelected(node) {
-        return this._selectNodeHandler.isNodeSelected(node);
+        return this._selectNodeHandler._isNodeSelected(node);
       }
 
       /**
@@ -3635,7 +3635,7 @@ var TreeElement = (function () {
             this._initTree(data);
           }
           if (this.isDragging()) {
-            this._dndHandler.refresh();
+            this._dndHandler._refresh();
           }
         }
         this._triggerEvent("tree.set_data", {
@@ -3653,7 +3653,7 @@ var TreeElement = (function () {
       async loadDataFromUrl(url, parentNode) {
         const requestUrl = url ? new RequestUrl(url) : this._createRequestUrl(parentNode);
         if (requestUrl) {
-          await this._dataLoader.loadFromUrl(requestUrl, parentNode);
+          await this._dataLoader._loadFromUrl(requestUrl, parentNode);
         }
       }
 
@@ -3665,7 +3665,7 @@ var TreeElement = (function () {
       moveDown() {
         const selectedNode = this.getSelectedNode();
         if (selectedNode) {
-          this._keyHandler.moveDown(selectedNode);
+          this._keyHandler._moveDown(selectedNode);
         }
       }
 
@@ -3693,7 +3693,7 @@ var TreeElement = (function () {
       moveUp() {
         const selectedNode = this.getSelectedNode();
         if (selectedNode) {
-          this._keyHandler.moveUp(selectedNode);
+          this._keyHandler._moveUp(selectedNode);
         }
       }
 
@@ -3718,7 +3718,7 @@ var TreeElement = (function () {
             return;
           }
           const folderElement = this._createFolderElement(openedNode);
-          await folderElement.open(slideOption, this._options.animationSpeed);
+          await folderElement._open(slideOption, this._options.animationSpeed);
         };
         if (node.isFolder() || node.isEmptyFolder) {
           if (node.load_on_demand) {
@@ -3767,7 +3767,7 @@ var TreeElement = (function () {
        * @group Other
        */
       refreshHitAreas() {
-        this._dndHandler.refresh();
+        this._dndHandler._refresh();
       }
 
       /**
@@ -3776,8 +3776,8 @@ var TreeElement = (function () {
        * @group Selection
        */
       removeFromSelection(node) {
-        this._selectNodeHandler.removeFromSelection(node);
-        this._getNodeElementForNode(node).deselect();
+        this._selectNodeHandler._removeFromSelection(node);
+        this._getNodeElementForNode(node)._deselect();
         this._saveState();
       }
 
@@ -3787,7 +3787,7 @@ var TreeElement = (function () {
        * @group Changing the tree
        */
       removeNode(node) {
-        this._selectNodeHandler.removeFromSelection(node, true); // including children
+        this._selectNodeHandler._removeFromSelection(node, true); // including children
 
         const parent = node.parent;
         node.remove();
@@ -3804,7 +3804,7 @@ var TreeElement = (function () {
           return;
         }
         const top = getOffsetTop(node.element) - getOffsetTop(this._htmlElement);
-        this._scrollHandler.scrollToY(top);
+        this._scrollHandler._scrollToY(top);
       }
 
       /**
@@ -3820,10 +3820,10 @@ var TreeElement = (function () {
         if (!node) {
           // Called with empty node -> deselect current node
           this._deselectCurrentNode();
-          this._saveStateHandler.saveState();
+          this._saveStateHandler._saveState();
           return;
         }
-        this._selectNodeHandler.selectSingleNode(node, options);
+        this._selectNodeHandler._selectSingleNode(node, options);
       }
 
       /**
@@ -3842,7 +3842,7 @@ var TreeElement = (function () {
        * @group State
        */
       setState(state) {
-        this._saveStateHandler.setInitialState(state);
+        this._saveStateHandler._setInitialState(state);
         this._refreshElements(null);
       }
 
@@ -3906,35 +3906,35 @@ var TreeElement = (function () {
       _createFolderElement(node) {
         const classNames = this._classNames;
         const closedIconElement = this._renderer.closedIconElement;
-        const getScrollLeft = this._scrollHandler.getScrollLeft.bind(this._scrollHandler);
+        const getScrollLeft = this._scrollHandler._getScrollLeft.bind(this._scrollHandler);
         const openedIconElement = this._renderer.openedIconElement;
-        const renderChildren = this._renderer.renderChildren.bind(this._renderer);
+        const renderChildren = this._renderer._renderChildren.bind(this._renderer);
         const tabIndex = this._options.tabIndex;
         const treeElement = this._htmlElement;
         const triggerEvent = this._triggerEvent.bind(this);
         return new FolderElement({
-          classNames,
-          closedIconElement,
-          getScrollLeft,
-          node,
-          openedIconElement,
-          renderChildren,
-          tabIndex,
-          treeElement,
-          triggerEvent
+          _classNames: classNames,
+          _closedIconElement: closedIconElement,
+          _getScrollLeft: getScrollLeft,
+          _node: node,
+          _openedIconElement: openedIconElement,
+          _renderChildren: renderChildren,
+          _tabIndex: tabIndex,
+          _treeElement: treeElement,
+          _triggerEvent: triggerEvent
         });
       }
       _createNodeElement(node) {
         const classNames = this._classNames;
-        const getScrollLeft = this._scrollHandler.getScrollLeft.bind(this._scrollHandler);
+        const getScrollLeft = this._scrollHandler._getScrollLeft.bind(this._scrollHandler);
         const tabIndex = this._options.tabIndex;
         const treeElement = this._htmlElement;
         return new NodeElement({
-          classNames,
-          getScrollLeft,
-          node,
-          tabIndex,
-          treeElement
+          _classNames: classNames,
+          _getScrollLeft: getScrollLeft,
+          _node: node,
+          _tabIndex: tabIndex,
+          _treeElement: treeElement
         });
       }
 
@@ -3956,12 +3956,12 @@ var TreeElement = (function () {
         const requestUrl = new RequestUrl(url);
         if (node?.id) {
           // Load on demand of a subtree; add node parameter
-          requestUrl.setSearchParam('node', node.id.toString());
+          requestUrl._setSearchParam('node', node.id.toString());
         } else {
           // Add selected_node parameter
           const selectedNodeId = this._getNodeIdToBeSelected();
           if (selectedNodeId) {
-            requestUrl.setSearchParam('selected_node', selectedNodeId.toString());
+            requestUrl._setSearchParam('selected_node', selectedNodeId.toString());
           }
         }
         return requestUrl;
@@ -3975,9 +3975,9 @@ var TreeElement = (function () {
 
       // Deselect the children of the node.
       _deselectNodes(parentNode) {
-        const selectedNodesUnderParent = this._selectNodeHandler.getSelectedNodesUnder(parentNode);
+        const selectedNodesUnderParent = this._selectNodeHandler._getSelectedNodesUnder(parentNode);
         for (const n of selectedNodesUnderParent) {
-          this._selectNodeHandler.removeFromSelection(n);
+          this._selectNodeHandler._removeFromSelection(n);
         }
       }
 
@@ -4010,7 +4010,7 @@ var TreeElement = (function () {
         }
       }
       _getNodeIdToBeSelected() {
-        return this._saveStateHandler.getNodeIdToBeSelected();
+        return this._saveStateHandler._getNodeIdToBeSelected();
       }
       _initData() {
         if (this._options.data) {
@@ -4032,7 +4032,7 @@ var TreeElement = (function () {
           }
         };
         this.tree = new this._options.nodeClass(null, true, this._options.nodeClass);
-        this._selectNodeHandler.clear();
+        this._selectNodeHandler._clear();
         this.tree.loadFromData(data);
         const mustLoadOnDemand = this._setInitialState();
         this._refreshElements(null);
@@ -4084,15 +4084,15 @@ var TreeElement = (function () {
         if (!this._options.dragAndDrop) {
           return false;
         }
-        return this._dndHandler.mouseCapture(positionInfo);
+        return this._dndHandler._mouseCapture(positionInfo);
       }
       _mouseDrag(positionInfo) {
         /* istanbul ignore if */
         if (!this._options.dragAndDrop) {
           return false;
         }
-        const result = this._dndHandler.mouseDrag(positionInfo);
-        this._scrollHandler.checkScrolling(positionInfo);
+        const result = this._dndHandler._mouseDrag(positionInfo);
+        this._scrollHandler._checkScrolling(positionInfo);
         return result;
       }
       _mouseStart(positionInfo) {
@@ -4100,15 +4100,15 @@ var TreeElement = (function () {
         if (!this._options.dragAndDrop) {
           return false;
         }
-        return this._dndHandler.mouseStart(positionInfo);
+        return this._dndHandler._mouseStart(positionInfo);
       }
       _mouseStop(positionInfo) {
         /* istanbul ignore if */
         if (!this._options.dragAndDrop) {
           return false;
         }
-        this._scrollHandler.stopScrolling();
-        return this._dndHandler.mouseStop(positionInfo);
+        this._scrollHandler._stopScrolling();
+        return this._dndHandler._mouseStop(positionInfo);
       }
       _openParents(node) {
         const parent = node.parent;
@@ -4124,20 +4124,20 @@ var TreeElement = (function () {
       _refreshElements(fromNode) {
         const mustSetFocus = this._isFocusOnTree();
         const mustSelect = fromNode ? this._isSelectedNodeInSubtree(fromNode) : false;
-        this._renderer.render(fromNode);
+        this._renderer._render(fromNode);
         if (mustSelect) {
           this._selectCurrentNode(mustSetFocus);
         }
         this._triggerEvent("tree.refresh");
       }
       _saveState() {
-        this._saveStateHandler.saveState();
+        this._saveStateHandler._saveState();
       }
       _selectCurrentNode(mustSetFocus) {
         const node = this.getSelectedNode();
         if (node) {
           const nodeElement = this._getNodeElementForNode(node);
-          nodeElement.select(mustSetFocus);
+          nodeElement._select(mustSetFocus);
         }
       }
 
@@ -4146,11 +4146,11 @@ var TreeElement = (function () {
       _setInitialState() {
         const restoreState = () => {
           // result: is state restored, must load on demand?
-          const state = this._saveStateHandler.getStateFromStorage();
+          const state = this._saveStateHandler._getStateFromStorage();
           if (!state) {
             return [false, false];
           } else {
-            const mustLoadOnDemand = this._saveStateHandler.setInitialState(state);
+            const mustLoadOnDemand = this._saveStateHandler._setInitialState(state);
 
             // return true: the state is restored
             return [true, mustLoadOnDemand];
@@ -4188,11 +4188,11 @@ var TreeElement = (function () {
       async _setInitialStateOnDemand() {
         return new Promise(resolve => {
           const restoreState = () => {
-            const state = this._saveStateHandler.getStateFromStorage();
+            const state = this._saveStateHandler._getStateFromStorage();
             if (!state) {
               return false;
             } else {
-              void this._saveStateHandler.setInitialStateOnDemand(state).then(() => {
+              void this._saveStateHandler._setInitialStateOnDemand(state).then(() => {
                 resolve();
               });
               return true;

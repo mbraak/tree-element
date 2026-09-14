@@ -69,8 +69,8 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0(supports-color@7.2.0)
       babel-plugin-prefix-private-members:
-        specifier: ^0.1.0
-        version: 0.1.0(@babel/core@8.0.1)
+        specifier: mbraak/babel-plugin-prefix-private-members#mangle-public-methods
+        version: https://codeload.github.com/mbraak/babel-plugin-prefix-private-members/tar.gz/93a25ec200d651c9030c1f58052b9c3ed459287b(@babel/core@8.0.1)
       eslint:
         specifier: ^10
         version: 10.9.1(jiti@2.7.0)(supports-color@7.2.0)
@@ -2282,8 +2282,9 @@ packages:
     peerDependencies:
       '@babel/core': ^7.4.0 || ^8.0.0
 
-  babel-plugin-prefix-private-members@0.1.0:
-    resolution: {integrity: sha512-WHFAxXSOHZl3iKTz8Jcixfzmij+iOg7jk9NX68EQtItLHhmLrkoZ2moc36LYY5dKEUrrc/jSm0eRQH/M9zCxWg==}
+  babel-plugin-prefix-private-members@https://codeload.github.com/mbraak/babel-plugin-prefix-private-members/tar.gz/93a25ec200d651c9030c1f58052b9c3ed459287b:
+    resolution: {gitHosted: true, integrity: sha512-yG5JDpE08egsszheQBvpzV9C7Xa9Qd8+aSNFSJSWJa66HR82wVXDGigbY69RCABF/yHUFyEle4mlx0Gx+icKZg==, tarball: https://codeload.github.com/mbraak/babel-plugin-prefix-private-members/tar.gz/93a25ec200d651c9030c1f58052b9c3ed459287b}
+    version: 0.1.0
     engines: {node: '>=20'}
     peerDependencies:
       '@babel/core': ^8.0.0
@@ -6187,7 +6188,7 @@ snapshots:
       '@babel/helper-define-polyfill-provider': 1.0.0(@babel/core@8.0.1)
       core-js-compat: 3.50.0
 
-  babel-plugin-prefix-private-members@0.1.0(@babel/core@8.0.1):
+  babel-plugin-prefix-private-members@https://codeload.github.com/mbraak/babel-plugin-prefix-private-members/tar.gz/93a25ec200d651c9030c1f58052b9c3ed459287b(@babel/core@8.0.1):
     dependencies:
       '@babel/core': 8.0.1
 

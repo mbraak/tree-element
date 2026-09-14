@@ -1,15 +1,20 @@
 {
-    "presets": ["@babel/preset-typescript", "@babel/preset-env"],
-    "plugins": [
-        [
-            "babel-plugin-prefix-private-members",
-            { "aliases": { "treeElement/": "./src/" } }
-        ]
-    ],
-    "env": {
-        "test": {
-            "presets": ["@babel/preset-typescript", "@babel/preset-env"]
-        }
-    },
-    "targets": "defaults"
+  "presets": ["@babel/preset-typescript", "@babel/preset-env"],
+  "plugins": [
+    [
+      "babel-plugin-prefix-private-members",
+      {
+        "aliases": { "treeElement/": "./src/" },
+        "prefixParameterKeys": true,
+        "prefixPublicMethods": true,
+        "excludeClasses": ["Node", "TreeElement"]
+      }
+    ]
+  ],
+  "env": {
+    "test": {
+      "presets": ["@babel/preset-typescript", "@babel/preset-env"]
+    }
+  },
+  "targets": "defaults"
 }
