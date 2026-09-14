@@ -251,6 +251,24 @@ describe("drag and drop", () => {
     ]);
   });
 
+  it("moves a node when the dragAndDrop option is enabled with setOption", async () => {
+    createTreeElement({ dragAndDrop: false });
+
+    treeElement?.setOption("dragAndDrop", true);
+    await dragAndDropNode("node1", 25);
+
+    expect(htmlElement).toHaveTreeStructure([
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "node1" }),
+          expect.objectContaining({ name: "node3" }),
+        ],
+        name: "node2",
+        open: true,
+      }),
+    ]);
+  });
+
   it("doesn't move a node when onCanMove returns false", async () => {
     const onCanMove = vi.fn(() => false);
 

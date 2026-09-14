@@ -63,7 +63,7 @@ export default class TreeElement {
 
   private classNames: ClassNames;
   private dataLoader: DataLoader;
-  private dndHandler: DragAndDropHandler;
+  private dndHandler: DragAndDropHandler | null;
   private htmlElement: HTMLElement;
   private isInitialized: boolean;
   private keyHandler: KeyHandler;
@@ -94,26 +94,18 @@ export default class TreeElement {
       dataFilter,
       dragAndDrop,
       keyboardSupport,
-      onCanMove,
-      onCanMoveTo,
       onCreateLi,
-      onDragMove,
-      onDragStop,
       onGetStateFromStorage,
-      onIsMoveHandle,
       onSetStateFromStorage,
       openedIcon,
-      openFolderDelay,
       rtl,
       saveState: saveStateOption,
       showEmptyFolder,
-      slide,
       tabIndex,
     } = this.options;
 
     const classNames = this.classNames;
     const closeNode = this.closeNode.bind(this);
-    const getNodeElement = this.getNodeElement.bind(this);
     const getNodeElementForNode = this.getNodeElementForNode.bind(this);
     const getNodeById = this.getNodeById.bind(this);
     const getSelectedNode = this.getSelectedNode.bind(this);
@@ -180,28 +172,6 @@ export default class TreeElement {
       treeElement,
     });
 
-    const getScrollLeft = scrollHandler.getScrollLeft.bind(scrollHandler);
-
-    const dndHandler = new DragAndDropHandler({
-      autoEscape,
-      classNames,
-      getNodeElement,
-      getNodeElementForNode,
-      getScrollLeft,
-      getTree,
-      onCanMove,
-      onCanMoveTo,
-      onDragMove,
-      onDragStop,
-      onIsMoveHandle,
-      openFolderDelay,
-      openNode,
-      refreshElements,
-      slide,
-      treeElement,
-      triggerEvent,
-    });
-
     const keyHandler = new KeyHandler({
       closeNode,
       getSelectedNode,
@@ -250,7 +220,7 @@ export default class TreeElement {
     });
 
     this.dataLoader = dataLoader;
-    this.dndHandler = dndHandler;
+    this.dndHandler = null;
     this.keyHandler = keyHandler;
     this.mouseHandler = mouseHandler;
     this.renderer = renderer;
@@ -526,7 +496,7 @@ export default class TreeElement {
    * @group Other
    */
   public isDragging(): boolean {
-    return this.dndHandler.isDragging;
+    return this.dndHandler?.isDragging ?? false;
   }
 
   /**
@@ -554,7 +524,7 @@ export default class TreeElement {
         this.initTree(data);
       }
 
-      if (this.isDragging()) {
+      if (this.dndHandler?.isDragging) {
         this.dndHandler.refresh();
       }
     }
@@ -714,7 +684,7 @@ export default class TreeElement {
    * @group Other
    */
   public refreshHitAreas() {
-    this.dndHandler.refresh();
+    this.dndHandler?.refresh();
   }
 
   /**
@@ -977,6 +947,40 @@ export default class TreeElement {
     return 0;
   }
 
+  /**
+   * Returns the drag and drop handler, creating it on first use. Returns
+   * `null` when the `dragAndDrop` option is off, so the handler is never
+   * constructed for trees that don't use it. The option is checked on every
+   * call because it can be turned on later with `setOption`.
+   */
+  private getDndHandler(): DragAndDropHandler | null {
+    if (!this.options.dragAndDrop) {
+      return null;
+    }
+
+    this.dndHandler ??= new DragAndDropHandler({
+      autoEscape: this.options.autoEscape,
+      classNames: this.classNames,
+      getNodeElement: this.getNodeElement.bind(this),
+      getNodeElementForNode: this.getNodeElementForNode.bind(this),
+      getScrollLeft: this.scrollHandler.getScrollLeft.bind(this.scrollHandler),
+      getTree: this.getTree.bind(this),
+      onCanMove: this.options.onCanMove,
+      onCanMoveTo: this.options.onCanMoveTo,
+      onDragMove: this.options.onDragMove,
+      onDragStop: this.options.onDragStop,
+      onIsMoveHandle: this.options.onIsMoveHandle,
+      openFolderDelay: this.options.openFolderDelay,
+      openNode: this.openNode.bind(this),
+      refreshElements: this.refreshElements.bind(this),
+      slide: this.options.slide,
+      treeElement: this.htmlElement,
+      triggerEvent: this.triggerEvent.bind(this),
+    });
+
+    return this.dndHandler;
+  }
+
   private getNodeElement(element: HTMLElement): NodeElement | null {
     const node = this.getNode(element);
     if (node) {
@@ -1092,41 +1096,49 @@ export default class TreeElement {
   }
 
   private mouseCapture(positionInfo: PositionInfo): boolean | null {
-    if (!this.options.dragAndDrop) {
+    const dndHandler = this.getDndHandler();
+
+    if (!dndHandler) {
       return false;
     }
 
-    return this.dndHandler.mouseCapture(positionInfo);
+    return dndHandler.mouseCapture(positionInfo);
   }
 
   private mouseDrag(positionInfo: PositionInfo): boolean {
+    const dndHandler = this.getDndHandler();
+
     /* istanbul ignore if */
-    if (!this.options.dragAndDrop) {
+    if (!dndHandler) {
       return false;
     }
 
-    const result = this.dndHandler.mouseDrag(positionInfo);
+    const result = dndHandler.mouseDrag(positionInfo);
     this.scrollHandler.checkScrolling(positionInfo);
     return result;
   }
 
   private mouseStart(positionInfo: PositionInfo): boolean {
+    const dndHandler = this.getDndHandler();
+
     /* istanbul ignore if */
-    if (!this.options.dragAndDrop) {
+    if (!dndHandler) {
       return false;
     }
 
-    return this.dndHandler.mouseStart(positionInfo);
+    return dndHandler.mouseStart(positionInfo);
   }
 
   private mouseStop(positionInfo: PositionInfo): boolean {
+    const dndHandler = this.getDndHandler();
+
     /* istanbul ignore if */
-    if (!this.options.dragAndDrop) {
+    if (!dndHandler) {
       return false;
     }
 
     this.scrollHandler.stopScrolling();
-    return this.dndHandler.mouseStop(positionInfo);
+    return dndHandler.mouseStop(positionInfo);
   }
 
   private openParents(node: Node) {
