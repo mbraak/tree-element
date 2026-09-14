@@ -4,6 +4,7 @@
         "checkJs": true,
         "paths": {
             "tree-element": ["./src/index"],
+            "tree-element/core": ["./src/core"],
             "tree-element/lib/*": ["./src/*"]
         },
         // The examples are mostly plain JavaScript, which has no way to tell the

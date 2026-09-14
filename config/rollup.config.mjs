@@ -22,38 +22,48 @@ const babelPlugin = babel({
   extensions: [".ts"],
 });
 
-const plugins = [tsConfigPaths(), resolvePlugin, babelPlugin];
-
-if (!debugBuild) {
-  const terserPlugin = terser({
-    mangle: {
-      properties: {
-        regex: /^_/,
-      },
+const terserPlugin = terser({
+  mangle: {
+    properties: {
+      regex: /^_/,
     },
-    output: {
-      comments: /@license/,
-    },
-  });
-  plugins.push(terserPlugin);
-}
+  },
+  output: {
+    comments: /@license/,
+  },
+});
 
-if (devServer) {
-  const servePlugin = serve({
-    contentBase: ["./devserver", "./"],
-    port: 8080,
-  });
-  plugins.push(servePlugin);
-}
+// Constructing the serve plugin starts the server, so only do it on demand.
+const servePlugin = devServer
+  ? serve({
+      contentBase: ["./devserver", "./"],
+      port: 8080,
+    })
+  : null;
 
-export default {
-  input: "src/index.ts",
+// One iife bundle per entry point: tree_element.js is the full tree,
+// tree_element.core.js the tree without drag and drop. Both expose the global
+// `TreeElement`. The debug build writes the variants without minification.
+const bundle = ({ input, name, withDevServer }) => ({
+  input,
   output: {
     banner: getBanner(),
-    file: debugBuild ? "tree_element.debug.js" : "tree_element.js",
+    file: debugBuild ? `${name}.debug.js` : `${name}.js`,
     format: "iife",
     name: "TreeElement",
     sourcemap: true,
   },
-  plugins,
-};
+  plugins: [
+    tsConfigPaths(),
+    resolvePlugin,
+    babelPlugin,
+    ...(debugBuild ? [] : [terserPlugin]),
+    // The dev server starts once, so attach it to a single bundle.
+    ...(servePlugin && withDevServer ? [servePlugin] : []),
+  ],
+});
+
+export default [
+  bundle({ input: "src/index.ts", name: "tree_element", withDevServer: true }),
+  bundle({ input: "src/core.ts", name: "tree_element.core" }),
+];

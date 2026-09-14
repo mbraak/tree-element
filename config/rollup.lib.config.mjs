@@ -18,9 +18,14 @@ const emitModuleType = () => ({
 });
 
 // Unbundled ES module build, used by the "module"/"exports" entry points so
-// that consumers can bundle and tree shake the sources themselves.
+// that consumers can bundle and tree shake the sources themselves. Both entry
+// points share the output directory; a consumer that imports "tree-element/core"
+// never pulls in the drag and drop modules.
 export default {
-  input: "src/index.ts",
+  input: {
+    core: "src/core.ts",
+    index: "src/index.ts",
+  },
   output: {
     // Only on the entry point: with preserveModules a plain banner would be
     // repeated in every output file.

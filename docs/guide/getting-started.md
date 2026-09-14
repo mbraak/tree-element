@@ -15,6 +15,7 @@ The package contains:
 | `lib/`                  | The source compiled to ES modules, with type declarations. This is what `import "tree-element"` resolves to.       |
 | `tree_element.js`       | The bundle: an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE) that defines a global `TreeElement`. |
 | `tree_element.debug.js` | The same bundle, unminified.                                                                                       |
+| `tree_element.core.js`  | The bundle without drag and drop; see [Drag and drop](./drag-and-drop#leaving-drag-and-drop-out).                  |
 | `tree_element.css`      | The stylesheet.                                                                                                    |
 
 If you do not use a bundler, copy `tree_element.js` and `tree_element.css` from

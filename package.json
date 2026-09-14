@@ -16,11 +16,20 @@
       "import": "./lib/index.js",
       "default": "./tree_element.js"
     },
+    "./core": {
+      "types": "./lib/core.d.ts",
+      "import": "./lib/core.js",
+      "default": "./tree_element.core.js"
+    },
     "./tree_element.css": "./tree_element.css",
     "./package.json": "./package.json"
   },
   "sideEffects": false,
   "files": [
+    "tree_element.core.debug.js",
+    "tree_element.core.debug.js.map",
+    "tree_element.core.js",
+    "tree_element.core.js.map",
     "tree_element.css",
     "tree_element.debug.js",
     "tree_element.debug.js.map",

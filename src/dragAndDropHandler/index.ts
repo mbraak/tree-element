@@ -22,14 +22,7 @@ import binarySearch from "./binarySearch";
 import DragElement from "./dragElement";
 import generateHitAreas from "./generateHitAreas";
 
-interface Dimensions {
-    bottom: number;
-    left: number;
-    right: number;
-    top: number;
-}
-
-interface DragAndDropHandlerParams {
+export interface DragAndDropHandlerParams {
     autoEscape?: boolean;
     classNames: ClassNames;
     getNodeElement: GetNodeElement;
@@ -47,6 +40,13 @@ interface DragAndDropHandlerParams {
     slide: boolean;
     treeElement: HTMLElement;
     triggerEvent: TriggerEvent;
+}
+
+interface Dimensions {
+    bottom: number;
+    left: number;
+    right: number;
+    top: number;
 }
 type GetNodeElement = (element: HTMLElement) => NodeElement | null;
 

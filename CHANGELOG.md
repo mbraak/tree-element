@@ -6,6 +6,15 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Added
+
+- `tree-element/core` entry point and `tree_element.core.js` bundle: the same tree without drag
+  and drop, for a smaller bundle when you don't use it.
+
+### Changed
+
+- The drag and drop handler is only created when the `dragAndDrop` option is on.
+
 ## 0.1.1 - 2026-09-06
 
 ### Changed

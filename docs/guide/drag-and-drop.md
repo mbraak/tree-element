@@ -174,3 +174,25 @@ Hit areas are computed when a drag starts. If you change the tree's size or posi
 ```js
 tree.refreshHitAreas();
 ```
+
+## Leaving drag and drop out
+
+Drag and drop is a sizable part of the library. If you don't use it, import the tree from
+`tree-element/core` instead of `tree-element`. It is the same class with the same api and types,
+but without the drag and drop code, so your bundle gets smaller:
+
+```js fixture=standalone
+import TreeElement from "tree-element/core";
+import "tree-element/tree_element.css";
+
+const tree = new TreeElement({
+  data: [{ name: "node1", id: 1 }],
+  htmlElement: document.getElementById("tree"),
+});
+```
+
+On this tree the `dragAndDrop` option has no effect, `isDragging()` is always false and
+`refreshHitAreas()` does nothing. `moveNode` still works: it doesn't depend on drag and drop.
+
+Without a bundler, load `tree_element.core.js` instead of `tree_element.js`. It defines the same
+global `TreeElement`.

@@ -195,10 +195,31 @@ const data: NodeData[] = [{ name: "root", id: 1 }];
 |                                 |                                                                    |
 | ------------------------------- | ------------------------------------------------------------------ |
 | `import "tree-element"`         | `lib/index.js`, unbundled es modules                               |
+| `import "tree-element/core"`    | `lib/core.js`, the same tree without drag and drop                 |
 | `require`, script tag           | `tree_element.js`, minified iife exposing the global `TreeElement` |
+| `tree_element.core.js`          | The iife of the tree without drag and drop                         |
 | `tree-element/tree_element.css` | The stylesheet                                                     |
 
-`tree_element.debug.js` is the same bundle without minification.
+`tree_element.debug.js` and `tree_element.core.debug.js` are the same bundles without minification.
+
+### Without drag and drop
+
+If you don't use drag and drop, import the tree from `tree-element/core`. It has the same api and
+the same types, but the drag and drop code is left out of your bundle. The `dragAndDrop` option
+does nothing on this tree, and `isDragging()` is always false.
+
+```js fixture=standalone
+import TreeElement from "tree-element/core";
+import "tree-element/tree_element.css";
+
+const tree = new TreeElement({
+  data: [{ name: "node1", id: 1 }],
+  htmlElement: document.getElementById("tree"),
+});
+```
+
+For a script tag, load `tree_element.core.js` instead of `tree_element.js`; it exposes the same
+global `TreeElement`.
 
 The es modules in `lib` are minified by your own bundler. Private members are
 prefixed with `_`, so add the same terser setting the bundled build uses to get
