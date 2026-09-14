@@ -683,6 +683,9 @@ var TreeElement = (function () {
 
     /* Renders the tree to html.
      *
+     * The children of a closed folder are not rendered. They are rendered when
+     * the folder is opened, see renderChildren.
+     *
      * The elements are created by cloning templates. A template is a fully
      * built <li> or <ul> with everything that is the same for every node
      * (structure, roles, static classes, the toggler icon). Per node only the
@@ -752,6 +755,16 @@ var TreeElement = (function () {
           this.renderFromRoot();
         }
       }
+
+      /* Render the children of a rendered folder. Returns the new <ul>, or
+       * null when the folder is not rendered or has no children.
+       */
+      renderChildren(node) {
+        if (!node.element || !node.hasChildren()) {
+          return null;
+        }
+        return this._createDomElements(node.element, node.children, false, node.getLevel() + 1);
+      }
       renderFromNode(node) {
         if (!node.element) {
           return;
@@ -759,9 +772,9 @@ var TreeElement = (function () {
         const currentLi = node.element;
         const newLi = this._createLi(node, node.getLevel());
         currentLi.replaceWith(newLi);
-
-        // create children
-        this._createDomElements(newLi, node.children, false, node.getLevel() + 1);
+        if (this._mustRenderChildren(node)) {
+          this._createDomElements(newLi, node.children, false, node.getLevel() + 1);
+        }
       }
       renderFromRoot() {
         this._htmlElement.textContent = "";
@@ -793,10 +806,11 @@ var TreeElement = (function () {
         for (const child of children) {
           const li = this._createLi(child, level);
           ul.appendChild(li);
-          if (child.hasChildren()) {
+          if (this._mustRenderChildren(child)) {
             this._createDomElements(li, child.children, false, level + 1);
           }
         }
+        return ul;
       }
       _createFolderLi(node, level, isSelected) {
         const template = node.is_open ? this._openedFolderTemplate : this._closedFolderTemplate;
@@ -957,6 +971,11 @@ var TreeElement = (function () {
           classes.push(this._classNames.togglerRight);
         }
         return classes.join(" ");
+      }
+
+      /* The children of a closed folder are rendered when it is opened */
+      _mustRenderChildren(node) {
+        return node.hasChildren() && node.is_open === true;
       }
     }
 
@@ -1389,7 +1408,8 @@ var TreeElement = (function () {
 
       /** The child nodes. */
       children;
-      /** The `li` element, once the node is rendered. */
+      /** The `li` element, once the node is rendered. Nodes inside a closed
+       * folder are rendered when the folder is opened. */
       element;
       /** The id from the node data. */
       id;
@@ -2198,8 +2218,9 @@ var TreeElement = (function () {
         this.node = node;
         this._tabIndex = tabIndex;
         this._treeElement = treeElement;
-        node.element ??= this._treeElement;
-        this.element = node.element;
+
+        // The root node has no element of its own; it uses the tree element.
+        this.element = node.element ?? this._treeElement;
       }
       addDropHint(position) {
         if (this._mustShowBorderDropHint(position)) {
@@ -2209,6 +2230,9 @@ var TreeElement = (function () {
         }
       }
       deselect() {
+        if (!this._isRendered()) {
+          return;
+        }
         this.element.classList.remove(this._classNames.selected);
         const titleSpan = this._getTitleSpan();
         titleSpan.removeAttribute("tabindex");
@@ -2216,6 +2240,9 @@ var TreeElement = (function () {
         titleSpan.blur();
       }
       select(mustSetFocus) {
+        if (!this._isRendered()) {
+          return;
+        }
         this.element.classList.add(this._classNames.selected);
         const titleSpan = this._getTitleSpan();
         const tabIndex = this._tabIndex;
@@ -2234,6 +2261,13 @@ var TreeElement = (function () {
       }
       _getUl() {
         return this.element.querySelector(":scope > ul");
+      }
+
+      /* A node inside a closed folder is not rendered. Its selected and open
+       * state is applied when it is rendered.
+       */
+      _isRendered() {
+        return Boolean(this.node.element);
       }
       _mustShowBorderDropHint(position) {
         return position === "inside";
@@ -2280,6 +2314,7 @@ var TreeElement = (function () {
     class FolderElement extends NodeElement {
       _closedIconElement;
       _openedIconElement;
+      _renderChildren;
       _triggerEvent;
       constructor({
         classNames,
@@ -2287,6 +2322,7 @@ var TreeElement = (function () {
         getScrollLeft,
         node,
         openedIconElement,
+        renderChildren,
         tabIndex,
         treeElement,
         triggerEvent
@@ -2300,6 +2336,7 @@ var TreeElement = (function () {
         });
         this._closedIconElement = closedIconElement;
         this._openedIconElement = openedIconElement;
+        this._renderChildren = renderChildren;
         this._triggerEvent = triggerEvent;
       }
       close(slide, animationSpeed) {
@@ -2307,6 +2344,12 @@ var TreeElement = (function () {
           return;
         }
         this.node.is_open = false;
+        if (!this._isRendered()) {
+          this._triggerEvent("tree.close", {
+            node: this.node
+          });
+          return;
+        }
         const button = this._getButton();
         button.classList.add(this._classNames.closed);
         button.innerHTML = "";
@@ -2324,7 +2367,9 @@ var TreeElement = (function () {
           });
         };
         const ul = this._getUl();
-        if (slide) {
+        if (!ul) {
+          doClose();
+        } else if (slide) {
           slideUp(ul, animationSpeed, doClose);
         } else {
           ul.style.display = "none";
@@ -2338,6 +2383,14 @@ var TreeElement = (function () {
             return;
           }
           this.node.is_open = true;
+          if (!this._isRendered()) {
+            // The folder is rendered open when its parent is opened
+            this._triggerEvent("tree.open", {
+              node: this.node
+            });
+            resolve();
+            return;
+          }
           const button = this._getButton();
           button.classList.remove(this._classNames.closed);
           button.innerHTML = "";
@@ -2355,8 +2408,12 @@ var TreeElement = (function () {
             });
             resolve();
           };
-          const ul = this._getUl();
-          if (slide) {
+
+          // The children are rendered the first time the folder is opened
+          const ul = this._getUl() ?? this._renderChildren(this.node);
+          if (!ul) {
+            doOpen();
+          } else if (slide) {
             slideDown(ul, animationSpeed, doOpen);
           } else {
             ul.style.display = "block";
@@ -2948,14 +3005,14 @@ var TreeElement = (function () {
         if (node.id != null) {
           return this._selectedNodes.has(node.id);
         } else if (this._selectedSingleNode) {
-          return this._selectedSingleNode.element === node.element;
+          return this._selectedSingleNode === node;
         } else {
           return false;
         }
       }
       removeFromSelection(node, includeChildren = false) {
         if (node.id == null) {
-          if (this._selectedSingleNode && node.element === this._selectedSingleNode.element) {
+          if (this._selectedSingleNode === node) {
             this._selectedSingleNode = null;
           }
         } else {
@@ -3851,6 +3908,7 @@ var TreeElement = (function () {
         const closedIconElement = this._renderer.closedIconElement;
         const getScrollLeft = this._scrollHandler.getScrollLeft.bind(this._scrollHandler);
         const openedIconElement = this._renderer.openedIconElement;
+        const renderChildren = this._renderer.renderChildren.bind(this._renderer);
         const tabIndex = this._options.tabIndex;
         const treeElement = this._htmlElement;
         const triggerEvent = this._triggerEvent.bind(this);
@@ -3860,6 +3918,7 @@ var TreeElement = (function () {
           getScrollLeft,
           node,
           openedIconElement,
+          renderChildren,
           tabIndex,
           treeElement,
           triggerEvent

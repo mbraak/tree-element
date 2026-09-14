@@ -9,6 +9,9 @@ All notable changes to tree-element are documented here. The format is based on
 ### Changed
 
 - Make rendering faster by using templates.
+- The children of a closed folder are rendered when the folder is opened,
+  instead of when the tree is rendered. `onCreateLi` is called for a node when
+  it is rendered.
 
 ## 0.1.1 - 2026-09-06
 

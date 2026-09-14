@@ -24,6 +24,9 @@ interface ElementsRendererParams {
 
 /* Renders the tree to html.
  *
+ * The children of a closed folder are not rendered. They are rendered when
+ * the folder is opened, see renderChildren.
+ *
  * The elements are created by cloning templates. A template is a fully
  * built <li> or <ul> with everything that is the same for every node
  * (structure, roles, static classes, the toggler icon). Per node only the
@@ -97,6 +100,22 @@ export default class ElementsRenderer {
         }
     }
 
+    /* Render the children of a rendered folder. Returns the new <ul>, or
+     * null when the folder is not rendered or has no children.
+     */
+    public renderChildren(node: Node): HTMLUListElement | null {
+        if (!node.element || !node.hasChildren()) {
+            return null;
+        }
+
+        return this.createDomElements(
+            node.element,
+            node.children,
+            false,
+            node.getLevel() + 1,
+        );
+    }
+
     public renderFromNode(node: Node): void {
         if (!node.element) {
             return;
@@ -106,13 +125,14 @@ export default class ElementsRenderer {
         const newLi = this.createLi(node, node.getLevel());
         currentLi.replaceWith(newLi);
 
-        // create children
-        this.createDomElements(
-            newLi,
-            node.children,
-            false,
-            node.getLevel() + 1,
-        );
+        if (this.mustRenderChildren(node)) {
+            this.createDomElements(
+                newLi,
+                node.children,
+                false,
+                node.getLevel() + 1,
+            );
+        }
     }
 
     public renderFromRoot(): void {
@@ -151,7 +171,7 @@ export default class ElementsRenderer {
         children: Node[],
         isRootNode: boolean,
         level: number,
-    ): void {
+    ): HTMLUListElement {
         const template = isRootNode
             ? this.rootUlTemplate
             : this.groupUlTemplate;
@@ -162,10 +182,12 @@ export default class ElementsRenderer {
             const li = this.createLi(child, level);
             ul.appendChild(li);
 
-            if (child.hasChildren()) {
+            if (this.mustRenderChildren(child)) {
                 this.createDomElements(li, child.children, false, level + 1);
             }
         }
+
+        return ul;
     }
 
     private createFolderLi(
@@ -395,5 +417,10 @@ export default class ElementsRenderer {
         }
 
         return classes.join(" ");
+    }
+
+    /* The children of a closed folder are rendered when it is opened */
+    private mustRenderChildren(node: Node): boolean {
+        return node.hasChildren() && node.is_open === true;
     }
 }
