@@ -109,7 +109,7 @@ var TreeElement = (function () {
         };
         const signal = this._abortController.signal;
         url._setSearchParam("_", Date.now().toString());
-        return fetch(url.toString(), {
+        return fetch(url._value(), {
           headers: {
             "Content-Type": "application/json"
           },
@@ -198,11 +198,11 @@ var TreeElement = (function () {
     }
 
     const iterateVisibleNodes = (tree, {
-      handleAfterOpenFolder,
-      handleClosedFolder,
-      handleFirstNode,
-      handleNode,
-      handleOpenFolder
+      _handleAfterOpenFolder: handleAfterOpenFolder,
+      _handleClosedFolder: handleClosedFolder,
+      _handleFirstNode: handleFirstNode,
+      _handleNode: handleNode,
+      _handleOpenFolder: handleOpenFolder
     }) => {
       let isFirstNode = true;
       const iterate = (node, nextNode) => {
@@ -328,11 +328,11 @@ var TreeElement = (function () {
         return true;
       };
       iterateVisibleNodes(tree, {
-        handleAfterOpenFolder,
-        handleClosedFolder,
-        handleFirstNode,
-        handleNode,
-        handleOpenFolder
+        _handleAfterOpenFolder: handleAfterOpenFolder,
+        _handleClosedFolder: handleClosedFolder,
+        _handleFirstNode: handleFirstNode,
+        _handleNode: handleNode,
+        _handleOpenFolder: handleOpenFolder
       });
       return hitPositions;
     };
@@ -375,10 +375,10 @@ var TreeElement = (function () {
     const generateHitAreas = (tree, currentNode, treeBottom) => generateHitAreasFromPositions(generateHitPositions(tree, currentNode), treeBottom);
 
     class DragAndDropHandler {
-      currentItem;
-      hitAreas;
-      hoveredArea;
-      isDragging;
+      _currentItem;
+      _hitAreas;
+      _hoveredArea;
+      _isDragging;
       _autoEscape;
       _classNames;
       _dragElement;
@@ -435,10 +435,10 @@ var TreeElement = (function () {
         this._slide = slide;
         this._treeElement = treeElement;
         this._triggerEvent = triggerEvent;
-        this.hoveredArea = null;
-        this.hitAreas = [];
-        this.isDragging = false;
-        this.currentItem = null;
+        this._hoveredArea = null;
+        this._hitAreas = [];
+        this._isDragging = false;
+        this._currentItem = null;
         this._dragElement = null;
         this._openFolderTimer = null;
         this._previousGhost = null;
@@ -453,25 +453,25 @@ var TreeElement = (function () {
         }
         let nodeElement = this._getNodeElement(element);
         if (nodeElement && this._onCanMove) {
-          if (!this._onCanMove(nodeElement.node)) {
+          if (!this._onCanMove(nodeElement._node)) {
             nodeElement = null;
           }
         }
-        this.currentItem = nodeElement;
-        return this.currentItem != null;
+        this._currentItem = nodeElement;
+        return this._currentItem != null;
       }
       _mouseDrag(positionInfo) {
-        if (!this.currentItem || !this._dragElement) {
+        if (!this._currentItem || !this._dragElement) {
           return false;
         }
         this._dragElement._move(positionInfo.pageX, positionInfo.pageY);
         const area = this._findHoveredArea(positionInfo.pageX, positionInfo.pageY);
-        if (area && this._canMoveToArea(area, this.currentItem)) {
+        if (area && this._canMoveToArea(area, this._currentItem)) {
           if (!area.node.isFolder()) {
             this._stopOpenFolderTimer();
           }
-          if (this.hoveredArea !== area) {
-            this.hoveredArea = area;
+          if (this._hoveredArea !== area) {
+            this._hoveredArea = area;
 
             // If this is a closed folder, start timer to open it
             if (this._mustOpenFolderTimer(area)) {
@@ -484,17 +484,17 @@ var TreeElement = (function () {
         } else {
           this._removeDropHint();
           this._stopOpenFolderTimer();
-          this.hoveredArea = area;
+          this._hoveredArea = area;
         }
         if (!area) {
           if (this._onDragMove) {
-            this._onDragMove(this.currentItem.node, positionInfo.originalEvent);
+            this._onDragMove(this._currentItem._node, positionInfo.originalEvent);
           }
         }
         return true;
       }
       _mouseStart(positionInfo) {
-        if (!this.currentItem) {
+        if (!this._currentItem) {
           return false;
         }
         this._refresh();
@@ -502,7 +502,7 @@ var TreeElement = (function () {
           left,
           top
         } = getElementPosition(positionInfo.target);
-        const node = this.currentItem.node;
+        const node = this._currentItem._node;
         this._dragElement = new DragElement({
           _autoEscape: this._autoEscape ?? true,
           _classNames: this._classNames,
@@ -511,8 +511,8 @@ var TreeElement = (function () {
           _offsetY: positionInfo.pageY - top,
           _treeElement: this._treeElement
         });
-        this.isDragging = true;
-        this.currentItem.element.classList.add(this._classNames.moving);
+        this._isDragging = true;
+        this._currentItem._element.classList.add(this._classNames.moving);
         return true;
       }
       _mouseStop(positionInfo) {
@@ -521,27 +521,27 @@ var TreeElement = (function () {
         this._removeHover();
         this._removeDropHint();
         this._removeHitAreas();
-        const currentItem = this.currentItem;
-        if (this.currentItem) {
-          this.currentItem.element.classList.remove(this._classNames.moving);
-          this.currentItem = null;
+        const currentItem = this._currentItem;
+        if (this._currentItem) {
+          this._currentItem._element.classList.remove(this._classNames.moving);
+          this._currentItem = null;
         }
-        this.isDragging = false;
-        if (!this.hoveredArea && currentItem) {
+        this._isDragging = false;
+        if (!this._hoveredArea && currentItem) {
           if (this._onDragStop) {
-            this._onDragStop(currentItem.node, positionInfo.originalEvent);
+            this._onDragStop(currentItem._node, positionInfo.originalEvent);
           }
         }
         return false;
       }
       _refresh() {
         this._removeHitAreas();
-        if (this.currentItem) {
-          const currentNode = this.currentItem.node;
+        if (this._currentItem) {
+          const currentNode = this._currentItem._node;
           this._generateHitAreas(currentNode);
-          this.currentItem = this._getNodeElementForNode(currentNode);
-          if (this.isDragging) {
-            this.currentItem.element.classList.add(this._classNames.moving);
+          this._currentItem = this._getNodeElementForNode(currentNode);
+          if (this._isDragging) {
+            this._currentItem._element.classList.add(this._classNames.moving);
           }
         }
       }
@@ -549,7 +549,7 @@ var TreeElement = (function () {
         if (!this._onCanMoveTo) {
           return true;
         }
-        return this._onCanMoveTo(currentItem.node, area.node, area.position);
+        return this._onCanMoveTo(currentItem._node, area.node, area.position);
       }
       _clear() {
         if (this._dragElement) {
@@ -562,7 +562,7 @@ var TreeElement = (function () {
         if (x < dimensions.left || y < dimensions.top || x > dimensions.right || y > dimensions.bottom) {
           return null;
         }
-        return binarySearch(this.hitAreas, area => {
+        return binarySearch(this._hitAreas, area => {
           if (y < area.top) {
             return 1;
           } else if (y > area.bottom) {
@@ -575,9 +575,9 @@ var TreeElement = (function () {
       _generateHitAreas(currentNode) {
         const tree = this._getTree();
         if (!tree) {
-          this.hitAreas = [];
+          this._hitAreas = [];
         } else {
-          this.hitAreas = generateHitAreas(tree, currentNode, this._getTreeDimensions().bottom);
+          this._hitAreas = generateHitAreas(tree, currentNode, this._getTreeDimensions().bottom);
         }
       }
       _getTreeDimensions() {
@@ -596,13 +596,13 @@ var TreeElement = (function () {
 
       /* Move the dragged node to the selected position in the tree. */
       _moveItem(positionInfo) {
-        if (this.currentItem && this.hoveredArea?.position && this._canMoveToArea(this.hoveredArea, this.currentItem)) {
-          const movedNode = this.currentItem.node;
-          const targetNode = this.hoveredArea.node;
-          const position = this.hoveredArea.position;
+        if (this._currentItem && this._hoveredArea?.position && this._canMoveToArea(this._hoveredArea, this._currentItem)) {
+          const movedNode = this._currentItem._node;
+          const targetNode = this._hoveredArea.node;
+          const position = this._hoveredArea.position;
           const previousParent = movedNode.parent;
           if (position === "inside") {
-            this.hoveredArea.node.is_open = true;
+            this._hoveredArea.node.is_open = true;
           }
           const doMove = () => {
             const tree = this._getTree();
@@ -640,10 +640,10 @@ var TreeElement = (function () {
         }
       }
       _removeHitAreas() {
-        this.hitAreas = [];
+        this._hitAreas = [];
       }
       _removeHover() {
-        this.hoveredArea = null;
+        this._hoveredArea = null;
       }
       _startOpenFolderTimer(folder) {
         const openFolder = () => {
@@ -665,7 +665,7 @@ var TreeElement = (function () {
         }
       }
       _updateDropHint() {
-        if (!this.hoveredArea) {
+        if (!this._hoveredArea) {
           return;
         }
 
@@ -673,8 +673,8 @@ var TreeElement = (function () {
         this._removeDropHint();
 
         // add new drop hint
-        const nodeElement = this._getNodeElementForNode(this.hoveredArea.node);
-        this._previousGhost = nodeElement._addDropHint(this.hoveredArea.position);
+        const nodeElement = this._getNodeElementForNode(this._hoveredArea.node);
+        this._previousGhost = nodeElement._addDropHint(this._hoveredArea.position);
       }
     }
 
@@ -693,8 +693,8 @@ var TreeElement = (function () {
      * selected and loading classes.
      */
     class ElementsRenderer {
-      closedIconElement;
-      openedIconElement;
+      _closedIconElement;
+      _openedIconElement;
       _autoEscape;
       _buttonLeft;
       _classNames;
@@ -740,8 +740,8 @@ var TreeElement = (function () {
         this._setNodeElement = setNodeElement;
         this._showEmptyFolder = showEmptyFolder;
         this._tabIndex = tabIndex;
-        this.openedIconElement = this._createButtonElement(openedIcon ?? "+");
-        this.closedIconElement = this._createButtonElement(closedIcon ?? "-");
+        this._openedIconElement = this._createButtonElement(openedIcon ?? "+");
+        this._closedIconElement = this._createButtonElement(closedIcon ?? "-");
         this._rootUlTemplate = this._createUlTemplate(true);
         this._groupUlTemplate = this._createUlTemplate(false);
         this._nodeTemplate = this._createNodeTemplate();
@@ -845,7 +845,7 @@ var TreeElement = (function () {
         // button link
         const buttonLink = document.createElement("a");
         buttonLink.className = this._getButtonClasses(isOpen);
-        const iconElement = isOpen ? this.openedIconElement : this.closedIconElement;
+        const iconElement = isOpen ? this._openedIconElement : this._closedIconElement;
         if (iconElement) {
           buttonLink.appendChild(iconElement.cloneNode(true));
         }
@@ -2200,8 +2200,8 @@ var TreeElement = (function () {
     }
 
     class NodeElement {
-      element;
-      node;
+      _element;
+      _node;
       _classNames;
       _getScrollLeft;
       _tabIndex;
@@ -2215,25 +2215,25 @@ var TreeElement = (function () {
       }) {
         this._classNames = classNames;
         this._getScrollLeft = getScrollLeft;
-        this.node = node;
+        this._node = node;
         this._tabIndex = tabIndex;
         this._treeElement = treeElement;
 
         // The root node has no element of its own; it uses the tree element.
-        this.element = node.element ?? this._treeElement;
+        this._element = node.element ?? this._treeElement;
       }
       _addDropHint(position) {
         if (this._mustShowBorderDropHint(position)) {
-          return new BorderDropHint(this.element, this._getScrollLeft(), this._classNames);
+          return new BorderDropHint(this._element, this._getScrollLeft(), this._classNames);
         } else {
-          return new GhostDropHint(this.node, this.element, position, this._classNames);
+          return new GhostDropHint(this._node, this._element, position, this._classNames);
         }
       }
       _deselect() {
         if (!this._isRendered()) {
           return;
         }
-        this.element.classList.remove(this._classNames.selected);
+        this._element.classList.remove(this._classNames.selected);
         const titleSpan = this._getTitleSpan();
         titleSpan.removeAttribute("tabindex");
         titleSpan.setAttribute("aria-selected", "false");
@@ -2243,7 +2243,7 @@ var TreeElement = (function () {
         if (!this._isRendered()) {
           return;
         }
-        this.element.classList.add(this._classNames.selected);
+        this._element.classList.add(this._classNames.selected);
         const titleSpan = this._getTitleSpan();
         const tabIndex = this._tabIndex;
 
@@ -2257,17 +2257,17 @@ var TreeElement = (function () {
         }
       }
       _getTitleSpan() {
-        return this.element.querySelector(`:scope > .${this._classNames.element} > span.${this._classNames.title}`);
+        return this._element.querySelector(`:scope > .${this._classNames.element} > span.${this._classNames.title}`);
       }
       _getUl() {
-        return this.element.querySelector(":scope > ul");
+        return this._element.querySelector(":scope > ul");
       }
 
       /* A node inside a closed folder is not rendered. Its selected and open
        * state is applied when it is rendered.
        */
       _isRendered() {
-        return Boolean(this.node.element);
+        return Boolean(this._node.element);
       }
       _mustShowBorderDropHint(position) {
         return position === "inside";
@@ -2340,13 +2340,13 @@ var TreeElement = (function () {
         this._triggerEvent = triggerEvent;
       }
       _close(slide, animationSpeed) {
-        if (!this.node.is_open) {
+        if (!this._node.is_open) {
           return;
         }
-        this.node.is_open = false;
+        this._node.is_open = false;
         if (!this._isRendered()) {
           this._triggerEvent("tree.close", {
-            node: this.node
+            node: this._node
           });
           return;
         }
@@ -2359,11 +2359,11 @@ var TreeElement = (function () {
           button.appendChild(icon);
         }
         const doClose = () => {
-          this.element.classList.add(this._classNames.closed);
+          this._element.classList.add(this._classNames.closed);
           const titleSpan = this._getTitleSpan();
           titleSpan.setAttribute("aria-expanded", "false");
           this._triggerEvent("tree.close", {
-            node: this.node
+            node: this._node
           });
         };
         const ul = this._getUl();
@@ -2378,15 +2378,15 @@ var TreeElement = (function () {
       }
       async _open(slide, animationSpeed) {
         return new Promise(resolve => {
-          if (this.node.is_open) {
+          if (this._node.is_open) {
             resolve();
             return;
           }
-          this.node.is_open = true;
+          this._node.is_open = true;
           if (!this._isRendered()) {
             // The folder is rendered open when its parent is opened
             this._triggerEvent("tree.open", {
-              node: this.node
+              node: this._node
             });
             resolve();
             return;
@@ -2400,17 +2400,17 @@ var TreeElement = (function () {
             button.appendChild(icon);
           }
           const doOpen = () => {
-            this.element.classList.remove(this._classNames.closed);
+            this._element.classList.remove(this._classNames.closed);
             const titleSpan = this._getTitleSpan();
             titleSpan.setAttribute("aria-expanded", "true");
             this._triggerEvent("tree.open", {
-              node: this.node
+              node: this._node
             });
             resolve();
           };
 
           // The children are rendered the first time the folder is opened
-          const ul = this._getUl() ?? this._renderChildren(this.node);
+          const ul = this._getUl() ?? this._renderChildren(this._node);
           if (!ul) {
             doOpen();
           } else if (slide) {
@@ -2422,10 +2422,10 @@ var TreeElement = (function () {
         });
       }
       _mustShowBorderDropHint(position) {
-        return !this.node.is_open && position === "inside";
+        return !this._node.is_open && position === "inside";
       }
       _getButton() {
-        return this.element.querySelector(`:scope > .${this._classNames.element} > a.${this._classNames.toggler}`);
+        return this._element.querySelector(`:scope > .${this._classNames.element} > a.${this._classNames.toggler}`);
       }
     }
 
@@ -2455,7 +2455,7 @@ var TreeElement = (function () {
       _setSearchParam(key, value) {
         this._url.searchParams.set(key, value);
       }
-      toString() {
+      _value() {
         if (this._isAbsolute) {
           return this._url.href;
         } else {
@@ -3186,8 +3186,6 @@ var TreeElement = (function () {
     // as its global, instead of an object of named exports.
 
     class TreeElement {
-      /** @hidden */
-      tree;
       _classNames;
       _dataLoader;
       _dndHandler;
@@ -3201,6 +3199,7 @@ var TreeElement = (function () {
       _saveStateHandler;
       _scrollHandler;
       _selectNodeHandler;
+      _tree;
       _triggerEventProvider;
 
       /** @hidden */
@@ -3214,7 +3213,7 @@ var TreeElement = (function () {
         this._classNames = createClassNames(this._options);
         this._triggerEventProvider = overrideTriggerEventProvider ?? triggerCustomEvent;
         this._isInitialized = false;
-        this.tree = new Node({}, true);
+        this._tree = new Node({}, true);
         this._nodeMap = new WeakMap();
         const {
           autoEscape,
@@ -3467,7 +3466,7 @@ var TreeElement = (function () {
         this._dataLoader._deinit();
         this._keyHandler._deinit();
         this._mouseHandler._deinit();
-        this.tree = new Node({}, true);
+        this._tree = new Node({}, true);
       }
 
       /**
@@ -3495,7 +3494,7 @@ var TreeElement = (function () {
        * @group Finding nodes
        */
       getNodeByCallback(callback) {
-        return this.tree.getNodeByCallback(callback);
+        return this._tree.getNodeByCallback(callback);
       }
 
       /**
@@ -3509,7 +3508,7 @@ var TreeElement = (function () {
        * @group Finding nodes
        */
       getNodeById(id) {
-        return this.tree.getNodeById(id);
+        return this._tree.getNodeById(id);
       }
 
       /**
@@ -3518,7 +3517,7 @@ var TreeElement = (function () {
        * @group Finding nodes
        */
       getNodeByName(name) {
-        return this.tree.getNodeByName(name);
+        return this._tree.getNodeByName(name);
       }
 
       /**
@@ -3528,7 +3527,7 @@ var TreeElement = (function () {
        * @group Finding nodes
        */
       getNodeByNameMustExist(name) {
-        return this.tree.getNodeByNameMustExist(name);
+        return this._tree.getNodeByNameMustExist(name);
       }
 
       /**
@@ -3542,7 +3541,7 @@ var TreeElement = (function () {
        * @group Finding nodes
        */
       getNodesByProperty(key, value) {
-        return this.tree.getNodesByProperty(key, value);
+        return this._tree.getNodesByProperty(key, value);
       }
 
       /**
@@ -3589,7 +3588,7 @@ var TreeElement = (function () {
        * @group Finding nodes
        */
       getTree() {
-        return this.tree;
+        return this._tree;
       }
 
       /**
@@ -3607,7 +3606,7 @@ var TreeElement = (function () {
        * @group Other
        */
       isDragging() {
-        return this._dndHandler.isDragging;
+        return this._dndHandler._isDragging;
       }
 
       /**
@@ -3681,7 +3680,7 @@ var TreeElement = (function () {
        * @group Changing the tree
        */
       moveNode(node, targetNode, position) {
-        this.tree.moveNode(node, targetNode, position);
+        this._tree.moveNode(node, targetNode, position);
         this._refreshElements(null);
       }
 
@@ -3868,7 +3867,7 @@ var TreeElement = (function () {
        * @group Other
        */
       toJson() {
-        return JSON.stringify(this.tree.getData());
+        return JSON.stringify(this._tree.getData());
       }
 
       /**
@@ -3889,11 +3888,11 @@ var TreeElement = (function () {
       updateNode(node, data) {
         const idIsChanged = typeof data === "object" && data.id && data.id !== node.id;
         if (idIsChanged) {
-          this.tree.removeNodeFromIndex(node);
+          this._tree.removeNodeFromIndex(node);
         }
         node.setData(data);
         if (idIsChanged) {
-          this.tree.addNodeToIndex(node);
+          this._tree.addNodeToIndex(node);
         }
         if (typeof data === "object" && data.children && data.children instanceof Array) {
           node.removeChildren();
@@ -3905,9 +3904,9 @@ var TreeElement = (function () {
       }
       _createFolderElement(node) {
         const classNames = this._classNames;
-        const closedIconElement = this._renderer.closedIconElement;
+        const closedIconElement = this._renderer._closedIconElement;
         const getScrollLeft = this._scrollHandler._getScrollLeft.bind(this._scrollHandler);
-        const openedIconElement = this._renderer.openedIconElement;
+        const openedIconElement = this._renderer._openedIconElement;
         const renderChildren = this._renderer._renderChildren.bind(this._renderer);
         const tabIndex = this._options.tabIndex;
         const treeElement = this._htmlElement;
@@ -4031,9 +4030,9 @@ var TreeElement = (function () {
             this._triggerEvent("tree.init");
           }
         };
-        this.tree = new this._options.nodeClass(null, true, this._options.nodeClass);
+        this._tree = new this._options.nodeClass(null, true, this._options.nodeClass);
         this._selectNodeHandler._clear();
-        this.tree.loadFromData(data);
+        this._tree.loadFromData(data);
         const mustLoadOnDemand = this._setInitialState();
         this._refreshElements(null);
         if (mustLoadOnDemand) {
@@ -4059,7 +4058,7 @@ var TreeElement = (function () {
           return false;
         }
         const node = this.getNode(activeElement);
-        return node?.tree === this.tree;
+        return node?.tree === this._tree;
       }
       _isSelectedNodeInSubtree(subtree) {
         const selectedNode = this.getSelectedNode();
@@ -4163,7 +4162,7 @@ var TreeElement = (function () {
           }
           const maxLevel = this._getAutoOpenMaxLevel();
           let mustLoadOnDemand = false;
-          this.tree.iterate((node, level) => {
+          this._tree.iterate((node, level) => {
             if (node.load_on_demand) {
               mustLoadOnDemand = true;
               return false;
@@ -4209,7 +4208,7 @@ var TreeElement = (function () {
               });
             };
             const openNodes = () => {
-              this.tree.iterate((node, level) => {
+              this._tree.iterate((node, level) => {
                 if (node.load_on_demand) {
                   if (!node.is_loading) {
                     loadAndOpenNode(node);

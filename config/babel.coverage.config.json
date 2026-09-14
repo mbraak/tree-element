@@ -11,7 +11,7 @@
           "treeElement/": "./src/"
         },
         "prefixParameterKeys": true,
-        "prefixPublicMethods": true,
+        "prefixPublicMembers": true,
         "excludeClasses": [
           "Node",
           "TreeElement"
