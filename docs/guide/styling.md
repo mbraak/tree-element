@@ -35,6 +35,9 @@ A tree renders as nested lists:
 </ul>
 ```
 
+The children of a closed folder are not in the markup: the nested `ul` is added the first time the
+folder is opened, and stays in place when it is closed again.
+
 Note that all selectors in the stylesheet are nested under `ul.tree-element`, so your own rules should
 be too — or be specific enough to win.
 
@@ -196,8 +199,9 @@ all in `tree_element.css`: if you replace the stylesheet, carry those rules over
 
 ## Customizing the markup
 
-`onCreateLi` is called for every node, with the node, its `li` element and whether it is selected.
-Use it to add your own content:
+`onCreateLi` is called for every rendered node, with the node, its `li` element and whether it is
+selected. A node inside a closed folder is rendered — and `onCreateLi` called — when that folder is
+opened. Use it to add your own content:
 
 ```js
 new TreeElement({

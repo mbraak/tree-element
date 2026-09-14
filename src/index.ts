@@ -879,6 +879,7 @@ export default class TreeElement {
       this.scrollHandler,
     );
     const openedIconElement = this.renderer.openedIconElement;
+    const renderChildren = this.renderer.renderChildren.bind(this.renderer);
     const tabIndex = this.options.tabIndex;
     const treeElement = this.htmlElement;
     const triggerEvent = this.triggerEvent.bind(this);
@@ -889,6 +890,7 @@ export default class TreeElement {
       getScrollLeft,
       node,
       openedIconElement,
+      renderChildren,
       tabIndex,
       treeElement,
       triggerEvent,

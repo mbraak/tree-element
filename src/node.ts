@@ -45,7 +45,8 @@ export class Node {
 
     /** The child nodes. */
     public children: Node[];
-    /** The `li` element, once the node is rendered. */
+    /** The `li` element, once the node is rendered. Nodes inside a closed
+     * folder are rendered when the folder is opened. */
     public element?: HTMLElement;
     /** The id from the node data. */
     public id?: NodeId;

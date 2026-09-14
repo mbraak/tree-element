@@ -2,7 +2,7 @@
     "presets": ["@babel/preset-typescript", "@babel/preset-env"],
     "plugins": [
         [
-            "./babel-plugin-prefix-private-members.ts",
+            "babel-plugin-prefix-private-members",
             { "aliases": { "treeElement/": "./src/" } }
         ]
     ],
