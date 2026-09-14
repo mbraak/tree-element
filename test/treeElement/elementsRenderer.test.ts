@@ -20,6 +20,7 @@ interface CreateRendererParams {
     isNodeSelected?: IsNodeSelected;
     onCreateLi?: OnCreateLi;
     openedIcon?: IconElement;
+    openFolders?: boolean;
     rtl?: boolean;
     showEmptyFolder?: boolean;
     tabIndex?: number;
@@ -35,11 +36,19 @@ const createRenderer = ({
     isNodeSelected = () => false,
     onCreateLi,
     openedIcon,
+    openFolders = false,
     rtl,
     showEmptyFolder = false,
     tabIndex,
 }: CreateRendererParams = {}) => {
     const tree = new Node().loadFromData(data);
+
+    if (openFolders) {
+        tree.iterate((node) => {
+            node.is_open = true;
+            return true;
+        });
+    }
 
     const element = document.createElement("div");
     document.body.append(element);
@@ -144,7 +153,7 @@ describe("renderFromNode", () => {
     });
 
     it("renders the children of the node", () => {
-        const { element, renderer, tree } = createRenderer();
+        const { element, renderer, tree } = createRenderer({ openFolders: true });
         renderer.renderFromRoot();
 
         const node = tree.getNodeByNameMustExist("node1");
@@ -165,8 +174,22 @@ describe("renderFromNode", () => {
         ]);
     });
 
+    it("doesn't render the children when the node is closed", () => {
+        const { element, renderer, tree } = createRenderer();
+        renderer.renderFromRoot();
+
+        const node = tree.getNodeByNameMustExist("node1");
+        node.name = "new-name";
+        renderer.renderFromNode(node);
+
+        expect(element).toHaveTreeStructure([
+            expect.objectContaining({ children: [], name: "new-name" }),
+            expect.objectContaining({ name: "node2" }),
+        ]);
+    });
+
     it("keeps the level of the node", () => {
-        const { renderer, tree } = createRenderer();
+        const { renderer, tree } = createRenderer({ openFolders: true });
         renderer.renderFromRoot();
 
         renderer.renderFromNode(tree.getNodeByNameMustExist("node3"));
@@ -176,13 +199,63 @@ describe("renderFromNode", () => {
     });
 });
 
+describe("renderChildren", () => {
+    beforeEach(() => {
+        document.body.innerHTML = "";
+    });
+
+    it("renders the children of the node and returns the list", () => {
+        const { element, renderer, setNodeElement, tree } = createRenderer();
+        renderer.renderFromRoot();
+
+        const node = tree.getNodeByNameMustExist("node1");
+        const ul = renderer.renderChildren(node);
+
+        expect(ul).toHaveRole("group");
+        expect(getTreeListElement(getTreeItem("node1"))).toContainElement(ul);
+        expect(getTreeItem("child1")).toHaveAttribute("aria-level", "2");
+        expect(element).toHaveTreeStructure([
+            expect.objectContaining({
+                children: [
+                    expect.objectContaining({ name: "child1" }),
+                    expect.objectContaining({ name: "child2" }),
+                ],
+                name: "node1",
+            }),
+            expect.objectContaining({ name: "node2" }),
+        ]);
+        expect(setNodeElement).toHaveBeenCalledWith(
+            tree.getNodeByNameMustExist("child1").element,
+            tree.getNodeByNameMustExist("child1"),
+        );
+    });
+
+    it("returns null when the node has no element", () => {
+        const { renderer, tree } = createRenderer();
+
+        const node = tree.getNodeByNameMustExist("node1");
+
+        expect(renderer.renderChildren(node)).toBeNull();
+    });
+
+    it("returns null when the node has no children", () => {
+        const { renderer, tree } = createRenderer({ openFolders: true });
+        renderer.renderFromRoot();
+
+        const node = tree.getNodeByNameMustExist("child1");
+
+        expect(renderer.renderChildren(node)).toBeNull();
+        expect(screen.getAllByRole("group")).toHaveLength(3);
+    });
+});
+
 describe("renderFromRoot", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
     });
 
     it("renders the tree", () => {
-        const { element, renderer } = createRenderer();
+        const { element, renderer } = createRenderer({ openFolders: true });
 
         renderer.renderFromRoot();
 
@@ -194,7 +267,7 @@ describe("renderFromRoot", () => {
                 ],
                 name: "node1",
                 nodeType: "folder",
-                open: false,
+                open: true,
                 selected: false,
             },
             {
@@ -209,15 +282,64 @@ describe("renderFromRoot", () => {
                         ],
                         name: "node3",
                         nodeType: "folder",
-                        open: false,
+                        open: true,
                         selected: false,
                     },
                 ],
                 name: "node2",
                 nodeType: "folder",
+                open: true,
+                selected: false,
+            },
+        ]);
+    });
+
+    it("doesn't render the children of a closed folder", () => {
+        const { element, renderer } = createRenderer();
+
+        renderer.renderFromRoot();
+
+        expect(element).toHaveTreeStructure([
+            {
+                children: [],
+                name: "node1",
+                nodeType: "folder",
                 open: false,
                 selected: false,
             },
+            {
+                children: [],
+                name: "node2",
+                nodeType: "folder",
+                open: false,
+                selected: false,
+            },
+        ]);
+        expect(screen.queryByRole("group")).not.toBeInTheDocument();
+    });
+
+    it("renders the children of an open folder inside a closed folder when the closed folder is opened", () => {
+        const { element, renderer, tree } = createRenderer();
+        const node2 = tree.getNodeByNameMustExist("node2");
+        tree.getNodeByNameMustExist("node3").is_open = true;
+
+        renderer.renderFromRoot();
+
+        node2.is_open = true;
+        renderer.renderChildren(node2);
+
+        expect(element).toHaveTreeStructure([
+            expect.objectContaining({ children: [], name: "node1" }),
+            expect.objectContaining({
+                children: [
+                    expect.objectContaining({
+                        children: [expect.objectContaining({ name: "child3" })],
+                        name: "node3",
+                        open: true,
+                    }),
+                ],
+                name: "node2",
+            }),
         ]);
     });
 
@@ -244,7 +366,7 @@ describe("renderFromRoot", () => {
     });
 
     it("attaches the element to the node", () => {
-        const { renderer, setNodeElement, tree } = createRenderer();
+        const { renderer, setNodeElement, tree } = createRenderer({ openFolders: true });
 
         renderer.renderFromRoot();
 
@@ -257,7 +379,7 @@ describe("renderFromRoot", () => {
 
     it("calls onCreateLi for every node", () => {
         const onCreateLi = vi.fn();
-        const { renderer, tree } = createRenderer({ onCreateLi });
+        const { renderer, tree } = createRenderer({ onCreateLi, openFolders: true });
 
         renderer.renderFromRoot();
 
@@ -268,7 +390,7 @@ describe("renderFromRoot", () => {
     });
 
     it("renders the root list as a tree", () => {
-        const { renderer } = createRenderer();
+        const { renderer } = createRenderer({ openFolders: true });
 
         renderer.renderFromRoot();
 
@@ -280,7 +402,7 @@ describe("renderFromRoot", () => {
     });
 
     it("adds the rtl class to the root list when rtl is true", () => {
-        const { renderer } = createRenderer({ rtl: true });
+        const { renderer } = createRenderer({ openFolders: true, rtl: true });
 
         renderer.renderFromRoot();
 
@@ -297,7 +419,7 @@ describe("renderFromRoot", () => {
     });
 
     it("adds the dnd class to the lists when dragAndDrop is true", () => {
-        const { renderer } = createRenderer({ dragAndDrop: true });
+        const { renderer } = createRenderer({ dragAndDrop: true, openFolders: true });
 
         renderer.renderFromRoot();
 
@@ -306,7 +428,7 @@ describe("renderFromRoot", () => {
     });
 
     it("doesn't add the dnd class to the lists when dragAndDrop is false", () => {
-        const { renderer } = createRenderer();
+        const { renderer } = createRenderer({ openFolders: true });
 
         renderer.renderFromRoot();
 
@@ -315,7 +437,7 @@ describe("renderFromRoot", () => {
     });
 
     it("sets the level of the nodes", () => {
-        const { renderer } = createRenderer();
+        const { renderer } = createRenderer({ openFolders: true });
 
         renderer.renderFromRoot();
 
@@ -380,8 +502,8 @@ describe("renderFromRoot", () => {
     });
 
     it("renders a selected child", () => {
-        const { renderer } = createRenderer({
-            isNodeSelected: (node) => node.name === "child1",
+        const { renderer } = createRenderer({ isNodeSelected: (node) => node.name === "child1",
+            openFolders: true,
         });
 
         renderer.renderFromRoot();
@@ -394,8 +516,8 @@ describe("renderFromRoot", () => {
     });
 
     it("sets the tab index of a selected node", () => {
-        const { renderer } = createRenderer({
-            isNodeSelected: (node) => node.name === "child1",
+        const { renderer } = createRenderer({ isNodeSelected: (node) => node.name === "child1",
+            openFolders: true,
             tabIndex: 11,
         });
 
@@ -406,8 +528,8 @@ describe("renderFromRoot", () => {
     });
 
     it("doesn't set a tab index when the tabIndex option is undefined", () => {
-        const { renderer } = createRenderer({
-            isNodeSelected: (node) => node.name === "child1",
+        const { renderer } = createRenderer({ isNodeSelected: (node) => node.name === "child1",
+            openFolders: true,
         });
 
         renderer.renderFromRoot();

@@ -31,6 +31,26 @@ describe("create with data", () => {
   it("creates a tree", () => {
     createTreeElement({ data: exampleData });
 
+    // The children of closed folders are rendered when the folder is opened
+    expect(htmlElement).toHaveTreeStructure([
+      expect.objectContaining({
+        children: [],
+        name: "node1",
+        open: false,
+        selected: false,
+      }),
+      expect.objectContaining({
+        children: [],
+        name: "node2",
+        open: false,
+        selected: false,
+      }),
+    ]);
+  });
+
+  it("creates a tree with open folders", () => {
+    createTreeElement({ autoOpen: true, data: exampleData });
+
     expect(htmlElement).toHaveTreeStructure([
       expect.objectContaining({
         children: [
@@ -38,7 +58,7 @@ describe("create with data", () => {
           expect.objectContaining({ name: "child2" }),
         ],
         name: "node1",
-        open: false,
+        open: true,
         selected: false,
       }),
       expect.objectContaining({
@@ -46,11 +66,11 @@ describe("create with data", () => {
           expect.objectContaining({
             children: [expect.objectContaining({ name: "child3" })],
             name: "node3",
-            open: false,
+            open: true,
           }),
         ],
         name: "node2",
-        open: false,
+        open: true,
         selected: false,
       }),
     ]);

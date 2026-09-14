@@ -45,12 +45,6 @@ const createFolderElement = ({
     });
     renderer.renderFromRoot();
 
-    if (!isOpen) {
-        // eslint-disable-next-line testing-library/no-node-access
-        const ul = (folderNode.element as HTMLElement).querySelector(":scope > ul") as HTMLElement;
-        ul.style.display = "none";
-    }
-
     const triggerEvent = vi.fn();
 
     const folderElement = new FolderElement({
@@ -59,6 +53,7 @@ const createFolderElement = ({
         getScrollLeft: () => 0,
         node: folderNode,
         openedIconElement,
+        renderChildren: renderer.renderChildren.bind(renderer),
         treeElement,
         triggerEvent,
     });
@@ -106,6 +101,24 @@ describe("close", () => {
         expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.close", {
             node: folderNode,
         });
+    });
+
+    it("only sets the state when the node isn't rendered", () => {
+        const { folderElement, folderNode, triggerEvent } = createFolderElement(
+            {
+                isOpen: true,
+            },
+        );
+        const treeItem = screen.getByRole("treeitem", { name: "node1" });
+        folderNode.element = undefined;
+
+        folderElement.close(false, 0);
+
+        expect(folderNode.is_open).toBeFalse();
+        expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.close", {
+            node: folderNode,
+        });
+        expect(treeItem).toBeAriaExpanded();
     });
 
     it("does nothing when the node is already closed", () => {
@@ -190,6 +203,47 @@ describe("open", () => {
         expect(treeItem).toHaveAttribute("aria-expanded", "true");
     });
 
+    it("renders the children when the node is opened for the first time", async () => {
+        const { folderElement } = createFolderElement({
+            isOpen: false,
+        });
+
+        expect(screen.queryByRole("treeitem", { name: "child1" })).not.toBeInTheDocument();
+
+        await folderElement.open(false, 0);
+
+        expect(screen.getByRole("treeitem", { name: "child1" })).toBeVisible();
+    });
+
+    it("doesn't render the children again when the node is opened a second time", async () => {
+        const { folderElement } = createFolderElement({
+            isOpen: false,
+        });
+
+        await folderElement.open(false, 0);
+        folderElement.close(false, 0);
+        await folderElement.open(false, 0);
+
+        expect(screen.getAllByRole("treeitem", { name: "child1" })).toHaveLength(1);
+    });
+
+    it("only sets the state when the node isn't rendered", async () => {
+        const { folderElement, folderNode, triggerEvent } = createFolderElement(
+            {
+                isOpen: false,
+            },
+        );
+        folderNode.element = undefined;
+
+        await folderElement.open(false, 0);
+
+        expect(folderNode.is_open).toBeTrue();
+        expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.open", {
+            node: folderNode,
+        });
+        expect(screen.queryByRole("treeitem", { name: "child1" })).not.toBeInTheDocument();
+    });
+
     it("triggers the tree.open event", async () => {
         const { folderElement, folderNode, triggerEvent } = createFolderElement(
             {
@@ -242,16 +296,17 @@ describe("open", () => {
             isOpen: false,
         });
         const treeItem = screen.getByRole("treeitem", { name: "node1" });
-
-        // eslint-disable-next-line testing-library/no-node-access
-        const ul = getTreeListElement(treeItem).querySelector(":scope > ul[role=group]") as HTMLElement;
-        const animate = vi.spyOn(ul, "animate");
+        const animate = vi.spyOn(HTMLElement.prototype, "animate");
 
         await folderElement.open(true, 456);
 
         expect(animate).toHaveBeenCalledExactlyOnceWith(expect.any(Array), {
             duration: 456,
         });
+
+        // eslint-disable-next-line testing-library/no-node-access
+        const ul = getTreeListElement(treeItem).querySelector(":scope > ul[role=group]") as HTMLElement;
+
         expect(ul).toBeVisible();
 
         await ul.getAnimations()[0]?.finished;

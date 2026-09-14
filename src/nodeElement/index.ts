@@ -35,9 +35,8 @@ class NodeElement {
         this.tabIndex = tabIndex;
         this.treeElement = treeElement;
 
-        node.element ??= this.treeElement;
-        this.element = node.element;
-
+        // The root node has no element of its own; it uses the tree element.
+        this.element = node.element ?? this.treeElement;
     }
 
     public addDropHint(position: Position): DropHint {
@@ -58,6 +57,10 @@ class NodeElement {
     }
 
     public deselect(): void {
+        if (!this.isRendered()) {
+            return;
+        }
+
         this.element.classList.remove(this.classNames.selected);
 
         const titleSpan = this.getTitleSpan();
@@ -68,6 +71,10 @@ class NodeElement {
     }
 
     public select(mustSetFocus: boolean): void {
+        if (!this.isRendered()) {
+            return;
+        }
+
         this.element.classList.add(this.classNames.selected);
 
         const titleSpan = this.getTitleSpan();
@@ -91,8 +98,15 @@ class NodeElement {
         ) as HTMLSpanElement;
     }
 
-    protected getUl(): HTMLUListElement {
-        return this.element.querySelector(":scope > ul") as HTMLUListElement;
+    protected getUl(): HTMLUListElement | null {
+        return this.element.querySelector(":scope > ul");
+    }
+
+    /* A node inside a closed folder is not rendered. Its selected and open
+     * state is applied when it is rendered.
+     */
+    protected isRendered(): boolean {
+        return Boolean(this.node.element);
     }
 
     protected mustShowBorderDropHint(position: Position): boolean {

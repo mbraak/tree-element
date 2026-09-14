@@ -112,6 +112,32 @@ describe("methods", () => {
       const child1 = tree.getNodeByNameMustExist("child1");
       tree.addParentNode("new-parent-node", child1);
 
+      // The new parent is closed, so its children are not rendered yet
+      expect(htmlElement).toHaveTreeStructure([
+        expect.objectContaining({
+          children: [
+            expect.objectContaining({
+              children: [],
+              name: "new-parent-node",
+              open: false,
+            }),
+          ],
+          name: "node1",
+        }),
+        expect.objectContaining({ name: "node2" }),
+      ]);
+    });
+
+    it("renders the children when the new parent node is opened", async () => {
+      const tree = createTreeElement({
+        autoOpen: true,
+        data: exampleData,
+      });
+
+      const child1 = tree.getNodeByNameMustExist("child1");
+      const newParent = tree.addParentNode("new-parent-node", child1);
+      await tree.openNode(newParent as Node, false);
+
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({
           children: [
@@ -121,6 +147,7 @@ describe("methods", () => {
                 expect.objectContaining({ name: "child2" }),
               ],
               name: "new-parent-node",
+              open: true,
             }),
           ],
           name: "node1",
@@ -673,41 +700,36 @@ describe("methods", () => {
       tree.loadData(exampleData);
 
       expect(htmlElement).toHaveTreeStructure([
-        expect.objectContaining({
-          children: [
-            expect.objectContaining({ name: "child1" }),
-            expect.objectContaining({ name: "child2" }),
-          ],
-          name: "node1",
-        }),
-        expect.objectContaining({
-          children: [expect.objectContaining({ name: "node3" })],
-          name: "node2",
-        }),
+        expect.objectContaining({ children: [], name: "node1", open: false }),
+        expect.objectContaining({ children: [], name: "node2", open: false }),
       ]);
     });
 
-    it("loads the data under the node with a node parameter", () => {
+    it("loads the data under the node with a node parameter", async () => {
       const tree = createTreeElement({ data: ["initial1"] });
 
-      tree.loadData(
-        exampleData,
-        tree.getNodeByNameMustExist("initial1"),
-      );
+      const initial1 = tree.getNodeByNameMustExist("initial1");
+      tree.loadData(exampleData, initial1);
+
+      // The node is closed, so the new children are not rendered yet
+      expect(htmlElement).toHaveTreeStructure([
+        expect.objectContaining({
+          children: [],
+          name: "initial1",
+          open: false,
+        }),
+      ]);
+
+      await tree.openNode(initial1, false);
 
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({
           children: [
-            expect.objectContaining({
-              children: [
-                expect.objectContaining({ name: "child1" }),
-                expect.objectContaining({ name: "child2" }),
-              ],
-              name: "node1",
-            }),
-            expect.objectContaining({ name: "node2" }),
+            expect.objectContaining({ children: [], name: "node1" }),
+            expect.objectContaining({ children: [], name: "node2" }),
           ],
           name: "initial1",
+          open: true,
         }),
       ]);
     });
@@ -825,6 +847,7 @@ describe("methods", () => {
 
       const parentNode = tree.getNodeByNameMustExist("initial1");
       await tree.loadDataFromUrl("/tree/", parentNode);
+      await tree.openNode(parentNode, false);
       await screen.findByText("new1");
 
       expect(htmlElement).toHaveTreeStructure([
@@ -1156,6 +1179,19 @@ describe("methods", () => {
       const node = tree.getNodeByNameMustExist("child1");
       tree.removeNode(node);
 
+      expect(tree.getNodeByName("child1")).toBeNull();
+      expect(htmlElement).toHaveTreeStructure([
+        expect.objectContaining({ name: "node1" }),
+        expect.objectContaining({ name: "node2" }),
+      ]);
+    });
+
+    it("removes the element of a child node in an open folder", () => {
+      const tree = createTreeElement({ autoOpen: true, data: exampleData });
+
+      const node = tree.getNodeByNameMustExist("child1");
+      tree.removeNode(node);
+
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({
           children: [expect.objectContaining({ name: "child2" })],
@@ -1186,10 +1222,7 @@ describe("methods", () => {
       tree.removeNode(node);
 
       expect(htmlElement).toHaveTreeStructure([
-        expect.objectContaining({
-          children: [expect.objectContaining({ name: "node3" })],
-          name: "node2",
-        }),
+        expect.objectContaining({ name: "node2" }),
       ]);
     });
 
@@ -1493,7 +1526,7 @@ describe("methods", () => {
       });
     });
 
-    it("adds the child node when adding a child to a child node", () => {
+    it("adds the child node when adding a child to a child node", async () => {
       const tree = createTreeElement({
         autoOpen: true,
         data: exampleData,
@@ -1501,6 +1534,7 @@ describe("methods", () => {
 
       const node = tree.getNodeByNameMustExist("child1");
       tree.updateNode(node, { children: ["new-child"] });
+      await tree.openNode(node, false);
 
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({

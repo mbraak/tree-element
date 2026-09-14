@@ -105,7 +105,7 @@ export default class SelectNodeHandler {
         if (node.id != null) {
             return this.selectedNodes.has(node.id);
         } else if (this.selectedSingleNode) {
-            return this.selectedSingleNode.element === node.element;
+            return this.selectedSingleNode === node;
         } else {
             return false;
         }
@@ -113,10 +113,7 @@ export default class SelectNodeHandler {
 
     public removeFromSelection(node: Node, includeChildren = false): void {
         if (node.id == null) {
-            if (
-                this.selectedSingleNode &&
-                node.element === this.selectedSingleNode.element
-            ) {
+            if (this.selectedSingleNode === node) {
                 this.selectedSingleNode = null;
             }
         } else {
