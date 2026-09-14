@@ -1,5 +1,24 @@
 {
-  "presets": ["@babel/preset-typescript", "@babel/preset-env"],
-  "plugins": ["istanbul"],
+  "presets": [
+    "@babel/preset-typescript",
+    "@babel/preset-env"
+  ],
+  "plugins": [
+    [
+      "babel-plugin-prefix-private-members",
+      {
+        "aliases": {
+          "treeElement/": "./src/"
+        },
+        "prefixParameterKeys": true,
+        "prefixPublicMethods": true,
+        "excludeClasses": [
+          "Node",
+          "TreeElement"
+        ]
+      }
+    ],
+    "istanbul"
+  ],
   "targets": "defaults"
 }

@@ -35,7 +35,8 @@
   },
   "scripts": {
     "ci": "pnpm lint && pnpm tsc && pnpm docs-check && pnpm test",
-    "vitest": "vitest run --coverage --config test/vitest.config.mjs",
+    "build-debug": "DEBUG_BUILD=true rollup --config config/rollup.config.mjs",
+    "vitest": "pnpm build-debug && vitest run --coverage --config test/vitest.config.mjs",
     "vitest-watch": "vitest --config test/vitest.config.mjs",
     "lint": "eslint config src playwright test",
     "production": "./config/production",
