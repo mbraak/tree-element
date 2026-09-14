@@ -84,8 +84,8 @@ importers:
         specifier: ^5.10.1
         version: 5.10.1(@testing-library/dom@10.4.1)(eslint@10.10.0(jiti@2.7.0)(supports-color@7.2.0))
       eslint-plugin-jest-extended:
-        specifier: ^3.0.1
-        version: 3.0.1(eslint@10.10.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
+        specifier: github:mbraak/eslint-plugin-jest-extended#modernize
+        version: https://codeload.github.com/mbraak/eslint-plugin-jest-extended/tar.gz/0375b450c9a878b2adfe386311f790a99327e62f(eslint@10.10.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
       eslint-plugin-perfectionist:
         specifier: ^5.11.0
         version: 5.11.0(eslint@10.10.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
@@ -2631,11 +2631,12 @@ packages:
       '@testing-library/dom':
         optional: true
 
-  eslint-plugin-jest-extended@3.0.1:
-    resolution: {integrity: sha512-1gxhl0yEYsvIT3ygez5noyv3feR1+p3YHiWoTZLM0OmN9u/nn/rOvVg8wUaNzWDx+44TH5nUV11iuCC08Hl2+w==}
-    engines: {node: ^16.10.0 || ^18.12.0 || >=20.0.0}
+  eslint-plugin-jest-extended@https://codeload.github.com/mbraak/eslint-plugin-jest-extended/tar.gz/0375b450c9a878b2adfe386311f790a99327e62f:
+    resolution: {gitHosted: true, integrity: sha512-bYTxsF4NIuY7bGFz0hqsiyRDnoPfKx20y6OzSE7aIb44DhrtbEDhH6u7B/zLpIbu2WnTgjANZUdddGkZFZhgyg==, tarball: https://codeload.github.com/mbraak/eslint-plugin-jest-extended/tar.gz/0375b450c9a878b2adfe386311f790a99327e62f}
+    version: 3.0.1
+    engines: {node: '>=24.0.0'}
     peerDependencies:
-      eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
+      eslint: ^10.0.0
 
   eslint-plugin-perfectionist@5.11.0:
     resolution: {integrity: sha512-kZV1otBcu4xT5R1p+0x1N1wRv4pS+OIbxrA47n5a1fTnN3MWbexOx5eQgbQhGyCNbpvF/rqrbnpkGjumHF+Y0Q==}
@@ -6535,7 +6536,7 @@ snapshots:
     optionalDependencies:
       '@testing-library/dom': 10.4.1
 
-  eslint-plugin-jest-extended@3.0.1(eslint@10.10.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3):
+  eslint-plugin-jest-extended@https://codeload.github.com/mbraak/eslint-plugin-jest-extended/tar.gz/0375b450c9a878b2adfe386311f790a99327e62f(eslint@10.10.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3):
     dependencies:
       '@typescript-eslint/utils': 8.70.0(eslint@10.10.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3)
       eslint: 10.10.0(jiti@2.7.0)(supports-color@7.2.0)
