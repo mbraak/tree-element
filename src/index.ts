@@ -58,9 +58,6 @@ interface TreeElementParams extends Partial<TreeElementOptions> {
 }
 
 export default class TreeElement {
-  /** @hidden */
-  public tree: Node;
-
   private classNames: ClassNames;
   private dataLoader: DataLoader;
   private dndHandler: DragAndDropHandler;
@@ -74,6 +71,7 @@ export default class TreeElement {
   private saveStateHandler: SaveStateHandler;
   private scrollHandler: ScrollHandler;
   private selectNodeHandler: SelectNodeHandler;
+  private tree: Node;
   private triggerEventProvider: TriggerEventProvider;
 
   /** @hidden */
