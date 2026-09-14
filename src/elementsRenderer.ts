@@ -22,17 +22,30 @@ interface ElementsRendererParams {
     tabIndex?: number;
 }
 
+/* Renders the tree to html.
+ *
+ * The elements are created by cloning templates. A template is a fully
+ * built <li> or <ul> with everything that is the same for every node
+ * (structure, roles, static classes, the toggler icon). Per node only the
+ * parts that differ are set: the title, the aria attributes and the
+ * selected and loading classes.
+ */
 export default class ElementsRenderer {
     public closedIconElement?: HTMLElement | Text;
     public openedIconElement?: HTMLElement | Text;
     private autoEscape: boolean;
     private buttonLeft: boolean;
     private classNames: ClassNames;
+    private closedFolderTemplate: HTMLLIElement;
     private dragAndDrop: boolean;
     private getTree: GetTree;
+    private groupUlTemplate: HTMLUListElement;
     private htmlElement: HTMLElement;
     private isNodeSelected: IsNodeSelected;
+    private nodeTemplate: HTMLLIElement;
     private onCreateLi?: OnCreateLi;
+    private openedFolderTemplate: HTMLLIElement;
+    private rootUlTemplate: HTMLUListElement;
     private rtl?: boolean;
     private setNodeElement: (element: HTMLElement, node: Node) => void;
     private showEmptyFolder: boolean;
@@ -68,6 +81,12 @@ export default class ElementsRenderer {
         this.tabIndex = tabIndex;
         this.openedIconElement = this.createButtonElement(openedIcon ?? "+");
         this.closedIconElement = this.createButtonElement(closedIcon ?? "-");
+
+        this.rootUlTemplate = this.createUlTemplate(true);
+        this.groupUlTemplate = this.createUlTemplate(false);
+        this.nodeTemplate = this.createNodeTemplate();
+        this.openedFolderTemplate = this.createFolderTemplate(true);
+        this.closedFolderTemplate = this.createFolderTemplate(false);
     }
 
     public render(fromNode: Node | null): void {
@@ -88,11 +107,16 @@ export default class ElementsRenderer {
         currentLi.replaceWith(newLi);
 
         // create children
-        this.createDomElements(newLi, node.children, false, node.getLevel() + 1);
+        this.createDomElements(
+            newLi,
+            node.children,
+            false,
+            node.getLevel() + 1,
+        );
     }
 
     public renderFromRoot(): void {
-        this.htmlElement.textContent = '';
+        this.htmlElement.textContent = "";
 
         const tree = this.getTree();
 
@@ -128,7 +152,10 @@ export default class ElementsRenderer {
         isRootNode: boolean,
         level: number,
     ): void {
-        const ul = this.createUl(isRootNode);
+        const template = isRootNode
+            ? this.rootUlTemplate
+            : this.groupUlTemplate;
+        const ul = template.cloneNode() as HTMLUListElement;
         element.appendChild(ul);
 
         for (const child of children) {
@@ -146,28 +173,52 @@ export default class ElementsRenderer {
         level: number,
         isSelected: boolean,
     ): HTMLLIElement {
-        const buttonClasses = this.getButtonClasses(node);
-        const folderClasses = this.getFolderClasses(node, isSelected);
+        const template = node.is_open
+            ? this.openedFolderTemplate
+            : this.closedFolderTemplate;
+        const li = template.cloneNode(true) as HTMLLIElement;
 
-        const iconElement = node.is_open
-            ? this.openedIconElement
-            : this.closedIconElement;
+        if (isSelected) {
+            li.classList.add(this.classNames.selected);
+        }
 
-        // li
-        const li = document.createElement("li");
-        li.className = `${this.classNames.common} ${folderClasses}`;
-        li.setAttribute("role", "none");
+        if (node.is_loading) {
+            li.classList.add(this.classNames.loading);
+        }
 
-        // div
-        const div = document.createElement("div");
-        div.className = `${this.classNames.element} ${this.classNames.common}`;
-        div.setAttribute("role", "none");
+        // li > div > [button link], title span, [button link]
+        const div = li.firstChild as HTMLDivElement;
+        const titleSpan = div.childNodes[
+            this.buttonLeft ? 1 : 0
+        ] as HTMLSpanElement;
 
-        li.appendChild(div);
+        this.fillTitleSpan(titleSpan, node.name, isSelected, level);
+
+        return li;
+    }
+
+    /* Template for a folder <li>:
+     *   li > div > [button link], title span, [button link]
+     * The toggler icon and the aria-expanded attribute depend on the open
+     * state, so there is a template for each.
+     */
+    private createFolderTemplate(isOpen: boolean): HTMLLIElement {
+        const liClasses = [this.classNames.common, this.classNames.folder];
+
+        if (!isOpen) {
+            liClasses.push(this.classNames.closed);
+        }
+
+        const li = this.createLiTemplate(liClasses.join(" "));
+        const div = li.firstChild as HTMLDivElement;
 
         // button link
         const buttonLink = document.createElement("a");
-        buttonLink.className = buttonClasses;
+        buttonLink.className = this.getButtonClasses(isOpen);
+
+        const iconElement = isOpen
+            ? this.openedIconElement
+            : this.closedIconElement;
 
         if (iconElement) {
             buttonLink.appendChild(iconElement.cloneNode(true));
@@ -178,13 +229,8 @@ export default class ElementsRenderer {
         }
 
         // title span
-        const titleSpan = this.createTitleSpan(
-            node.name,
-            isSelected,
-            true,
-            level,
-        );
-        titleSpan.setAttribute("aria-expanded", getBoolString(node.is_open));
+        const titleSpan = this.createTitleSpanTemplate(true);
+        titleSpan.setAttribute("aria-expanded", getBoolString(isOpen));
         div.appendChild(titleSpan);
 
         if (!this.buttonLeft) {
@@ -217,49 +263,52 @@ export default class ElementsRenderer {
         return li;
     }
 
-    private createNodeLi(
-        node: Node,
-        level: number,
-        isSelected: boolean,
-    ): HTMLLIElement {
-        const liClasses = [this.classNames.common];
-
-        if (isSelected) {
-            liClasses.push(this.classNames.selected);
-        }
-
-        const classString = liClasses.join(" ");
-
-        // li
+    /* Create the outer part of a <li> template: li > div */
+    private createLiTemplate(liClasses: string): HTMLLIElement {
         const li = document.createElement("li");
-        li.className = classString;
+        li.className = liClasses;
         li.setAttribute("role", "none");
 
-        // div
         const div = document.createElement("div");
         div.className = `${this.classNames.element} ${this.classNames.common}`;
         div.setAttribute("role", "none");
 
         li.appendChild(div);
 
-        // title span
-        const titleSpan = this.createTitleSpan(
-            node.name,
-            isSelected,
-            false,
-            level,
-        );
-        div.appendChild(titleSpan);
+        return li;
+    }
+
+    private createNodeLi(
+        node: Node,
+        level: number,
+        isSelected: boolean,
+    ): HTMLLIElement {
+        const li = this.nodeTemplate.cloneNode(true) as HTMLLIElement;
+
+        if (isSelected) {
+            li.classList.add(this.classNames.selected);
+        }
+
+        // li > div > title span
+        const div = li.firstChild as HTMLDivElement;
+        const titleSpan = div.firstChild as HTMLSpanElement;
+
+        this.fillTitleSpan(titleSpan, node.name, isSelected, level);
 
         return li;
     }
 
-    private createTitleSpan(
-        nodeName: string,
-        isSelected: boolean,
-        isFolder: boolean,
-        level: number,
-    ): HTMLSpanElement {
+    /* Template for a <li> without children: li > div > title span */
+    private createNodeTemplate(): HTMLLIElement {
+        const li = this.createLiTemplate(this.classNames.common);
+        const div = li.firstChild as HTMLDivElement;
+
+        div.appendChild(this.createTitleSpanTemplate(false));
+
+        return li;
+    }
+
+    private createTitleSpanTemplate(isFolder: boolean): HTMLSpanElement {
         const titleSpan = document.createElement("span");
 
         let classes = `${this.classNames.title} ${this.classNames.common}`;
@@ -271,27 +320,13 @@ export default class ElementsRenderer {
         classes += ` ${this.buttonLeft ? this.classNames.titleButtonLeft : this.classNames.titleButtonRight}`;
 
         titleSpan.className = classes;
-
-        if (isSelected) {
-            const tabIndex = this.tabIndex;
-
-            if (tabIndex !== undefined) {
-                titleSpan.setAttribute("tabindex", `${tabIndex}`);
-            }
-        }
-
-        this.setTreeItemAriaAttributes(titleSpan, nodeName, level, isSelected);
-
-        if (this.autoEscape) {
-            titleSpan.textContent = nodeName;
-        } else {
-            titleSpan.innerHTML = nodeName;
-        }
+        titleSpan.setAttribute("role", "treeitem");
+        titleSpan.setAttribute("aria-selected", "false");
 
         return titleSpan;
     }
 
-    private createUl(isRootNode: boolean): HTMLUListElement {
+    private createUlTemplate(isRootNode: boolean): HTMLUListElement {
         let classString;
         let role;
 
@@ -319,10 +354,37 @@ export default class ElementsRenderer {
         return ul;
     }
 
-    private getButtonClasses(node: Node): string {
+    /* Set the parts of a cloned title span that differ per node */
+    private fillTitleSpan(
+        titleSpan: HTMLSpanElement,
+        nodeName: string,
+        isSelected: boolean,
+        level: number,
+    ): void {
+        titleSpan.setAttribute("aria-label", nodeName);
+        titleSpan.setAttribute("aria-level", `${level}`);
+
+        if (isSelected) {
+            titleSpan.setAttribute("aria-selected", "true");
+
+            const tabIndex = this.tabIndex;
+
+            if (tabIndex !== undefined) {
+                titleSpan.setAttribute("tabindex", `${tabIndex}`);
+            }
+        }
+
+        if (this.autoEscape) {
+            titleSpan.textContent = nodeName;
+        } else {
+            titleSpan.innerHTML = nodeName;
+        }
+    }
+
+    private getButtonClasses(isOpen: boolean): string {
         const classes = [this.classNames.toggler, this.classNames.common];
 
-        if (!node.is_open) {
+        if (!isOpen) {
             classes.push(this.classNames.closed);
         }
 
@@ -333,35 +395,5 @@ export default class ElementsRenderer {
         }
 
         return classes.join(" ");
-    }
-
-    private getFolderClasses(node: Node, isSelected: boolean): string {
-        const classes = [this.classNames.folder];
-
-        if (!node.is_open) {
-            classes.push(this.classNames.closed);
-        }
-
-        if (isSelected) {
-            classes.push(this.classNames.selected);
-        }
-
-        if (node.is_loading) {
-            classes.push(this.classNames.loading);
-        }
-
-        return classes.join(" ");
-    }
-
-    private setTreeItemAriaAttributes(
-        element: HTMLElement,
-        name: string,
-        level: number,
-        isSelected: boolean,
-    ) {
-        element.setAttribute("aria-label", name);
-        element.setAttribute("aria-level", `${level}`);
-        element.setAttribute("aria-selected", getBoolString(isSelected));
-        element.setAttribute("role", "treeitem");
     }
 }
