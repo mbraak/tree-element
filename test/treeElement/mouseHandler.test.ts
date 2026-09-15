@@ -1,9 +1,9 @@
 import type { TriggerEvent } from "treeElement/methodTypes";
 import type {
-    GetMouseDelay,
-    GetNode,
-    MouseCapture,
-    MouseStart,
+  GetMouseDelay,
+  GetNode,
+  MouseCapture,
+  MouseStart,
 } from "treeElement/mouseHandler";
 import type { PositionInfo } from "treeElement/mouseUtils";
 
@@ -14,649 +14,635 @@ import { vi } from "vitest";
 import defaultClassNames from "../support/classNames";
 
 interface CreateMouseHandlerParams {
-    element: HTMLElement;
-    getMouseDelay?: GetMouseDelay;
-    getNode?: GetNode;
-    onClickButton?: (node: Node) => void;
-    onClickTitle?: (node: Node) => void;
-    onMouseCapture?: MouseCapture;
-    onMouseDrag?: (positionInfo: PositionInfo) => void;
-    onMouseStart?: MouseStart;
-    onMouseStop?: (positionInfo: PositionInfo) => void;
-    triggerEvent?: TriggerEvent;
+  element: HTMLElement;
+  getMouseDelay?: GetMouseDelay;
+  getNode?: GetNode;
+  onClickButton?: (node: Node) => void;
+  onClickTitle?: (node: Node) => void;
+  onMouseCapture?: MouseCapture;
+  onMouseDrag?: (positionInfo: PositionInfo) => void;
+  onMouseStart?: MouseStart;
+  onMouseStop?: (positionInfo: PositionInfo) => void;
+  triggerEvent?: TriggerEvent;
 }
 
 const createMouseHandler = ({
-    element,
-    getMouseDelay = vi.fn(() => 0),
-    getNode = vi.fn(),
-    onClickButton = vi.fn(),
-    onClickTitle = vi.fn(),
-    onMouseCapture = vi.fn(),
-    onMouseDrag = vi.fn(),
-    onMouseStart = vi.fn(),
-    onMouseStop = vi.fn(),
-    triggerEvent = vi.fn(),
+  element,
+  getMouseDelay = vi.fn(() => 0),
+  getNode = vi.fn(),
+  onClickButton = vi.fn(),
+  onClickTitle = vi.fn(),
+  onMouseCapture = vi.fn(),
+  onMouseDrag = vi.fn(),
+  onMouseStart = vi.fn(),
+  onMouseStop = vi.fn(),
+  triggerEvent = vi.fn(),
 }: CreateMouseHandlerParams) => {
-    return new MouseHandler({
-        classNames: defaultClassNames,
-        element,
-        getMouseDelay,
-        getNode,
-        onClickButton,
-        onClickTitle,
-        onMouseCapture,
-        onMouseDrag,
-        onMouseStart,
-        onMouseStop,
-        triggerEvent,
-        useContextMenu: true,
-    });
+  return new MouseHandler({
+    classNames: defaultClassNames,
+    element,
+    getMouseDelay,
+    getNode,
+    onClickButton,
+    onClickTitle,
+    onMouseCapture,
+    onMouseDrag,
+    onMouseStart,
+    onMouseStop,
+    triggerEvent,
+    useContextMenu: true,
+  });
 };
 
 describe("handleClick", () => {
-    beforeEach(() => {
-        document.body.innerHTML = "";
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("handles a button click", () => {
+    const element = document.createElement("div");
+
+    const button = document.createElement("button");
+    button.classList.add("tree-element-toggler");
+    element.appendChild(button);
+
+    document.body.append(element);
+
+    const node = new Node();
+
+    const getNode = vi.fn((element: HTMLElement) => {
+      if (element === button) {
+        return node;
+      } else {
+        return null;
+      }
     });
 
-    it("handles a button click", () => {
-        const element = document.createElement("div");
+    const onClickButton = vi.fn();
 
-        const button = document.createElement("button");
-        button.classList.add("tree-element-toggler");
-        element.appendChild(button);
+    createMouseHandler({ element, getNode, onClickButton });
 
-        document.body.append(element);
+    const event = new MouseEvent("click", { bubbles: true });
+    button.dispatchEvent(event);
 
-        const node = new Node();
+    expect(onClickButton).toHaveBeenCalledExactlyOnceWith(node);
+  });
 
-        const getNode = vi.fn((element: HTMLElement) => {
-            if (element === button) {
-                return node;
-            } else {
-                return null;
-            }
-        });
+  it("handles a click with an empty target", () => {
+    const element = document.createElement("div");
+    const onClickButton = vi.fn();
+    createMouseHandler({ element, onClickButton });
 
-        const onClickButton = vi.fn();
+    const event = new MouseEvent("click");
+    vi.spyOn(event, "target", "get").mockReturnValue(null);
 
-        createMouseHandler({ element, getNode, onClickButton });
+    element.dispatchEvent(event);
 
-        const event = new MouseEvent("click", { bubbles: true });
-        button.dispatchEvent(event);
+    expect(onClickButton).not.toHaveBeenCalled();
+  });
 
-        expect(onClickButton).toHaveBeenCalledExactlyOnceWith(node);
+  it("calls onClickTitle when a title is clicked", () => {
+    const element = document.createElement("div");
+
+    const label = document.createElement("div");
+    label.classList.add("tree-element-element");
+    element.appendChild(label);
+
+    document.body.append(element);
+
+    const node = new Node();
+
+    const getNode = vi.fn((element: HTMLElement) => {
+      if (element === label) {
+        return node;
+      } else {
+        return null;
+      }
     });
 
-    it("handles a click with an empty target", () => {
-        const element = document.createElement("div");
-        const onClickButton = vi.fn();
-        createMouseHandler({ element, onClickButton });
+    const triggerEvent = vi.fn<TriggerEvent>(() => true);
+    const onClickTitle = vi.fn();
 
-        const event = new MouseEvent("click");
-        vi.spyOn(event, "target", "get").mockReturnValue(null);
+    createMouseHandler({ element, getNode, onClickTitle, triggerEvent });
 
-        element.dispatchEvent(event);
+    const event = new MouseEvent("click", { bubbles: true });
+    label.dispatchEvent(event);
 
-        expect(onClickButton).not.toHaveBeenCalled();
+    expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.click", {
+      node,
+      originalEvent: event,
+    });
+    expect(onClickTitle).toHaveBeenCalledExactlyOnceWith(node);
+  });
+
+  it("doesn't call onClickTitle when the tree.click event is cancelled", () => {
+    const element = document.createElement("div");
+
+    const label = document.createElement("div");
+    label.classList.add("tree-element-element");
+    element.appendChild(label);
+
+    document.body.append(element);
+
+    const node = new Node();
+
+    const getNode = vi.fn((element: HTMLElement) => {
+      if (element === label) {
+        return node;
+      } else {
+        return null;
+      }
     });
 
-    it("calls onClickTitle when a title is clicked", () => {
-        const element = document.createElement("div");
+    const triggerEvent = vi.fn<TriggerEvent>(() => false);
+    const onClickTitle = vi.fn();
 
-        const label = document.createElement("div");
-        label.classList.add("tree-element-element");
-        element.appendChild(label);
+    createMouseHandler({ element, getNode, onClickTitle, triggerEvent });
 
-        document.body.append(element);
+    const event = new MouseEvent("click", { bubbles: true });
+    label.dispatchEvent(event);
 
-        const node = new Node();
-
-        const getNode = vi.fn((element: HTMLElement) => {
-            if (element === label) {
-                return node;
-            } else {
-                return null;
-            }
-        });
-
-        const triggerEvent = vi.fn<TriggerEvent>(() => true);
-        const onClickTitle = vi.fn();
-
-        createMouseHandler({ element, getNode, onClickTitle, triggerEvent });
-
-        const event = new MouseEvent("click", { bubbles: true });
-        label.dispatchEvent(event);
-
-        expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.click", {
-            node,
-            originalEvent: event,
-        });
-        expect(onClickTitle).toHaveBeenCalledExactlyOnceWith(node);
-    });
-
-    it("doesn't call onClickTitle when the tree.click event is cancelled", () => {
-        const element = document.createElement("div");
-
-        const label = document.createElement("div");
-        label.classList.add("tree-element-element");
-        element.appendChild(label);
-
-        document.body.append(element);
-
-        const node = new Node();
-
-        const getNode = vi.fn((element: HTMLElement) => {
-            if (element === label) {
-                return node;
-            } else {
-                return null;
-            }
-        });
-
-        const triggerEvent = vi.fn<TriggerEvent>(() => false);
-        const onClickTitle = vi.fn();
-
-        createMouseHandler({ element, getNode, onClickTitle, triggerEvent });
-
-        const event = new MouseEvent("click", { bubbles: true });
-        label.dispatchEvent(event);
-
-        expect(onClickTitle).not.toHaveBeenCalled();
-    });
+    expect(onClickTitle).not.toHaveBeenCalled();
+  });
 });
 
 describe("handleContextmenu", () => {
-    beforeEach(() => {
-        document.body.innerHTML = "";
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("handles a context menu event on a node", () => {
+    const treeElement = document.createElement("ul");
+    treeElement.classList.add("tree-element");
+    document.body.appendChild(treeElement);
+
+    const nodeElement = document.createElement("div");
+    nodeElement.className = "tree-element-element";
+    treeElement.appendChild(nodeElement);
+
+    const node = new Node();
+
+    const getNode = vi.fn((element: HTMLElement) => {
+      if (element === nodeElement) {
+        return node;
+      } else {
+        return null;
+      }
     });
 
-    it("handles a context menu event on a node", () => {
-        const treeElement = document.createElement("ul");
-        treeElement.classList.add("tree-element");
-        document.body.appendChild(treeElement);
+    const triggerEvent = vi.fn<TriggerEvent>();
 
-        const nodeElement = document.createElement("div");
-        nodeElement.className = "tree-element-element";
-        treeElement.appendChild(nodeElement);
+    createMouseHandler({ element: nodeElement, getNode, triggerEvent });
 
-        const node = new Node();
+    const event = new MouseEvent("contextmenu", { bubbles: true });
+    nodeElement.dispatchEvent(event);
 
-        const getNode = vi.fn((element: HTMLElement) => {
-            if (element === nodeElement) {
-                return node;
-            } else {
-                return null;
-            }
-        });
-
-        const triggerEvent = vi.fn<TriggerEvent>();
-
-        createMouseHandler({ element: nodeElement, getNode, triggerEvent });
-
-        const event = new MouseEvent("contextmenu", { bubbles: true });
-        nodeElement.dispatchEvent(event);
-
-        expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.contextmenu", {
-            node,
-            originalEvent: event,
-        });
+    expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.contextmenu", {
+      node,
+      originalEvent: event,
     });
+  });
 
-    it("handles a context menu event that's not on a node", () => {
-        const element = document.createElement("div");
-        document.body.appendChild(element);
+  it("handles a context menu event that's not on a node", () => {
+    const element = document.createElement("div");
+    document.body.appendChild(element);
 
-        const getNode = vi.fn(() => null);
-        const triggerEvent = vi.fn<TriggerEvent>();
+    const getNode = vi.fn(() => null);
+    const triggerEvent = vi.fn<TriggerEvent>();
 
-        createMouseHandler({ element, getNode, triggerEvent });
+    createMouseHandler({ element, getNode, triggerEvent });
 
-        const event = new MouseEvent("contextmenu", { bubbles: true });
-        element.dispatchEvent(event);
+    const event = new MouseEvent("contextmenu", { bubbles: true });
+    element.dispatchEvent(event);
 
-        expect(triggerEvent).not.toHaveBeenCalled();
-    });
+    expect(triggerEvent).not.toHaveBeenCalled();
+  });
 
-    it("handles a context menu event without a target", () => {
-        const element = document.createElement("div");
-        document.body.appendChild(element);
+  it("handles a context menu event without a target", () => {
+    const element = document.createElement("div");
+    document.body.appendChild(element);
 
-        const triggerEvent = vi.fn<TriggerEvent>();
+    const triggerEvent = vi.fn<TriggerEvent>();
 
-        createMouseHandler({ element, triggerEvent });
+    createMouseHandler({ element, triggerEvent });
 
-        const event = new MouseEvent("contextmenu", { bubbles: true });
-        vi.spyOn(event, "target", "get").mockReturnValue(null);
+    const event = new MouseEvent("contextmenu", { bubbles: true });
+    vi.spyOn(event, "target", "get").mockReturnValue(null);
 
-        element.dispatchEvent(event);
+    element.dispatchEvent(event);
 
-        expect(triggerEvent).not.toHaveBeenCalled();
-    });
+    expect(triggerEvent).not.toHaveBeenCalled();
+  });
 });
 
 describe("handleDblclick", () => {
-    beforeEach(() => {
-        document.body.innerHTML = "";
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("handles a double click on a label", () => {
+    const element = document.createElement("div");
+
+    const label = document.createElement("div");
+    label.classList.add("tree-element-element");
+    element.appendChild(label);
+
+    document.body.append(element);
+
+    const node = new Node();
+
+    const getNode = vi.fn((element: HTMLElement) => {
+      if (element === label) {
+        return node;
+      } else {
+        return null;
+      }
     });
 
-    it("handles a double click on a label", () => {
-        const element = document.createElement("div");
+    const triggerEvent = vi.fn<TriggerEvent>();
 
-        const label = document.createElement("div");
-        label.classList.add("tree-element-element");
-        element.appendChild(label);
+    createMouseHandler({ element, getNode, triggerEvent });
 
-        document.body.append(element);
+    const event = new MouseEvent("dblclick", { bubbles: true });
+    label.dispatchEvent(event);
 
-        const node = new Node();
-
-        const getNode = vi.fn((element: HTMLElement) => {
-            if (element === label) {
-                return node;
-            } else {
-                return null;
-            }
-        });
-
-        const triggerEvent = vi.fn<TriggerEvent>();
-
-        createMouseHandler({ element, getNode, triggerEvent });
-
-        const event = new MouseEvent("dblclick", { bubbles: true });
-        label.dispatchEvent(event);
-
-        expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.dblclick", {
-            node,
-            originalEvent: event,
-        });
+    expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.dblclick", {
+      node,
+      originalEvent: event,
     });
+  });
 
-    it("handles a double click event without a target", () => {
-        const element = document.createElement("div");
-        document.body.appendChild(element);
+  it("handles a double click event without a target", () => {
+    const element = document.createElement("div");
+    document.body.appendChild(element);
 
-        const triggerEvent = vi.fn<TriggerEvent>();
+    const triggerEvent = vi.fn<TriggerEvent>();
 
-        createMouseHandler({ element, triggerEvent });
+    createMouseHandler({ element, triggerEvent });
 
-        const event = new MouseEvent("dblclick", { bubbles: true });
-        vi.spyOn(event, "target", "get").mockReturnValue(null);
+    const event = new MouseEvent("dblclick", { bubbles: true });
+    vi.spyOn(event, "target", "get").mockReturnValue(null);
 
-        element.dispatchEvent(event);
+    element.dispatchEvent(event);
 
-        expect(triggerEvent).not.toHaveBeenCalled();
-    });
+    expect(triggerEvent).not.toHaveBeenCalled();
+  });
 });
 
 describe("touchStart", () => {
-    beforeEach(() => {
-        document.body.innerHTML = "";
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("handles a touchstart event", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+
+    const onMouseCapture = vi.fn<MouseCapture>();
+
+    createMouseHandler({ element, onMouseCapture });
+
+    const touch = {
+      pageX: 0,
+      pageY: 0,
+    };
+
+    const event = new TouchEvent("touchstart", {
+      bubbles: true,
+      touches: [touch as Touch],
     });
+    element.dispatchEvent(event);
 
-    it("handles a touchstart event", () => {
-        const element = document.createElement("div");
-        document.body.append(element);
-
-        const onMouseCapture = vi.fn<MouseCapture>();
-
-        createMouseHandler({ element, onMouseCapture });
-
-        const touch = {
-            pageX: 0,
-            pageY: 0,
-        };
-
-        const event = new TouchEvent("touchstart", {
-            bubbles: true,
-            touches: [touch as Touch],
-        });
-        element.dispatchEvent(event);
-
-        expect(onMouseCapture).toHaveBeenCalledExactlyOnceWith({
-            originalEvent: event,
-            pageX: 0,
-            pageY: 0,
-            target: undefined,
-        });
+    expect(onMouseCapture).toHaveBeenCalledExactlyOnceWith({
+      originalEvent: event,
+      pageX: 0,
+      pageY: 0,
+      target: undefined,
     });
+  });
 
-    it("handles a touchstart event with multiple touches", () => {
-        const element = document.createElement("div");
-        document.body.append(element);
+  it("handles a touchstart event with multiple touches", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
 
-        const onMouseCapture = vi.fn<MouseCapture>();
+    const onMouseCapture = vi.fn<MouseCapture>();
 
-        createMouseHandler({ element, onMouseCapture });
+    createMouseHandler({ element, onMouseCapture });
 
-        const touch = {
-            pageX: 0,
-            pageY: 0,
-        } as Touch;
+    const touch = {
+      pageX: 0,
+      pageY: 0,
+    } as Touch;
 
-        const event = new TouchEvent("touchstart", {
-            bubbles: true,
-            touches: [touch, touch],
-        });
-        element.dispatchEvent(event);
-
-        expect(onMouseCapture).not.toHaveBeenCalled();
+    const event = new TouchEvent("touchstart", {
+      bubbles: true,
+      touches: [touch, touch],
     });
+    element.dispatchEvent(event);
 
-    it("handles a touchstart event without touches", () => {
-        const element = document.createElement("div");
-        document.body.append(element);
+    expect(onMouseCapture).not.toHaveBeenCalled();
+  });
 
-        const onMouseCapture = vi.fn<MouseCapture>();
+  it("handles a touchstart event without touches", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
 
-        createMouseHandler({ element, onMouseCapture });
+    const onMouseCapture = vi.fn<MouseCapture>();
 
-        const event = new TouchEvent("touchstart", {
-            bubbles: true,
-            touches: [],
-        });
-        element.dispatchEvent(event);
+    createMouseHandler({ element, onMouseCapture });
 
-        expect(onMouseCapture).not.toHaveBeenCalled();
+    const event = new TouchEvent("touchstart", {
+      bubbles: true,
+      touches: [],
     });
+    element.dispatchEvent(event);
+
+    expect(onMouseCapture).not.toHaveBeenCalled();
+  });
 });
 
 describe("touchEnd", () => {
-    beforeEach(() => {
-        document.body.innerHTML = "";
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("handles a touchend event after a touchstart and a touchmove event", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+
+    const onMouseCapture = vi.fn(() => true);
+    const onMouseStart = vi.fn(() => true);
+    const onMouseStop = vi.fn();
+
+    createMouseHandler({
+      element,
+      onMouseCapture,
+      onMouseStart,
+      onMouseStop,
     });
 
-    it("handles a touchend event after a touchstart and a touchmove event", () => {
-        const element = document.createElement("div");
-        document.body.append(element);
+    const touch = {
+      pageX: 0,
+      pageY: 0,
+    };
 
-        const onMouseCapture = vi.fn(() => true);
-        const onMouseStart = vi.fn(() => true);
-        const onMouseStop = vi.fn();
+    const touchStartEvent = new TouchEvent("touchstart", {
+      bubbles: true,
+      touches: [touch as Touch],
+    });
+    element.dispatchEvent(touchStartEvent);
 
-        createMouseHandler({
-            element,
-            onMouseCapture,
-            onMouseStart,
-            onMouseStop,
-        });
+    const touchMoveEvent = new TouchEvent("touchmove", {
+      bubbles: true,
+      touches: [touch as Touch],
+    });
+    element.dispatchEvent(touchMoveEvent);
 
-        const touch = {
-            pageX: 0,
-            pageY: 0,
-        };
+    const touchEndEvent = new TouchEvent("touchend", {
+      bubbles: true,
+      touches: [touch as Touch],
+    });
+    element.dispatchEvent(touchEndEvent);
 
-        const touchStartEvent = new TouchEvent("touchstart", {
-            bubbles: true,
-            touches: [touch as Touch],
-        });
-        element.dispatchEvent(touchStartEvent);
+    expect(onMouseStop).toHaveBeenCalledExactlyOnceWith({
+      originalEvent: touchEndEvent,
+      pageX: 0,
+      pageY: 0,
+    });
+  });
 
-        const touchMoveEvent = new TouchEvent("touchmove", {
-            bubbles: true,
-            touches: [touch as Touch],
-        });
-        element.dispatchEvent(touchMoveEvent);
+  it("handles a touchend with multiple touches", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
 
-        const touchEndEvent = new TouchEvent("touchend", {
-            bubbles: true,
-            touches: [touch as Touch],
-        });
-        element.dispatchEvent(touchEndEvent);
+    const onMouseCapture = vi.fn(() => true);
+    const onMouseStart = vi.fn(() => true);
+    const onMouseStop = vi.fn();
 
-        expect(onMouseStop).toHaveBeenCalledExactlyOnceWith({
-            originalEvent: touchEndEvent,
-            pageX: 0,
-            pageY: 0,
-        });
+    createMouseHandler({
+      element,
+      onMouseCapture,
+      onMouseStart,
+      onMouseStop,
     });
 
-    it("handles a touchend with multiple touches", () => {
-        const element = document.createElement("div");
-        document.body.append(element);
+    const touch = {
+      pageX: 0,
+      pageY: 0,
+    } as Touch;
 
-        const onMouseCapture = vi.fn(() => true);
-        const onMouseStart = vi.fn(() => true);
-        const onMouseStop = vi.fn();
-
-        createMouseHandler({
-            element,
-            onMouseCapture,
-            onMouseStart,
-            onMouseStop,
-        });
-
-        const touch = {
-            pageX: 0,
-            pageY: 0,
-        } as Touch;
-
-        const touchStartEvent = new TouchEvent("touchstart", {
-            bubbles: true,
-            touches: [touch],
-        });
-        element.dispatchEvent(touchStartEvent);
-
-        const touchMoveEvent = new TouchEvent("touchmove", {
-            bubbles: true,
-            touches: [touch],
-        });
-        element.dispatchEvent(touchMoveEvent);
-
-        const touchEndEvent = new TouchEvent("touchend", {
-            bubbles: true,
-            touches: [touch, touch],
-        });
-        element.dispatchEvent(touchEndEvent);
-
-        expect(onMouseStop).not.toHaveBeenCalled();
+    const touchStartEvent = new TouchEvent("touchstart", {
+      bubbles: true,
+      touches: [touch],
     });
+    element.dispatchEvent(touchStartEvent);
+
+    const touchMoveEvent = new TouchEvent("touchmove", {
+      bubbles: true,
+      touches: [touch],
+    });
+    element.dispatchEvent(touchMoveEvent);
+
+    const touchEndEvent = new TouchEvent("touchend", {
+      bubbles: true,
+      touches: [touch, touch],
+    });
+    element.dispatchEvent(touchEndEvent);
+
+    expect(onMouseStop).not.toHaveBeenCalled();
+  });
 });
 
 describe("touchMove", () => {
-    beforeEach(() => {
-        document.body.innerHTML = "";
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("handles a touchmove event without touches", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+
+    const onMouseCapture = vi.fn(() => true);
+    const onMouseDrag = vi.fn();
+
+    createMouseHandler({
+      element,
+      onMouseCapture,
+      onMouseDrag,
     });
 
-    it("handles a touchmove event without touches", () => {
-        const element = document.createElement("div");
-        document.body.append(element);
+    const touch = {
+      pageX: 0,
+      pageY: 0,
+    } as Touch;
 
-        const onMouseCapture = vi.fn(() => true);
-        const onMouseDrag = vi.fn();
+    const touchStartEvent = new TouchEvent("touchstart", {
+      bubbles: true,
+      touches: [touch],
+    });
+    element.dispatchEvent(touchStartEvent);
 
-        createMouseHandler({
-            element,
-            onMouseCapture,
-            onMouseDrag,
-        });
+    const touchMoveEvent = new TouchEvent("touchmove", {
+      bubbles: true,
+      touches: [],
+    });
+    element.dispatchEvent(touchMoveEvent);
 
-        const touch = {
-            pageX: 0,
-            pageY: 0,
-        } as Touch;
+    expect(onMouseDrag).not.toHaveBeenCalled();
+  });
 
-        const touchStartEvent = new TouchEvent("touchstart", {
-            bubbles: true,
-            touches: [touch],
-        });
-        element.dispatchEvent(touchStartEvent);
+  it("handles a touchmove event with multiple touches", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
 
-        const touchMoveEvent = new TouchEvent("touchmove", {
-            bubbles: true,
-            touches: [],
-        });
-        element.dispatchEvent(touchMoveEvent);
+    const onMouseCapture = vi.fn(() => true);
+    const onMouseDrag = vi.fn();
 
-        expect(onMouseDrag).not.toHaveBeenCalled();
+    createMouseHandler({
+      element,
+      onMouseCapture,
+      onMouseDrag,
     });
 
-    it("handles a touchmove event with multiple touches", () => {
-        const element = document.createElement("div");
-        document.body.append(element);
+    const touch = {
+      pageX: 0,
+      pageY: 0,
+    } as Touch;
 
-        const onMouseCapture = vi.fn(() => true);
-        const onMouseDrag = vi.fn();
-
-        createMouseHandler({
-            element,
-            onMouseCapture,
-            onMouseDrag,
-        });
-
-        const touch = {
-            pageX: 0,
-            pageY: 0,
-        } as Touch;
-
-        const touchStartEvent = new TouchEvent("touchstart", {
-            bubbles: true,
-            touches: [touch],
-        });
-        element.dispatchEvent(touchStartEvent);
-
-        const touchMoveEvent = new TouchEvent("touchmove", {
-            bubbles: true,
-            touches: [touch, touch],
-        });
-        element.dispatchEvent(touchMoveEvent);
-
-        expect(onMouseDrag).not.toHaveBeenCalled();
+    const touchStartEvent = new TouchEvent("touchstart", {
+      bubbles: true,
+      touches: [touch],
     });
+    element.dispatchEvent(touchStartEvent);
+
+    const touchMoveEvent = new TouchEvent("touchmove", {
+      bubbles: true,
+      touches: [touch, touch],
+    });
+    element.dispatchEvent(touchMoveEvent);
+
+    expect(onMouseDrag).not.toHaveBeenCalled();
+  });
 });
 
 describe("mouseMove", () => {
-    beforeEach(() => {
-        document.body.innerHTML = "";
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("calls onMouseStart when the delay is met and there is a mouse move", () => {
+    vi.useFakeTimers();
+
+    const treeElement = document.createElement("ul");
+    treeElement.classList.add("tree-element");
+    document.body.appendChild(treeElement);
+
+    const nodeElement = document.createElement("div");
+    nodeElement.className = "tree-element-element";
+    treeElement.appendChild(nodeElement);
+
+    const node = new Node();
+
+    const getNode = vi.fn((element: HTMLElement) => {
+      if (element === nodeElement) {
+        return node;
+      } else {
+        return null;
+      }
     });
 
-    afterEach(() => {
-        vi.useRealTimers();
+    const getMouseDelay = vi.fn(() => 1_000);
+    const onMouseCapture = vi.fn(() => true);
+    const onMouseStart = vi.fn(() => true);
+
+    createMouseHandler({
+      element: nodeElement,
+      getMouseDelay,
+      getNode,
+      onMouseCapture,
+      onMouseStart,
     });
 
-    it("calls onMouseStart when the delay is met and there is a mouse move", () => {
-        vi.useFakeTimers();
+    nodeElement.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
 
-        const treeElement = document.createElement("ul");
-        treeElement.classList.add("tree-element");
-        document.body.appendChild(treeElement);
+    nodeElement.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 
-        const nodeElement = document.createElement("div");
-        nodeElement.className = "tree-element-element";
-        treeElement.appendChild(nodeElement);
+    expect(onMouseStart).not.toHaveBeenCalled();
 
-        const node = new Node();
+    vi.advanceTimersByTime(1_500);
 
-        const getNode = vi.fn((element: HTMLElement) => {
-            if (element === nodeElement) {
-                return node;
-            } else {
-                return null;
-            }
-        });
+    nodeElement.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 
-        const getMouseDelay = vi.fn(() => 1_000);
-        const onMouseCapture = vi.fn(() => true);
-        const onMouseStart = vi.fn(() => true);
+    expect(onMouseStart).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        target: nodeElement,
+      }),
+    );
+  });
 
-        createMouseHandler({
-            element: nodeElement,
-            getMouseDelay,
-            getNode,
-            onMouseCapture,
-            onMouseStart,
-        });
+  it("calls onMouseStart when mousedown is triggered twice", () => {
+    vi.useFakeTimers();
 
-        nodeElement.dispatchEvent(
-            new MouseEvent("mousedown", { bubbles: true }),
-        );
+    const treeElement = document.createElement("ul");
+    treeElement.classList.add("tree-element");
+    document.body.appendChild(treeElement);
 
-        nodeElement.dispatchEvent(
-            new MouseEvent("mousemove", { bubbles: true }),
-        );
+    const nodeElement = document.createElement("div");
+    nodeElement.className = "tree-element-element";
+    treeElement.appendChild(nodeElement);
 
-        expect(onMouseStart).not.toHaveBeenCalled();
+    const node = new Node();
 
-        vi.advanceTimersByTime(1_500);
-
-        nodeElement.dispatchEvent(
-            new MouseEvent("mousemove", { bubbles: true }),
-        );
-
-        expect(onMouseStart).toHaveBeenCalledExactlyOnceWith(
-            expect.objectContaining({
-                target: nodeElement,
-            }),
-        );
+    const getNode = vi.fn((element: HTMLElement) => {
+      if (element === nodeElement) {
+        return node;
+      } else {
+        return null;
+      }
     });
 
-    it("calls onMouseStart when mousedown is triggered twice", () => {
-        vi.useFakeTimers();
+    const getMouseDelay = vi.fn(() => 1_000);
+    const onMouseCapture = vi.fn(() => true);
+    const onMouseStart = vi.fn(() => true);
 
-        const treeElement = document.createElement("ul");
-        treeElement.classList.add("tree-element");
-        document.body.appendChild(treeElement);
-
-        const nodeElement = document.createElement("div");
-        nodeElement.className = "tree-element-element";
-        treeElement.appendChild(nodeElement);
-
-        const node = new Node();
-
-        const getNode = vi.fn((element: HTMLElement) => {
-            if (element === nodeElement) {
-                return node;
-            } else {
-                return null;
-            }
-        });
-
-        const getMouseDelay = vi.fn(() => 1_000);
-        const onMouseCapture = vi.fn(() => true);
-        const onMouseStart = vi.fn(() => true);
-
-        createMouseHandler({
-            element: nodeElement,
-            getMouseDelay,
-            getNode,
-            onMouseCapture,
-            onMouseStart,
-        });
-
-        nodeElement.dispatchEvent(
-            new MouseEvent("mousedown", { bubbles: true }),
-        );
-
-        vi.advanceTimersByTime(600);
-
-        nodeElement.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
-
-        vi.advanceTimersByTime(600);
-
-        expect(onMouseStart).not.toHaveBeenCalled();
-
-        nodeElement.dispatchEvent(
-            new MouseEvent("mousedown", { bubbles: true }),
-        );
-
-        vi.advanceTimersByTime(600);
-
-        nodeElement.dispatchEvent(
-            new MouseEvent("mousemove", { bubbles: true }),
-        );
-
-        expect(onMouseStart).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(600);
-
-        nodeElement.dispatchEvent(
-            new MouseEvent("mousemove", { bubbles: true }),
-        );
-
-        expect(onMouseStart).toHaveBeenCalledExactlyOnceWith(
-            expect.objectContaining({
-                target: nodeElement,
-            }),
-        );
+    createMouseHandler({
+      element: nodeElement,
+      getMouseDelay,
+      getNode,
+      onMouseCapture,
+      onMouseStart,
     });
+
+    nodeElement.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+
+    vi.advanceTimersByTime(600);
+
+    nodeElement.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+
+    vi.advanceTimersByTime(600);
+
+    expect(onMouseStart).not.toHaveBeenCalled();
+
+    nodeElement.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+
+    vi.advanceTimersByTime(600);
+
+    nodeElement.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+
+    expect(onMouseStart).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(600);
+
+    nodeElement.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+
+    expect(onMouseStart).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        target: nodeElement,
+      }),
+    );
+  });
 });

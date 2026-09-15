@@ -43,7 +43,10 @@ const defaults: TreeElementOptions = {
   useContextMenu: true,
 };
 
-const setDefaultOptions = (htmlElement: HTMLElement, inputOptions: Partial<TreeElementOptions>): TreeElementOptions => {
+const setDefaultOptions = (
+  htmlElement: HTMLElement,
+  inputOptions: Partial<TreeElementOptions>,
+): TreeElementOptions => {
   const options = { ...defaults, ...inputOptions };
 
   options.dataUrl ??= htmlElement.dataset.url;
@@ -52,7 +55,7 @@ const setDefaultOptions = (htmlElement: HTMLElement, inputOptions: Partial<TreeE
   options.openedIcon ??= "&#x25bc;";
 
   return options;
-}
+};
 
 const getDefaultClosedIcon = (options: TreeElementOptions): string => {
   if (options.rtl) {
@@ -62,7 +65,7 @@ const getDefaultClosedIcon = (options: TreeElementOptions): string => {
     // triangle to the right
     return "&#x25ba;";
   }
-}
+};
 
 const getRtlOptionFromHTMLElement = (htmlElement: HTMLElement): boolean => {
   const dataRtl = htmlElement.dataset.rtl;
@@ -74,6 +77,6 @@ const getRtlOptionFromHTMLElement = (htmlElement: HTMLElement): boolean => {
   } else {
     return Boolean(dataRtl);
   }
-}
+};
 
 export default setDefaultOptions;

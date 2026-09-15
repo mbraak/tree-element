@@ -7,7 +7,7 @@ const isAbsoluteUrl = (inputUrl: string) => {
   } catch {
     return false;
   }
-}
+};
 
 const LOCALHOST = "http://localhost";
 

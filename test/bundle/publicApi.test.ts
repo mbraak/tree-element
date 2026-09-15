@@ -115,19 +115,15 @@ const loadBundle = (): typeof TreeElement => {
   }
 
   // The bundle is a classic script that defines the TreeElement global.
-  return vm.runInThisContext(
-    `${fs.readFileSync(file, "utf8")}\nTreeElement;`,
-    { filename: file },
-  ) as typeof TreeElement;
+  return vm.runInThisContext(`${fs.readFileSync(file, "utf8")}\nTreeElement;`, {
+    filename: file,
+  }) as typeof TreeElement;
 };
 
 const isPrefixed = (name: string) => name.startsWith("_");
 
 // The own names of an object that are not prefixed, so should be public API.
-const getUnprefixedNames = (
-  object: object,
-  ignore: string[] = [],
-): string[] =>
+const getUnprefixedNames = (object: object, ignore: string[] = []): string[] =>
   Object.getOwnPropertyNames(object)
     .filter((name) => !isPrefixed(name) && !ignore.includes(name))
     .sort();

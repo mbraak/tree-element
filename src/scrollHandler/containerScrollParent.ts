@@ -1,71 +1,68 @@
 import type {
-    HorizontalScrollDirection,
-    VerticalScrollDirection,
+  HorizontalScrollDirection,
+  VerticalScrollDirection,
 } from "./scrollParent";
 
 import { getElementPosition, getOffsetTop } from "../positionUtils";
 import { ScrollParent } from "./scrollParent";
 
-
 export default class ContainerScrollParent extends ScrollParent {
-    private scrollParentBottom?: number;
-    private scrollParentTop?: number;
+  private scrollParentBottom?: number;
+  private scrollParentTop?: number;
 
-    public stopScrolling() {
-        super.stopScrolling();
+  public stopScrolling() {
+    super.stopScrolling();
 
-        this.horizontalScrollDirection = undefined;
-        this.verticalScrollDirection = undefined;
+    this.horizontalScrollDirection = undefined;
+    this.verticalScrollDirection = undefined;
+  }
+
+  protected getNewHorizontalScrollDirection(
+    pageX: number,
+  ): HorizontalScrollDirection | undefined {
+    const scrollParentOffset = getElementPosition(this.container);
+    const containerWidth = this.container.getBoundingClientRect().width;
+
+    const rightEdge = scrollParentOffset.left + containerWidth;
+    const leftEdge = scrollParentOffset.left;
+    const isNearRightEdge = pageX > rightEdge - 20;
+    const isNearLeftEdge = pageX < leftEdge + 20;
+
+    if (isNearRightEdge) {
+      return "right";
+    } else if (isNearLeftEdge) {
+      return "left";
     }
 
-    protected getNewHorizontalScrollDirection(
-        pageX: number,
-    ): HorizontalScrollDirection | undefined {
-        const scrollParentOffset = getElementPosition(this.container);
-        const containerWidth = this.container.getBoundingClientRect().width;
+    return undefined;
+  }
 
-        const rightEdge = scrollParentOffset.left + containerWidth;
-        const leftEdge = scrollParentOffset.left;
-        const isNearRightEdge = pageX > rightEdge - 20;
-        const isNearLeftEdge = pageX < leftEdge + 20;
-
-        if (isNearRightEdge) {
-            return "right";
-        } else if (isNearLeftEdge) {
-            return "left";
-        }
-
-        return undefined;
+  protected getNewVerticalScrollDirection(
+    pageY: number,
+  ): undefined | VerticalScrollDirection {
+    if (pageY < this.getScrollParentTop()) {
+      return "top";
     }
 
-    protected getNewVerticalScrollDirection(
-        pageY: number,
-    ): undefined | VerticalScrollDirection {
-        if (pageY < this.getScrollParentTop()) {
-            return "top";
-        }
-
-        if (pageY > this.getScrollParentBottom()) {
-            return "bottom";
-        }
-
-        return undefined;
+    if (pageY > this.getScrollParentBottom()) {
+      return "bottom";
     }
 
-    private getScrollParentBottom() {
-        if (this.scrollParentBottom == null) {
-            const containerHeight =
-                this.container.getBoundingClientRect().height;
-            this.scrollParentBottom =
-                this.getScrollParentTop() + containerHeight;
-        }
+    return undefined;
+  }
 
-        return this.scrollParentBottom;
+  private getScrollParentBottom() {
+    if (this.scrollParentBottom == null) {
+      const containerHeight = this.container.getBoundingClientRect().height;
+      this.scrollParentBottom = this.getScrollParentTop() + containerHeight;
     }
 
-    private getScrollParentTop() {
-        this.scrollParentTop ??= getOffsetTop(this.container);
+    return this.scrollParentBottom;
+  }
 
-        return this.scrollParentTop;
-    }
+  private getScrollParentTop() {
+    this.scrollParentTop ??= getOffsetTop(this.container);
+
+    return this.scrollParentTop;
+  }
 }

@@ -1,12 +1,22 @@
 import { queryHelpers } from "@testing-library/dom";
 
-const assertSingleElement = (container: HTMLElement, elements: NodeListOf<Element>, name: string) => {
+const assertSingleElement = (
+  container: HTMLElement,
+  elements: NodeListOf<Element>,
+  name: string,
+) => {
   if (!elements.length) {
-    throw queryHelpers.getElementError(`Unable to find ${name} element`, container);
+    throw queryHelpers.getElementError(
+      `Unable to find ${name} element`,
+      container,
+    );
   } else if (elements.length > 1) {
-    throw queryHelpers.getElementError(`Found multiple ${name} elements`, container);
+    throw queryHelpers.getElementError(
+      `Found multiple ${name} elements`,
+      container,
+    );
   }
-}
+};
 
 export const getTreeButton = (treeElement: HTMLElement) => {
   if (treeElement.role != "treeitem") {
@@ -19,7 +29,7 @@ export const getTreeButton = (treeElement: HTMLElement) => {
   }
 
   const elements = parent.querySelectorAll(":scope > a.tree-element-toggler"); // eslint-disable-line testing-library/no-node-access
-  assertSingleElement(parent, elements, 'tree button');
+  assertSingleElement(parent, elements, "tree button");
   return elements[0] as HTMLElement;
 };
 
