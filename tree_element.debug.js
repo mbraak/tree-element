@@ -2964,9 +2964,9 @@ var TreeElement = (function () {
       _getSelectedNode() {
         const selectedNodes = this._getSelectedNodes();
         if (selectedNodes.length) {
-          return selectedNodes[0] ?? false;
+          return selectedNodes[0] ?? null;
         } else {
-          return false;
+          return null;
         }
       }
       _getSelectedNodes() {
@@ -3029,15 +3029,15 @@ var TreeElement = (function () {
       }
 
       /* Select a single node.
-      * Renders the changed elements.
-      * Deselects if the node is currently selected (if the mustToggle is on).
-      * Deselects the previously selected node.
-      * Check if the node is selectable.
-      * Saves the state.
-      * Options:
-        * mustSetFocus: set the focus to the selected node
-        * mustToggle: support deselecting the selected node
-      */
+       * Renders the changed elements.
+       * Deselects if the node is currently selected (if the mustToggle is on).
+       * Deselects the previously selected node.
+       * Check if the node is selectable.
+       * Saves the state.
+       * Options:
+       * mustSetFocus: set the focus to the selected node
+       * mustToggle: support deselecting the selected node
+       */
       _selectSingleNode(node, optionsParam) {
         const defaultOptions = {
           mustSetFocus: true,
@@ -3077,7 +3077,7 @@ var TreeElement = (function () {
           this._openParents(node);
           this._getNodeElementForNode(node)._select(selectOptions.mustSetFocus);
           this._triggerEvent("tree.select", {
-            deselectedNode: deselectedNode || null,
+            deselectedNode,
             node
           });
         }
@@ -3462,7 +3462,7 @@ var TreeElement = (function () {
        * @group Other
        */
       deinit() {
-        this._htmlElement.textContent = '';
+        this._htmlElement.textContent = "";
         this._dataLoader._deinit();
         this._keyHandler._deinit();
         this._mouseHandler._deinit();
@@ -3545,7 +3545,7 @@ var TreeElement = (function () {
       }
 
       /**
-       * Returns the selected node, or `false` when nothing is selected.
+       * Returns the selected node, or `null` when nothing is selected.
        *
        * @group Selection
        */
@@ -3938,9 +3938,9 @@ var TreeElement = (function () {
       }
 
       /* Create a RequestUrl based on the url in the options.
-        * Add a 'node' query parameter for loading on demand
-        * Add a 'selected_node' query parameter if a node is selected.
-      */
+       * Add a 'node' query parameter for loading on demand
+       * Add a 'selected_node' query parameter if a node is selected.
+       */
       _createRequestUrl(node) {
         const dataUrl = this._options.dataUrl;
         let url;
@@ -3955,12 +3955,12 @@ var TreeElement = (function () {
         const requestUrl = new RequestUrl(url);
         if (node?.id) {
           // Load on demand of a subtree; add node parameter
-          requestUrl._setSearchParam('node', node.id.toString());
+          requestUrl._setSearchParam("node", node.id.toString());
         } else {
           // Add selected_node parameter
           const selectedNodeId = this._getNodeIdToBeSelected();
           if (selectedNodeId) {
-            requestUrl._setSearchParam('selected_node', selectedNodeId.toString());
+            requestUrl._setSearchParam("selected_node", selectedNodeId.toString());
           }
         }
         return requestUrl;
