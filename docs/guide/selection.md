@@ -24,7 +24,7 @@ new TreeElement({
 const node = tree.getNodeById(1);
 
 tree.selectNode(node);
-tree.getSelectedNode(); // the node, or false
+tree.getSelectedNode(); // the node, or null
 ```
 
 `selectNode(null)` clears the selection. Selecting a node opens its parents, so the node is

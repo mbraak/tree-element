@@ -55,7 +55,7 @@ describe("keyboard support", () => {
 
       await userEvent.keyboard("{ArrowDown}");
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("keeps the node selected when the last node is selected", async () => {
@@ -90,7 +90,7 @@ describe("keyboard support", () => {
 
       await userEvent.keyboard("{ArrowUp}");
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
   });
 
@@ -153,7 +153,7 @@ describe("keyboard support", () => {
 
       await userEvent.keyboard("{ArrowRight}");
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("does nothing when a child is selected", async () => {
@@ -223,7 +223,7 @@ describe("keyboard support", () => {
 
       await userEvent.keyboard("{ArrowLeft}");
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
   });
 
