@@ -88,7 +88,7 @@ describe("events", () => {
 
       await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
   });
 
@@ -135,9 +135,7 @@ describe("events", () => {
 
       const onDoubleClick = listenToEvent("tree.dblclick");
 
-      await userEvent.dblClick(
-        screen.getByRole("treeitem", { name: "node1" }),
-      );
+      await userEvent.dblClick(screen.getByRole("treeitem", { name: "node1" }));
 
       const node1 = tree.getNodeByNameMustExist("node1");
 
@@ -430,7 +428,7 @@ describe("events", () => {
 
       expect(onLoading).toHaveBeenCalledExactlyOnceWith({
         element: htmlElement,
-        node: undefined
+        node: undefined,
       });
 
       tree.deinit();
