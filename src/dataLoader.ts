@@ -78,7 +78,7 @@ export default class DataLoader {
         const signal = this.abortController.signal;
         url.setSearchParam("_", Date.now().toString());
 
-        return fetch(url.toString(), { headers: { "Content-Type": "application/json" }, signal })
+        return fetch(url.value(), { headers: { "Content-Type": "application/json" }, signal })
             .then(handleResponse)
             .catch((error: unknown) => {
                 if (this.abortController.signal.aborted) {

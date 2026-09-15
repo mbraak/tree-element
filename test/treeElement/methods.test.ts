@@ -71,7 +71,7 @@ describe("methods", () => {
         data: exampleData,
       });
 
-      expect(tree.addNodeAfter("added-node", tree.tree)).toBeNull();
+      expect(tree.addNodeAfter("added-node", tree.getTree())).toBeNull();
     });
   });
 
@@ -98,7 +98,7 @@ describe("methods", () => {
         data: exampleData,
       });
 
-      expect(tree.addNodeBefore("added-node", tree.tree)).toBeNull();
+      expect(tree.addNodeBefore("added-node", tree.getTree())).toBeNull();
     });
   });
 
@@ -162,7 +162,7 @@ describe("methods", () => {
         data: exampleData,
       });
 
-      expect(tree.addParentNode("new-parent-node", tree.tree)).toBeNull();
+      expect(tree.addParentNode("new-parent-node", tree.getTree())).toBeNull();
     });
   });
 
@@ -246,7 +246,7 @@ describe("methods", () => {
         data: exampleData,
       });
 
-      tree.appendNode("appended-node", tree.tree);
+      tree.appendNode("appended-node", tree.getTree());
 
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({ name: "node1" }),
@@ -289,7 +289,7 @@ describe("methods", () => {
           id: 99,
           name: "appended-using-object",
         },
-        tree.tree,
+        tree.getTree(),
       );
 
       expect(htmlElement).toHaveTreeStructure([
@@ -310,7 +310,7 @@ describe("methods", () => {
         id: 99,
         name: "appended-using-object",
       };
-      tree.appendNode(nodeData, tree.tree);
+      tree.appendNode(nodeData, tree.getTree());
 
       expect(tree.getNodeById(99)).toMatchObject(nodeData);
     });
@@ -1088,7 +1088,7 @@ describe("methods", () => {
     it("prepends the node to the root node", () => {
       const tree = createTreeElement({ data: exampleData });
 
-      tree.prependNode("prepended-node", tree.tree);
+      tree.prependNode("prepended-node", tree.getTree());
 
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({ name: "prepended-node" }),
