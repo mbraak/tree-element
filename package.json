@@ -47,7 +47,7 @@
     "docs-preview": "vitepress preview docs",
     "devserver-with-coverage": "COVERAGE=true SERVE=true rollup --config config/rollup.config.mjs",
     "build-with-coverage": "COVERAGE=true rollup --config config/rollup.config.mjs",
-    "prettier": "prettier src/*.ts --write --tab-width 4",
+    "prettier": "prettier src/**/*.ts test/**/*.ts --write --tab-width 2",
     "tsc": "tsc --noEmit --project tsconfig.json",
     "version": "node config/generateVersion.mjs && git add src/version.ts",
     "prepublishOnly": "pnpm run production",

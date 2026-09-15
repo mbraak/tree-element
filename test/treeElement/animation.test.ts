@@ -1,4 +1,8 @@
-import { getAnimationDuration, slideDown, slideUp } from "treeElement/animation";
+import {
+  getAnimationDuration,
+  slideDown,
+  slideUp,
+} from "treeElement/animation";
 
 describe("getAnimationDuration", () => {
   it("returns a number unchanged", () => {

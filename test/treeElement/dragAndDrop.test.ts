@@ -33,18 +33,18 @@ const mockLayout = (htmlElement: HTMLElement) => {
 
   // The list elements of the visible nodes, in the order in which they are displayed.
   const getVisibleListElements = (listElement: HTMLElement): HTMLElement[] => {
-    // eslint-disable-next-line testing-library/no-node-access
-    const listItemElements = listElement.querySelectorAll<HTMLElement>(
-      ":scope > li",
-    );
+    const listItemElements =
+      listElement.querySelectorAll<HTMLElement>(":scope > li"); // eslint-disable-line testing-library/no-node-access
 
     return Array.from(listItemElements).flatMap((listItemElement) => {
-      const isClosed = listItemElement.classList.contains("tree-element-closed");
+      const isClosed = listItemElement.classList.contains(
+        "tree-element-closed",
+      );
 
       const childListElement = isClosed
         ? null
         : // eslint-disable-next-line testing-library/no-node-access
-        listItemElement.querySelector<HTMLElement>(":scope > ul");
+          listItemElement.querySelector<HTMLElement>(":scope > ul");
 
       return [
         listItemElement,

@@ -1,9 +1,9 @@
-import 'vitest'
+import "vitest";
 
-declare module 'vitest' {
-    interface Matchers<R = any> {
-        toBeAriaExpanded(): R;
-        toBeAriaSelected(): R;
-        toHaveTreeStructure(treeStructure: any): R;
-    }
+declare module "vitest" {
+  interface Matchers<R = any> {
+    toBeAriaExpanded(): R;
+    toBeAriaSelected(): R;
+    toHaveTreeStructure(treeStructure: any): R;
+  }
 }

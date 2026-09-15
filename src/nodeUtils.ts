@@ -1,12 +1,12 @@
 import type { NodeData, NodeRecord } from "./node";
 
 interface NodeRecordWithChildren extends NodeRecord {
-    children: NodeData[];
+  children: NodeData[];
 }
 
 export const isNodeRecordWithChildren = (
-    data: NodeData,
+  data: NodeData,
 ): data is NodeRecordWithChildren =>
-    typeof data === "object" &&
-    "children" in data &&
-    data.children instanceof Array;
+  typeof data === "object" &&
+  "children" in data &&
+  data.children instanceof Array;

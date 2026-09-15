@@ -4,8 +4,8 @@ import type { PositionInfo } from "./mouseUtils";
 import type { Node } from "./node";
 
 import {
-    getPositionInfoFromMouseEvent,
-    getPositionInfoFromTouch,
+  getPositionInfoFromMouseEvent,
+  getPositionInfoFromTouch,
 } from "./mouseUtils";
 
 export type GetMouseDelay = () => number;
@@ -14,378 +14,375 @@ export type MouseCapture = (positionInfo: PositionInfo) => boolean | null;
 export type MouseStart = (positionInfo: PositionInfo) => boolean;
 
 interface ClickTarget {
-    node: Node;
-    type: "button" | "label";
+  node: Node;
+  type: "button" | "label";
 }
 
 interface MouseHandlerParams {
-    classNames: ClassNames;
-    element: HTMLElement;
-    getMouseDelay: () => number;
-    getNode: GetNode;
-    onClickButton: (node: Node) => void;
-    onClickTitle: (node: Node) => void;
-    onMouseCapture: MouseCapture;
-    onMouseDrag: (positionInfo: PositionInfo) => void;
-    onMouseStart: MouseStart;
-    onMouseStop: (positionInfo: PositionInfo) => void;
-    triggerEvent: TriggerEvent;
-    useContextMenu: boolean;
+  classNames: ClassNames;
+  element: HTMLElement;
+  getMouseDelay: () => number;
+  getNode: GetNode;
+  onClickButton: (node: Node) => void;
+  onClickTitle: (node: Node) => void;
+  onMouseCapture: MouseCapture;
+  onMouseDrag: (positionInfo: PositionInfo) => void;
+  onMouseStart: MouseStart;
+  onMouseStop: (positionInfo: PositionInfo) => void;
+  triggerEvent: TriggerEvent;
+  useContextMenu: boolean;
 }
 
 class MouseHandler {
-    private classNames: ClassNames;
-    private element: HTMLElement;
-    private getMouseDelay: GetMouseDelay;
-    private getNode: GetNode;
+  private classNames: ClassNames;
+  private element: HTMLElement;
+  private getMouseDelay: GetMouseDelay;
+  private getNode: GetNode;
 
-    private isMouseDelayMet: boolean;
+  private isMouseDelayMet: boolean;
 
-    private isMouseStarted: boolean;
+  private isMouseStarted: boolean;
 
-    private mouseDelayTimer: null | number;
+  private mouseDelayTimer: null | number;
 
-    private mouseDownInfo: null | PositionInfo;
-    private onClickButton: (node: Node) => void;
-    private onClickTitle: (node: Node) => void;
+  private mouseDownInfo: null | PositionInfo;
+  private onClickButton: (node: Node) => void;
+  private onClickTitle: (node: Node) => void;
 
-    private onMouseCapture: MouseCapture;
+  private onMouseCapture: MouseCapture;
 
-    private onMouseDrag: (positionInfo: PositionInfo) => void;
+  private onMouseDrag: (positionInfo: PositionInfo) => void;
 
-    private onMouseStart: MouseStart;
+  private onMouseStart: MouseStart;
 
-    private onMouseStop: (positionInfo: PositionInfo) => void;
+  private onMouseStop: (positionInfo: PositionInfo) => void;
 
-    private triggerEvent: TriggerEvent;
-    private useContextMenu: boolean;
-    constructor({
-        classNames,
-        element,
-        getMouseDelay,
-        getNode,
-        onClickButton,
-        onClickTitle,
-        onMouseCapture,
-        onMouseDrag,
-        onMouseStart,
-        onMouseStop,
-        triggerEvent,
-        useContextMenu,
-    }: MouseHandlerParams) {
-        this.classNames = classNames;
-        this.element = element;
-        this.getMouseDelay = getMouseDelay;
-        this.getNode = getNode;
-        this.onClickButton = onClickButton;
-        this.onClickTitle = onClickTitle;
-        this.onMouseCapture = onMouseCapture;
-        this.onMouseDrag = onMouseDrag;
-        this.onMouseStart = onMouseStart;
-        this.onMouseStop = onMouseStop;
-        this.triggerEvent = triggerEvent;
-        this.useContextMenu = useContextMenu;
+  private triggerEvent: TriggerEvent;
+  private useContextMenu: boolean;
+  constructor({
+    classNames,
+    element,
+    getMouseDelay,
+    getNode,
+    onClickButton,
+    onClickTitle,
+    onMouseCapture,
+    onMouseDrag,
+    onMouseStart,
+    onMouseStop,
+    triggerEvent,
+    useContextMenu,
+  }: MouseHandlerParams) {
+    this.classNames = classNames;
+    this.element = element;
+    this.getMouseDelay = getMouseDelay;
+    this.getNode = getNode;
+    this.onClickButton = onClickButton;
+    this.onClickTitle = onClickTitle;
+    this.onMouseCapture = onMouseCapture;
+    this.onMouseDrag = onMouseDrag;
+    this.onMouseStart = onMouseStart;
+    this.onMouseStop = onMouseStop;
+    this.triggerEvent = triggerEvent;
+    this.useContextMenu = useContextMenu;
 
-        element.addEventListener("click", this.handleClick);
-        element.addEventListener("dblclick", this.handleDblclick);
-        element.addEventListener("mousedown", this.mouseDown, {
-            passive: false,
+    element.addEventListener("click", this.handleClick);
+    element.addEventListener("dblclick", this.handleDblclick);
+    element.addEventListener("mousedown", this.mouseDown, {
+      passive: false,
+    });
+    element.addEventListener("touchstart", this.touchStart, {
+      passive: false,
+    });
+
+    if (useContextMenu) {
+      element.addEventListener("contextmenu", this.handleContextmenu);
+    }
+
+    this.isMouseStarted = false;
+    this.mouseDelayTimer = null;
+    this.isMouseDelayMet = false;
+    this.mouseDownInfo = null;
+  }
+  public deinit(): void {
+    this.element.removeEventListener("click", this.handleClick);
+    this.element.removeEventListener("dblclick", this.handleDblclick);
+
+    if (this.useContextMenu) {
+      this.element.removeEventListener("contextmenu", this.handleContextmenu);
+    }
+
+    this.element.removeEventListener("mousedown", this.mouseDown);
+    this.element.removeEventListener("touchstart", this.touchStart);
+    this.removeMouseMoveEventListeners();
+  }
+  private getClickTarget(element: HTMLElement): ClickTarget | null {
+    const button = element.closest<HTMLElement>(`.${this.classNames.toggler}`);
+
+    if (button) {
+      const node = this.getNode(button);
+
+      if (node) {
+        return {
+          node,
+          type: "button",
+        };
+      }
+    } else {
+      const treeElement = element.closest<HTMLElement>(
+        `.${this.classNames.element}`,
+      );
+
+      if (treeElement) {
+        const node = this.getNode(treeElement);
+        if (node) {
+          return {
+            node,
+            type: "label",
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+  private handleClick = (e: MouseEvent): void => {
+    if (!e.target) {
+      return;
+    }
+
+    const clickTarget = this.getClickTarget(e.target as HTMLElement);
+
+    if (!clickTarget) {
+      return;
+    }
+
+    switch (clickTarget.type) {
+      case "button":
+        this.onClickButton(clickTarget.node);
+
+        e.preventDefault();
+        e.stopPropagation();
+        break;
+
+      case "label": {
+        if (
+          this.triggerEvent("tree.click", {
+            node: clickTarget.node,
+            originalEvent: e,
+          })
+        ) {
+          this.onClickTitle(clickTarget.node);
+        }
+        break;
+      }
+    }
+  };
+
+  private handleContextmenu = (e: MouseEvent) => {
+    if (!e.target) {
+      return;
+    }
+
+    const div = (e.target as HTMLElement).closest<HTMLElement>(
+      `ul.${this.classNames.tree} .${this.classNames.element}`,
+    );
+
+    if (div) {
+      const node = this.getNode(div);
+      if (node) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.triggerEvent("tree.contextmenu", {
+          node,
+          originalEvent: e,
         });
-        element.addEventListener("touchstart", this.touchStart, {
-            passive: false,
-        });
-
-        if (useContextMenu) {
-            element.addEventListener("contextmenu", this.handleContextmenu);
-        }
-
-        this.isMouseStarted = false;
-        this.mouseDelayTimer = null;
-        this.isMouseDelayMet = false;
-        this.mouseDownInfo = null;
-    }
-    public deinit(): void {
-        this.element.removeEventListener("click", this.handleClick);
-        this.element.removeEventListener("dblclick", this.handleDblclick);
-
-        if (this.useContextMenu) {
-            this.element.removeEventListener(
-                "contextmenu",
-                this.handleContextmenu,
-            );
-        }
-
-        this.element.removeEventListener("mousedown", this.mouseDown);
-        this.element.removeEventListener("touchstart", this.touchStart);
-        this.removeMouseMoveEventListeners();
-    }
-    private getClickTarget(element: HTMLElement): ClickTarget | null {
-        const button = element.closest<HTMLElement>(
-            `.${this.classNames.toggler}`,
-        );
-
-        if (button) {
-            const node = this.getNode(button);
-
-            if (node) {
-                return {
-                    node,
-                    type: "button",
-                };
-            }
-        } else {
-            const treeElement = element.closest<HTMLElement>(
-                `.${this.classNames.element}`,
-            );
-
-            if (treeElement) {
-                const node = this.getNode(treeElement);
-                if (node) {
-                    return {
-                        node,
-                        type: "label",
-                    };
-                }
-            }
-        }
-
-        return null;
-    }
-    private handleClick = (e: MouseEvent): void => {
-        if (!e.target) {
-            return;
-        }
-
-        const clickTarget = this.getClickTarget(e.target as HTMLElement);
-
-        if (!clickTarget) {
-            return;
-        }
-
-        switch (clickTarget.type) {
-            case "button":
-                this.onClickButton(clickTarget.node);
-
-                e.preventDefault();
-                e.stopPropagation();
-                break;
-
-            case "label": {
-                if (this.triggerEvent("tree.click", {
-                    node: clickTarget.node,
-                    originalEvent: e,
-                })) {
-                    this.onClickTitle(clickTarget.node);
-                }
-                break;
-            }
-        }
-    };
-
-    private handleContextmenu = (e: MouseEvent) => {
-        if (!e.target) {
-            return;
-        }
-
-        const div = (e.target as HTMLElement).closest<HTMLElement>(
-            `ul.${this.classNames.tree} .${this.classNames.element}`,
-        );
-
-        if (div) {
-            const node = this.getNode(div);
-            if (node) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                this.triggerEvent("tree.contextmenu", {
-                    node,
-                    originalEvent: e,
-                });
-                return false;
-            }
-        }
-
-        return null;
-    };
-
-    private handleDblclick = (e: MouseEvent): void => {
-        if (!e.target) {
-            return;
-        }
-
-        const clickTarget = this.getClickTarget(e.target as HTMLElement);
-
-        if (clickTarget?.type === "label") {
-            this.triggerEvent("tree.dblclick", {
-                node: clickTarget.node,
-                originalEvent: e,
-            });
-        }
-    };
-
-    private handleMouseDown(positionInfo: PositionInfo): boolean {
-        // We may have missed mouseup (out of window)
-        if (this.isMouseStarted) {
-            this.handleMouseUp(positionInfo);
-        }
-
-        this.mouseDownInfo = positionInfo;
-
-        if (!this.onMouseCapture(positionInfo)) {
-            return false;
-        }
-
-        this.handleStartMouse();
-
-        return true;
+        return false;
+      }
     }
 
-    private handleMouseMove(
-        e: MouseEvent | TouchEvent,
-        positionInfo: PositionInfo,
-    ): void {
-        if (this.isMouseStarted) {
-            this.onMouseDrag(positionInfo);
+    return null;
+  };
 
-            if (e.cancelable) {
-                e.preventDefault();
-            }
-            return;
-        }
-
-        if (!this.isMouseDelayMet) {
-            return;
-        }
-
-        if (this.mouseDownInfo) {
-            this.isMouseStarted = this.onMouseStart(this.mouseDownInfo);
-        }
-
-        if (this.isMouseStarted) {
-            this.onMouseDrag(positionInfo);
-
-            if (e.cancelable) {
-                e.preventDefault();
-            }
-        } else {
-            this.handleMouseUp(positionInfo);
-        }
-    }
-    private handleMouseUp(positionInfo: PositionInfo): void {
-        this.removeMouseMoveEventListeners();
-        this.isMouseDelayMet = false;
-        this.mouseDownInfo = null;
-
-        if (this.isMouseStarted) {
-            this.isMouseStarted = false;
-            this.onMouseStop(positionInfo);
-        }
+  private handleDblclick = (e: MouseEvent): void => {
+    if (!e.target) {
+      return;
     }
 
-    private handleStartMouse(): void {
-        document.addEventListener("mousemove", this.mouseMove, {
-            passive: false,
-        });
-        document.addEventListener("touchmove", this.touchMove, {
-            passive: false,
-        });
-        document.addEventListener("mouseup", this.mouseUp, { passive: false });
-        document.addEventListener("touchend", this.touchEnd, {
-            passive: false,
-        });
+    const clickTarget = this.getClickTarget(e.target as HTMLElement);
 
-        const mouseDelay = this.getMouseDelay();
+    if (clickTarget?.type === "label") {
+      this.triggerEvent("tree.dblclick", {
+        node: clickTarget.node,
+        originalEvent: e,
+      });
+    }
+  };
 
-        if (mouseDelay) {
-            this.startMouseDelayTimer(mouseDelay);
-        } else {
-            this.isMouseDelayMet = true;
-        }
+  private handleMouseDown(positionInfo: PositionInfo): boolean {
+    // We may have missed mouseup (out of window)
+    if (this.isMouseStarted) {
+      this.handleMouseUp(positionInfo);
     }
 
-    private mouseDown = (e: MouseEvent): void => {
-        // Left mouse button?
-        if (e.button !== 0) {
-            return;
-        }
+    this.mouseDownInfo = positionInfo;
 
-        const result = this.handleMouseDown(getPositionInfoFromMouseEvent(e));
-
-        if (result && e.cancelable) {
-            e.preventDefault();
-        }
-    };
-
-    private mouseMove = (e: MouseEvent): void => {
-        this.handleMouseMove(e, getPositionInfoFromMouseEvent(e));
-    };
-
-    private mouseUp = (e: MouseEvent): void => {
-        this.handleMouseUp(getPositionInfoFromMouseEvent(e));
-    };
-
-    private removeMouseMoveEventListeners() {
-        document.removeEventListener("mousemove", this.mouseMove);
-        document.removeEventListener("touchmove", this.touchMove);
-        document.removeEventListener("mouseup", this.mouseUp);
-        document.removeEventListener("touchend", this.touchEnd);
+    if (!this.onMouseCapture(positionInfo)) {
+      return false;
     }
 
-    private startMouseDelayTimer(mouseDelay: number): void {
-        if (this.mouseDelayTimer) {
-            clearTimeout(this.mouseDelayTimer);
-        }
+    this.handleStartMouse();
 
-        this.mouseDelayTimer = window.setTimeout(() => {
-            if (this.mouseDownInfo) {
-                this.isMouseDelayMet = true;
-            }
-        }, mouseDelay);
+    return true;
+  }
 
-        this.isMouseDelayMet = false;
+  private handleMouseMove(
+    e: MouseEvent | TouchEvent,
+    positionInfo: PositionInfo,
+  ): void {
+    if (this.isMouseStarted) {
+      this.onMouseDrag(positionInfo);
+
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+      return;
     }
 
-    private touchEnd = (e: TouchEvent): void => {
-        if (e.touches.length > 1) {
-            return;
-        }
+    if (!this.isMouseDelayMet) {
+      return;
+    }
 
-        const touch = e.touches[0];
+    if (this.mouseDownInfo) {
+      this.isMouseStarted = this.onMouseStart(this.mouseDownInfo);
+    }
 
-        if (!touch) {
-            return;
-        }
+    if (this.isMouseStarted) {
+      this.onMouseDrag(positionInfo);
 
-        this.handleMouseUp(getPositionInfoFromTouch(touch, e));
-    };
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    } else {
+      this.handleMouseUp(positionInfo);
+    }
+  }
+  private handleMouseUp(positionInfo: PositionInfo): void {
+    this.removeMouseMoveEventListeners();
+    this.isMouseDelayMet = false;
+    this.mouseDownInfo = null;
 
-    private touchMove = (e: TouchEvent): void => {
-        if (e.touches.length > 1) {
-            return;
-        }
+    if (this.isMouseStarted) {
+      this.isMouseStarted = false;
+      this.onMouseStop(positionInfo);
+    }
+  }
 
-        const touch = e.touches[0];
+  private handleStartMouse(): void {
+    document.addEventListener("mousemove", this.mouseMove, {
+      passive: false,
+    });
+    document.addEventListener("touchmove", this.touchMove, {
+      passive: false,
+    });
+    document.addEventListener("mouseup", this.mouseUp, { passive: false });
+    document.addEventListener("touchend", this.touchEnd, {
+      passive: false,
+    });
 
-        if (!touch) {
-            return;
-        }
+    const mouseDelay = this.getMouseDelay();
 
-        this.handleMouseMove(e, getPositionInfoFromTouch(touch, e));
-    };
+    if (mouseDelay) {
+      this.startMouseDelayTimer(mouseDelay);
+    } else {
+      this.isMouseDelayMet = true;
+    }
+  }
 
-    private touchStart = (e: TouchEvent): void => {
-        if (e.touches.length > 1) {
-            return;
-        }
+  private mouseDown = (e: MouseEvent): void => {
+    // Left mouse button?
+    if (e.button !== 0) {
+      return;
+    }
 
-        const touch = e.touches[0];
+    const result = this.handleMouseDown(getPositionInfoFromMouseEvent(e));
 
-        if (!touch) {
-            return;
-        }
+    if (result && e.cancelable) {
+      e.preventDefault();
+    }
+  };
 
-        this.handleMouseDown(getPositionInfoFromTouch(touch, e));
-    };
+  private mouseMove = (e: MouseEvent): void => {
+    this.handleMouseMove(e, getPositionInfoFromMouseEvent(e));
+  };
+
+  private mouseUp = (e: MouseEvent): void => {
+    this.handleMouseUp(getPositionInfoFromMouseEvent(e));
+  };
+
+  private removeMouseMoveEventListeners() {
+    document.removeEventListener("mousemove", this.mouseMove);
+    document.removeEventListener("touchmove", this.touchMove);
+    document.removeEventListener("mouseup", this.mouseUp);
+    document.removeEventListener("touchend", this.touchEnd);
+  }
+
+  private startMouseDelayTimer(mouseDelay: number): void {
+    if (this.mouseDelayTimer) {
+      clearTimeout(this.mouseDelayTimer);
+    }
+
+    this.mouseDelayTimer = window.setTimeout(() => {
+      if (this.mouseDownInfo) {
+        this.isMouseDelayMet = true;
+      }
+    }, mouseDelay);
+
+    this.isMouseDelayMet = false;
+  }
+
+  private touchEnd = (e: TouchEvent): void => {
+    if (e.touches.length > 1) {
+      return;
+    }
+
+    const touch = e.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    this.handleMouseUp(getPositionInfoFromTouch(touch, e));
+  };
+
+  private touchMove = (e: TouchEvent): void => {
+    if (e.touches.length > 1) {
+      return;
+    }
+
+    const touch = e.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    this.handleMouseMove(e, getPositionInfoFromTouch(touch, e));
+  };
+
+  private touchStart = (e: TouchEvent): void => {
+    if (e.touches.length > 1) {
+      return;
+    }
+
+    const touch = e.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    this.handleMouseDown(getPositionInfoFromTouch(touch, e));
+  };
 }
 
 export default MouseHandler;
