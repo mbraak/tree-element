@@ -54,7 +54,8 @@ const state = tree.getState();
 tree.setState(state);
 ```
 
-`getState` reflects the tree as it is now, whether or not `saveState` is enabled.
+`getState` reflects the tree as it is now, whether or not `saveState` is enabled. When `saveState`
+is enabled, `setState` also saves the state it applied to storage.
 
 ## Storing state somewhere else
 

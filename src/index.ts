@@ -766,13 +766,15 @@ export default class TreeElement {
   }
 
   /**
-   * Applies a state to the tree.
+   * Applies a state to the tree, and saves it to storage when `saveState` is
+   * enabled.
    *
    * @group State
    */
   public setState(state: SavedState) {
     this.saveStateHandler.setInitialState(state);
     this.refreshElements(null);
+    this.saveState();
   }
 
   /**

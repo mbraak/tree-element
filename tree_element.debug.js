@@ -3708,13 +3708,15 @@ var TreeElement = (function () {
     }
 
     /**
-     * Applies a state to the tree.
+     * Applies a state to the tree, and saves it to storage when `saveState` is
+     * enabled.
      *
      * @group State
      */
     setState(state) {
       this._saveStateHandler._setInitialState(state);
       this._refreshElements(null);
+      this._saveState();
     }
 
     /**

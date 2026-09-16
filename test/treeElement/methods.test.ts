@@ -1385,6 +1385,39 @@ describe("methods", () => {
         }),
       ]);
     });
+
+    it("saves the state to local storage when saveState is enabled", () => {
+      const tree = createTreeElement({
+        autoOpen: false,
+        data: exampleData,
+        saveState: true,
+        selectable: true,
+      });
+
+      tree.setState({
+        open_nodes: [123],
+        selected_node: [123],
+      });
+
+      expect(localStorage.getItem("tree")).toBe(
+        '{"open_nodes":[123],"selected_node":[123]}',
+      );
+    });
+
+    it("doesn't save the state when saveState is disabled", () => {
+      const tree = createTreeElement({
+        autoOpen: false,
+        data: exampleData,
+        selectable: true,
+      });
+
+      tree.setState({
+        open_nodes: [123],
+        selected_node: [123],
+      });
+
+      expect(localStorage.getItem("tree")).toBeNull();
+    });
   });
 
   describe("toggle", () => {
