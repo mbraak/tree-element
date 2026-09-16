@@ -582,10 +582,7 @@ export default class TreeElement {
    * @group Selection
    */
   public moveDown() {
-    const selectedNode = this.getSelectedNode();
-    if (selectedNode) {
-      this.keyHandler.moveDown(selectedNode);
-    }
+    this.keyHandler.moveDown();
   }
 
   /**
@@ -610,10 +607,7 @@ export default class TreeElement {
    * @group Selection
    */
   public moveUp() {
-    const selectedNode = this.getSelectedNode();
-    if (selectedNode) {
-      this.keyHandler.moveUp(selectedNode);
-    }
+    this.keyHandler.moveUp();
   }
 
   /**
