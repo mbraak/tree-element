@@ -34,8 +34,8 @@ interface ElementsRendererParams {
  * selected and loading classes.
  */
 export default class ElementsRenderer {
-  public closedIconElement?: HTMLElement | Text;
-  public openedIconElement?: HTMLElement | Text;
+  public closedIconElement?: globalThis.Node;
+  public openedIconElement?: globalThis.Node;
   private autoEscape: boolean;
   private buttonLeft: boolean;
   private classNames: ClassNames;
@@ -145,15 +145,16 @@ export default class ElementsRenderer {
     this.setNodeElement(li, node);
   }
 
-  private createButtonElement(
-    value: IconElement,
-  ): HTMLElement | Text | undefined {
+  /* Returns the template of a toggler icon; it is cloned for every folder.
+   * A string is parsed as html and becomes a fragment, so it can hold
+   * entities, text and elements.
+   */
+  private createButtonElement(value: IconElement): globalThis.Node | undefined {
     if (typeof value === "string") {
-      // convert value to html
-      const div = document.createElement("div");
-      div.innerHTML = value;
+      const template = document.createElement("template");
+      template.innerHTML = value;
 
-      return document.createTextNode(div.innerHTML);
+      return template.content;
     } else if (value.nodeType) {
       return value;
     } else {
