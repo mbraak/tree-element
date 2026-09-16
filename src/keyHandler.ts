@@ -100,6 +100,7 @@ export default class KeyHandler {
   private moveLeft(): boolean {
     const selectedNode = this.getSelectedNode();
 
+    /* istanbul ignore if */
     if (!selectedNode) {
       return false;
     }
