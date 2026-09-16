@@ -25,6 +25,7 @@ export default class KeyHandler {
   private keyboardSupport: boolean;
   private openNode: OpenNode;
   private originalSelectNode: SelectNode;
+
   constructor({
     closeNode,
     getSelectedNode,
@@ -51,12 +52,12 @@ export default class KeyHandler {
     }
   }
 
-  public moveDown(selectedNode: Node): boolean {
-    return this.selectNode(selectedNode.getNextVisibleNode());
+  public moveDown(): boolean {
+    return this.selectNode(this.getSelectedNode()?.getNextVisibleNode());
   }
 
-  public moveUp(selectedNode: Node): boolean {
-    return this.selectNode(selectedNode.getPreviousVisibleNode());
+  public moveUp(): boolean {
+    return this.selectNode(this.getSelectedNode()?.getPreviousVisibleNode());
   }
 
   private canHandleKeyboard(): boolean {
@@ -74,19 +75,19 @@ export default class KeyHandler {
     if (selectedNode) {
       switch (e.key) {
         case "ArrowDown":
-          isKeyHandled = this.moveDown(selectedNode);
+          isKeyHandled = this.moveDown();
           break;
 
         case "ArrowLeft":
-          isKeyHandled = this.moveLeft(selectedNode);
+          isKeyHandled = this.moveLeft();
           break;
 
         case "ArrowRight":
-          isKeyHandled = this.moveRight(selectedNode);
+          isKeyHandled = this.moveRight();
           break;
 
         case "ArrowUp":
-          isKeyHandled = this.moveUp(selectedNode);
+          isKeyHandled = this.moveUp();
           break;
       }
     }
@@ -96,7 +97,13 @@ export default class KeyHandler {
     }
   };
 
-  private moveLeft(selectedNode: Node): boolean {
+  private moveLeft(): boolean {
+    const selectedNode = this.getSelectedNode();
+
+    if (!selectedNode) {
+      return false;
+    }
+
     if (selectedNode.isFolder() && selectedNode.is_open) {
       // Left on an open node closes the node
       this.closeNode(selectedNode);
@@ -107,8 +114,10 @@ export default class KeyHandler {
     }
   }
 
-  private moveRight(selectedNode: Node): boolean {
-    if (!selectedNode.isFolder()) {
+  private moveRight(): boolean {
+    const selectedNode = this.getSelectedNode();
+
+    if (!selectedNode?.isFolder()) {
       return false;
     } else {
       // folder node
@@ -127,7 +136,7 @@ export default class KeyHandler {
    * Don't do anything if the node is null.
    * Result: a different node was selected.
    */
-  private selectNode(node: Node | null): boolean {
+  private selectNode(node?: Node | null): boolean {
     if (!node) {
       return false;
     } else {
