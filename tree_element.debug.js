@@ -951,11 +951,11 @@ var TreeElement = (function () {
         document.removeEventListener("keydown", this._handleKeyDown);
       }
     }
-    _moveDown(selectedNode) {
-      return this._selectNode(selectedNode.getNextVisibleNode());
+    _moveDown() {
+      return this._selectNode(this._getSelectedNode()?.getNextVisibleNode());
     }
-    _moveUp(selectedNode) {
-      return this._selectNode(selectedNode.getPreviousVisibleNode());
+    _moveUp() {
+      return this._selectNode(this._getSelectedNode()?.getPreviousVisibleNode());
     }
     _canHandleKeyboard() {
       return this._keyboardSupport && this._isFocusOnTree();
@@ -969,16 +969,16 @@ var TreeElement = (function () {
       if (selectedNode) {
         switch (e.key) {
           case "ArrowDown":
-            isKeyHandled = this._moveDown(selectedNode);
+            isKeyHandled = this._moveDown();
             break;
           case "ArrowLeft":
-            isKeyHandled = this._moveLeft(selectedNode);
+            isKeyHandled = this._moveLeft();
             break;
           case "ArrowRight":
-            isKeyHandled = this._moveRight(selectedNode);
+            isKeyHandled = this._moveRight();
             break;
           case "ArrowUp":
-            isKeyHandled = this._moveUp(selectedNode);
+            isKeyHandled = this._moveUp();
             break;
         }
       }
@@ -986,7 +986,13 @@ var TreeElement = (function () {
         e.preventDefault();
       }
     };
-    _moveLeft(selectedNode) {
+    _moveLeft() {
+      let selectedNode = this._getSelectedNode();
+
+      /* istanbul ignore if */
+      if (!selectedNode) {
+        return false;
+      }
       if (selectedNode.isFolder() && selectedNode.is_open) {
         // Left on an open node closes the node
         this._closeNode(selectedNode);
@@ -996,8 +1002,9 @@ var TreeElement = (function () {
         return this._selectNode(selectedNode.getParent());
       }
     }
-    _moveRight(selectedNode) {
-      if (!selectedNode.isFolder()) {
+    _moveRight() {
+      let selectedNode = this._getSelectedNode();
+      if (!selectedNode?.isFolder()) {
         return false;
       } else {
         // folder node
@@ -3533,10 +3540,7 @@ var TreeElement = (function () {
      * @group Selection
      */
     moveDown() {
-      let selectedNode = this.getSelectedNode();
-      if (selectedNode) {
-        this._keyHandler._moveDown(selectedNode);
-      }
+      this._keyHandler._moveDown();
     }
 
     /**
@@ -3561,10 +3565,7 @@ var TreeElement = (function () {
      * @group Selection
      */
     moveUp() {
-      let selectedNode = this.getSelectedNode();
-      if (selectedNode) {
-        this._keyHandler._moveUp(selectedNode);
-      }
+      this._keyHandler._moveUp();
     }
 
     /**
