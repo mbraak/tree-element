@@ -18,6 +18,10 @@
         ]
       }
     ],
+    [
+      "./babelPluginMinifySyntax.mjs",
+      { "excludeClasses": ["Node", "TreeElement"] }
+    ],
     "istanbul"
   ],
   "targets": "defaults"
