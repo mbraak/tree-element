@@ -54,13 +54,10 @@ interface TreeElementParams extends Partial<TreeElementOptions> {
   /** Replaces how events are dispatched. It must return whether the event
    * was not cancelled. This exists for tests and for integrating with
    * another event system. */
-  overrideTriggerEventProvider?: TriggerEventProvider,
+  overrideTriggerEventProvider?: TriggerEventProvider;
 }
 
 export default class TreeElement {
-  /** @hidden */
-  public tree: Node;
-
   private classNames: ClassNames;
   private dataLoader: DataLoader;
   private dndHandler: DragAndDropHandler;
@@ -74,14 +71,20 @@ export default class TreeElement {
   private saveStateHandler: SaveStateHandler;
   private scrollHandler: ScrollHandler;
   private selectNodeHandler: SelectNodeHandler;
+  private tree: Node;
   private triggerEventProvider: TriggerEventProvider;
 
   /** @hidden */
-  constructor({ htmlElement, overrideTriggerEventProvider, ...options }: TreeElementParams) {
+  constructor({
+    htmlElement,
+    overrideTriggerEventProvider,
+    ...options
+  }: TreeElementParams) {
     this.htmlElement = htmlElement;
     this.options = setDefaultOptions(htmlElement, options);
     this.classNames = createClassNames(this.options);
-    this.triggerEventProvider = overrideTriggerEventProvider ?? triggerCustomEvent;
+    this.triggerEventProvider =
+      overrideTriggerEventProvider ?? triggerCustomEvent;
 
     this.isInitialized = false;
     this.tree = new Node({}, true);
@@ -130,7 +133,7 @@ export default class TreeElement {
 
     const saveState = () => {
       saveStateHandler.saveState();
-    }
+    };
 
     const selectNodeHandler = new SelectNodeHandler({
       getNodeById,
@@ -139,7 +142,7 @@ export default class TreeElement {
       getSelectable: () => this.options.selectable,
       openParents,
       saveState,
-      triggerEvent
+      triggerEvent,
     });
 
     const addToSelection =
@@ -150,7 +153,8 @@ export default class TreeElement {
       selectNodeHandler.isNodeSelected.bind(selectNodeHandler);
     const removeFromSelection =
       selectNodeHandler.removeFromSelection.bind(selectNodeHandler);
-    const selectNode = selectNodeHandler.selectSingleNode.bind(selectNodeHandler);
+    const selectNode =
+      selectNodeHandler.selectSingleNode.bind(selectNodeHandler);
 
     const getMouseDelay = () => this.options.startDndDelay ?? 0;
 
@@ -267,10 +271,7 @@ export default class TreeElement {
    * @returns The new node, or `null` when the node has no parent.
    * @group Changing the tree
    */
-  public addNodeAfter(
-    nodeData: NodeData,
-    existingNode: Node,
-  ): Node | null {
+  public addNodeAfter(nodeData: NodeData, existingNode: Node): Node | null {
     const newNode = existingNode.addAfter(nodeData);
 
     if (newNode) {
@@ -286,10 +287,7 @@ export default class TreeElement {
    * @returns The new node, or `null` when the node has no parent.
    * @group Changing the tree
    */
-  public addNodeBefore(
-    nodeData: NodeData,
-    existingNode: Node,
-  ): Node | null {
+  public addNodeBefore(nodeData: NodeData, existingNode: Node): Node | null {
     const newNode = existingNode.addBefore(nodeData);
 
     if (newNode) {
@@ -306,10 +304,7 @@ export default class TreeElement {
    * @returns The new node, or `null` when the node has no parent.
    * @group Changing the tree
    */
-  public addParentNode(
-    nodeData: NodeData,
-    existingNode: Node,
-  ): Node | null {
+  public addParentNode(nodeData: NodeData, existingNode: Node): Node | null {
     const newNode = existingNode.addParent(nodeData);
 
     if (newNode) {
@@ -377,7 +372,7 @@ export default class TreeElement {
    * @group Other
    */
   public deinit(): void {
-    this.htmlElement.textContent = '';
+    this.htmlElement.textContent = "";
 
     this.dataLoader.deinit();
     this.keyHandler.deinit();
@@ -465,11 +460,11 @@ export default class TreeElement {
   }
 
   /**
-   * Returns the selected node, or `false` when nothing is selected.
+   * Returns the selected node, or `null` when nothing is selected.
    *
    * @group Selection
    */
-  public getSelectedNode(): false | Node {
+  public getSelectedNode(): Node | null {
     return this.selectNodeHandler.getSelectedNode();
   }
 
@@ -571,11 +566,10 @@ export default class TreeElement {
    * @param url - Defaults to the `dataUrl` option.
    * @group Loading data
    */
-  public async loadDataFromUrl(
-    url?: string,
-    parentNode?: Node
-  ): Promise<void> {
-    const requestUrl = url ? new RequestUrl(url) : this.createRequestUrl(parentNode);
+  public async loadDataFromUrl(url?: string, parentNode?: Node): Promise<void> {
+    const requestUrl = url
+      ? new RequestUrl(url)
+      : this.createRequestUrl(parentNode);
 
     if (requestUrl) {
       await this.dataLoader.loadFromUrl(requestUrl, parentNode);
@@ -605,11 +599,7 @@ export default class TreeElement {
    * @param position - `"before"`, `"after"` or `"inside"`.
    * @group Changing the tree
    */
-  public moveNode(
-    node: Node,
-    targetNode: Node,
-    position: Position,
-  ): void {
+  public moveNode(node: Node, targetNode: Node, position: Position): void {
     this.tree.moveNode(node, targetNode, position);
     this.refreshElements(null);
   }
@@ -640,15 +630,12 @@ export default class TreeElement {
    * @param slide - Override the `slide` option for this call.
    * @group Opening and closing
    */
-  public async openNode(
-    node: Node,
-    slide?: boolean
-  ): Promise<void> {
+  public async openNode(node: Node, slide?: boolean): Promise<void> {
     const mustSlide = slide ?? this.options.slide;
 
     const doOpenNode = async (
       openedNode: Node,
-      slideOption: boolean
+      slideOption: boolean,
     ): Promise<void> => {
       if (!node.children.length) {
         return;
@@ -656,10 +643,7 @@ export default class TreeElement {
 
       const folderElement = this.createFolderElement(openedNode);
 
-      await folderElement.open(
-        slideOption,
-        this.options.animationSpeed,
-      );
+      await folderElement.open(slideOption, this.options.animationSpeed);
     };
 
     if (node.isFolder() || node.isEmptyFolder) {
@@ -752,9 +736,7 @@ export default class TreeElement {
       return;
     }
 
-    const top =
-      getOffsetTop(node.element) -
-      getOffsetTop(this.htmlElement);
+    const top = getOffsetTop(node.element) - getOffsetTop(this.htmlElement);
 
     this.scrollHandler.scrollToY(top);
   }
@@ -768,10 +750,7 @@ export default class TreeElement {
    * `false`.
    * @group Selection
    */
-  public selectNode(
-    node: Node | null,
-    options?: SelectNodeOptions,
-  ): void {
+  public selectNode(node: Node | null, options?: SelectNodeOptions): void {
     if (!node) {
       // Called with empty node -> deselect current node
       this.deselectCurrentNode();
@@ -915,9 +894,9 @@ export default class TreeElement {
   }
 
   /* Create a RequestUrl based on the url in the options.
-    * Add a 'node' query parameter for loading on demand
-    * Add a 'selected_node' query parameter if a node is selected.
-  */
+   * Add a 'node' query parameter for loading on demand
+   * Add a 'selected_node' query parameter if a node is selected.
+   */
   private createRequestUrl(node?: Node): null | RequestUrl {
     const dataUrl = this.options.dataUrl;
 
@@ -937,12 +916,12 @@ export default class TreeElement {
 
     if (node?.id) {
       // Load on demand of a subtree; add node parameter
-      requestUrl.setSearchParam('node', node.id.toString());
+      requestUrl.setSearchParam("node", node.id.toString());
     } else {
       // Add selected_node parameter
       const selectedNodeId = this.getNodeIdToBeSelected();
       if (selectedNodeId) {
-        requestUrl.setSearchParam('selected_node', selectedNodeId.toString());
+        requestUrl.setSearchParam("selected_node", selectedNodeId.toString());
       }
     }
 
@@ -1022,11 +1001,7 @@ export default class TreeElement {
       }
     };
 
-    this.tree = new this.options.nodeClass(
-      null,
-      true,
-      this.options.nodeClass,
-    );
+    this.tree = new this.options.nodeClass(null, true, this.options.nodeClass);
 
     this.selectNodeHandler.clear();
 
@@ -1073,10 +1048,7 @@ export default class TreeElement {
     }
   }
 
-  private async loadFolderOnDemand(
-    node: Node,
-    slide: boolean,
-  ): Promise<void> {
+  private async loadFolderOnDemand(node: Node, slide: boolean): Promise<void> {
     node.is_loading = true;
 
     await this.loadDataFromUrl(undefined, node);
@@ -1180,8 +1152,7 @@ export default class TreeElement {
       if (!state) {
         return [false, false];
       } else {
-        const mustLoadOnDemand =
-          this.saveStateHandler.setInitialState(state);
+        const mustLoadOnDemand = this.saveStateHandler.setInitialState(state);
 
         // return true: the state is restored
         return [true, mustLoadOnDemand];
@@ -1223,16 +1194,14 @@ export default class TreeElement {
 
   // Set the initial state for nodes that are loaded on demand
   private async setInitialStateOnDemand(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const restoreState = (): boolean => {
         const state = this.saveStateHandler.getStateFromStorage();
 
         if (!state) {
           return false;
         } else {
-          void this.saveStateHandler.setInitialStateOnDemand(
-            state,
-          ).then(() => {
+          void this.saveStateHandler.setInitialStateOnDemand(state).then(() => {
             resolve();
           });
 
@@ -1286,7 +1255,10 @@ export default class TreeElement {
     this.nodeMap.set(element, node);
   }
 
-  private triggerEvent<Name extends TreeEventName>(eventName: Name, values?: TreeEvents[Name]): boolean {
-    return this.triggerEventProvider(this.htmlElement, eventName, values)
+  private triggerEvent<Name extends TreeEventName>(
+    eventName: Name,
+    values?: TreeEvents[Name],
+  ): boolean {
+    return this.triggerEventProvider(this.htmlElement, eventName, values);
   }
 }

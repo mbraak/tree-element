@@ -1,11 +1,11 @@
 import type {
-    AddToSelection,
-    GetNodeById,
-    GetSelectedNodes,
-    GetTree,
-    OpenNode,
-    RefreshElements,
-    RemoveFromSelection,
+  AddToSelection,
+  GetNodeById,
+  GetSelectedNodes,
+  GetTree,
+  OpenNode,
+  RefreshElements,
+  RemoveFromSelection,
 } from "./methodTypes";
 import type { Node, NodeId } from "./node";
 import type { OnGetStateFromStorage, OnSetStateFromStorage } from "./options";
@@ -13,267 +13,265 @@ import type { OnGetStateFromStorage, OnSetStateFromStorage } from "./options";
 import { isInt } from "./util";
 
 export interface SavedState {
-    open_nodes?: NodeId[];
-    selected_node?: NodeId[];
+  open_nodes?: NodeId[];
+  selected_node?: NodeId[];
 }
 
 interface SaveStateHandlerParams {
-    addToSelection: AddToSelection;
-    getNodeById: GetNodeById;
-    getSelectedNodes: GetSelectedNodes;
-    getTree: GetTree;
-    onGetStateFromStorage?: OnGetStateFromStorage;
-    onSetStateFromStorage?: OnSetStateFromStorage;
-    openNode: OpenNode;
-    refreshElements: RefreshElements;
-    removeFromSelection: RemoveFromSelection;
-    saveState: boolean | string;
+  addToSelection: AddToSelection;
+  getNodeById: GetNodeById;
+  getSelectedNodes: GetSelectedNodes;
+  getTree: GetTree;
+  onGetStateFromStorage?: OnGetStateFromStorage;
+  onSetStateFromStorage?: OnSetStateFromStorage;
+  openNode: OpenNode;
+  refreshElements: RefreshElements;
+  removeFromSelection: RemoveFromSelection;
+  saveState: boolean | string;
 }
 
 export default class SaveStateHandler {
-    private addToSelection: AddToSelection;
-    private getNodeById: GetNodeById;
-    private getSelectedNodes: GetSelectedNodes;
-    private getTree: GetTree;
-    private onGetStateFromStorage?: OnGetStateFromStorage;
-    private onSetStateFromStorage?: OnSetStateFromStorage;
-    private openNode: OpenNode;
-    private refreshElements: RefreshElements;
-    private removeFromSelection: RemoveFromSelection;
-    private saveStateOption: boolean | string;
+  private addToSelection: AddToSelection;
+  private getNodeById: GetNodeById;
+  private getSelectedNodes: GetSelectedNodes;
+  private getTree: GetTree;
+  private onGetStateFromStorage?: OnGetStateFromStorage;
+  private onSetStateFromStorage?: OnSetStateFromStorage;
+  private openNode: OpenNode;
+  private refreshElements: RefreshElements;
+  private removeFromSelection: RemoveFromSelection;
+  private saveStateOption: boolean | string;
 
-    constructor({
-        addToSelection,
-        getNodeById,
-        getSelectedNodes,
-        getTree,
-        onGetStateFromStorage,
-        onSetStateFromStorage,
-        openNode,
-        refreshElements,
-        removeFromSelection,
-        saveState,
-    }: SaveStateHandlerParams) {
-        this.addToSelection = addToSelection;
-        this.getNodeById = getNodeById;
-        this.getSelectedNodes = getSelectedNodes;
-        this.getTree = getTree;
-        this.onGetStateFromStorage = onGetStateFromStorage;
-        this.onSetStateFromStorage = onSetStateFromStorage;
-        this.openNode = openNode;
-        this.refreshElements = refreshElements;
-        this.removeFromSelection = removeFromSelection;
-        this.saveStateOption = saveState;
+  constructor({
+    addToSelection,
+    getNodeById,
+    getSelectedNodes,
+    getTree,
+    onGetStateFromStorage,
+    onSetStateFromStorage,
+    openNode,
+    refreshElements,
+    removeFromSelection,
+    saveState,
+  }: SaveStateHandlerParams) {
+    this.addToSelection = addToSelection;
+    this.getNodeById = getNodeById;
+    this.getSelectedNodes = getSelectedNodes;
+    this.getTree = getTree;
+    this.onGetStateFromStorage = onGetStateFromStorage;
+    this.onSetStateFromStorage = onSetStateFromStorage;
+    this.openNode = openNode;
+    this.refreshElements = refreshElements;
+    this.removeFromSelection = removeFromSelection;
+    this.saveStateOption = saveState;
+  }
+
+  public getNodeIdToBeSelected(): NodeId | null {
+    if (!this.saveStateOption) {
+      return null;
     }
 
-    public getNodeIdToBeSelected(): NodeId | null {
-        if (!this.saveStateOption) {
-            return null;
-        }
+    const state = this.getStateFromStorage();
 
-        const state = this.getStateFromStorage();
+    if (state?.selected_node) {
+      return state.selected_node[0] ?? null;
+    } else {
+      return null;
+    }
+  }
 
-        if (state?.selected_node) {
-            return state.selected_node[0] ?? null;
-        } else {
-            return null;
+  public getState(): SavedState {
+    const getOpenNodeIds = (): NodeId[] => {
+      const openNodes: NodeId[] = [];
+
+      this.getTree()?.iterate((node: Node) => {
+        if (node.is_open && node.id && node.hasChildren()) {
+          openNodes.push(node.id);
         }
+        return true;
+      });
+
+      return openNodes;
+    };
+
+    const getSelectedNodeIds = (): NodeId[] => {
+      const selectedNodeIds: NodeId[] = [];
+
+      this.getSelectedNodes().forEach((node) => {
+        if (node.id != null) {
+          selectedNodeIds.push(node.id);
+        }
+      });
+
+      return selectedNodeIds;
+    };
+
+    return {
+      open_nodes: getOpenNodeIds(),
+      selected_node: getSelectedNodeIds(),
+    };
+  }
+
+  public getStateFromStorage(): null | SavedState {
+    if (!this.saveStateOption) {
+      return null;
     }
 
-    public getState(): SavedState {
-        const getOpenNodeIds = (): NodeId[] => {
-            const openNodes: NodeId[] = [];
+    const jsonData = this.loadFromStorage();
 
-            this.getTree()?.iterate((node: Node) => {
-                if (node.is_open && node.id && node.hasChildren()) {
-                    openNodes.push(node.id);
-                }
-                return true;
-            });
+    if (jsonData) {
+      return this.parseState(jsonData);
+    } else {
+      return null;
+    }
+  }
 
-            return openNodes;
-        };
-
-        const getSelectedNodeIds = (): NodeId[] => {
-            const selectedNodeIds: NodeId[] = [];
-
-            this.getSelectedNodes().forEach((node) => {
-                if (node.id != null) {
-                    selectedNodeIds.push(node.id);
-                }
-            });
-
-            return selectedNodeIds;
-        };
-
-        return {
-            open_nodes: getOpenNodeIds(),
-            selected_node: getSelectedNodeIds(),
-        };
+  public saveState(): void {
+    if (!this.saveStateOption) {
+      return;
     }
 
-    public getStateFromStorage(): null | SavedState {
-        if (!this.saveStateOption) {
-            return null;
-        }
+    const state = JSON.stringify(this.getState());
 
-        const jsonData = this.loadFromStorage();
-
-        if (jsonData) {
-            return this.parseState(jsonData);
-        } else {
-            return null;
-        }
+    if (this.onSetStateFromStorage) {
+      this.onSetStateFromStorage(state);
+    } else {
+      localStorage.setItem(this.getKeyName(), state);
     }
+  }
 
-    public saveState(): void {
-        if (!this.saveStateOption) {
-            return;
-        }
-
-        const state = JSON.stringify(this.getState());
-
-        if (this.onSetStateFromStorage) {
-            this.onSetStateFromStorage(state);
-        } else {
-            localStorage.setItem(this.getKeyName(), state);
-        }
-    }
-
-    /*
+  /*
     Set initial state
     Don't handle nodes that are loaded on demand
 
     result: must load on demand (boolean)
     */
-    public setInitialState(state: SavedState): boolean {
-        let mustLoadOnDemand = false;
+  public setInitialState(state: SavedState): boolean {
+    let mustLoadOnDemand = false;
 
-        if (state.open_nodes) {
-            mustLoadOnDemand = this.openInitialNodes(state.open_nodes);
-        }
-
-        this.resetSelection();
-
-        if (state.selected_node) {
-            this.selectInitialNodes(state.selected_node);
-        }
-
-        return mustLoadOnDemand;
+    if (state.open_nodes) {
+      mustLoadOnDemand = this.openInitialNodes(state.open_nodes);
     }
 
-    public async setInitialStateOnDemand(
-        state: SavedState,
-    ): Promise<void> {
-        let nodeIds = state.open_nodes;
+    this.resetSelection();
 
-        const openNodes = async () => {
-            if (!nodeIds) {
-                return;
-            }
-
-            const newNodesIds = [];
-
-            for (const nodeId of nodeIds) {
-                const node = this.getNodeById(nodeId);
-
-                if (!node) {
-                    newNodesIds.push(nodeId);
-                } else {
-                    if (!node.is_loading) {
-                        if (node.load_on_demand) {
-                            await loadAndOpenNode(node);
-                        } else {
-                            await this.openNode(node, false);
-                        }
-                    }
-                }
-            }
-
-            nodeIds = newNodesIds;
-
-            if (state.selected_node) {
-                if (this.selectInitialNodes(state.selected_node)) {
-                    this.refreshElements(null);
-                }
-            }
-        };
-
-        const loadAndOpenNode = async (node: Node) => {
-            await this.openNode(node, false);
-            await openNodes();
-        };
-
-        await openNodes();
+    if (state.selected_node) {
+      this.selectInitialNodes(state.selected_node);
     }
 
-    private getKeyName(): string {
-        if (typeof this.saveStateOption === "string") {
-            return this.saveStateOption;
+    return mustLoadOnDemand;
+  }
+
+  public async setInitialStateOnDemand(state: SavedState): Promise<void> {
+    let nodeIds = state.open_nodes;
+
+    const openNodes = async () => {
+      if (!nodeIds) {
+        return;
+      }
+
+      const newNodesIds = [];
+
+      for (const nodeId of nodeIds) {
+        const node = this.getNodeById(nodeId);
+
+        if (!node) {
+          newNodesIds.push(nodeId);
         } else {
-            return "tree";
+          if (!node.is_loading) {
+            if (node.load_on_demand) {
+              await loadAndOpenNode(node);
+            } else {
+              await this.openNode(node, false);
+            }
+          }
         }
-    }
+      }
 
-    private loadFromStorage(): null | string {
-        if (this.onGetStateFromStorage) {
-            return this.onGetStateFromStorage();
+      nodeIds = newNodesIds;
+
+      if (state.selected_node) {
+        if (this.selectInitialNodes(state.selected_node)) {
+          this.refreshElements(null);
+        }
+      }
+    };
+
+    const loadAndOpenNode = async (node: Node) => {
+      await this.openNode(node, false);
+      await openNodes();
+    };
+
+    await openNodes();
+  }
+
+  private getKeyName(): string {
+    if (typeof this.saveStateOption === "string") {
+      return this.saveStateOption;
+    } else {
+      return "tree";
+    }
+  }
+
+  private loadFromStorage(): null | string {
+    if (this.onGetStateFromStorage) {
+      return this.onGetStateFromStorage();
+    } else {
+      return localStorage.getItem(this.getKeyName());
+    }
+  }
+
+  private openInitialNodes(nodeIds: NodeId[]): boolean {
+    let mustLoadOnDemand = false;
+
+    for (const nodeId of nodeIds) {
+      const node = this.getNodeById(nodeId);
+
+      if (node) {
+        if (!node.load_on_demand) {
+          node.is_open = true;
         } else {
-            return localStorage.getItem(this.getKeyName());
+          mustLoadOnDemand = true;
         }
+      }
     }
 
-    private openInitialNodes(nodeIds: NodeId[]): boolean {
-        let mustLoadOnDemand = false;
+    return mustLoadOnDemand;
+  }
 
-        for (const nodeId of nodeIds) {
-            const node = this.getNodeById(nodeId);
+  private parseState(jsonData: string): SavedState {
+    const state = JSON.parse(jsonData) as Record<string, unknown>;
 
-            if (node) {
-                if (!node.load_on_demand) {
-                    node.is_open = true;
-                } else {
-                    mustLoadOnDemand = true;
-                }
-            }
-        }
-
-        return mustLoadOnDemand;
+    // Check if selected_node is an int (instead of an array)
+    if (state.selected_node && isInt(state.selected_node)) {
+      // Convert to array
+      state.selected_node = [state.selected_node];
     }
 
-    private parseState(jsonData: string): SavedState {
-        const state = JSON.parse(jsonData) as Record<string, unknown>;
+    return state;
+  }
 
-        // Check if selected_node is an int (instead of an array)
-        if (state.selected_node && isInt(state.selected_node)) {
-            // Convert to array
-            state.selected_node = [state.selected_node];
-        }
+  private resetSelection(): void {
+    const selectedNodes = this.getSelectedNodes();
 
-        return state;
+    selectedNodes.forEach((node) => {
+      this.removeFromSelection(node);
+    });
+  }
+
+  private selectInitialNodes(nodeIds: NodeId[]): boolean {
+    let selectCount = 0;
+
+    for (const nodeId of nodeIds) {
+      const node = this.getNodeById(nodeId);
+
+      if (node) {
+        selectCount += 1;
+
+        this.addToSelection(node);
+      }
     }
 
-    private resetSelection(): void {
-        const selectedNodes = this.getSelectedNodes();
-
-        selectedNodes.forEach((node) => {
-            this.removeFromSelection(node);
-        });
-    }
-
-    private selectInitialNodes(nodeIds: NodeId[]): boolean {
-        let selectCount = 0;
-
-        for (const nodeId of nodeIds) {
-            const node = this.getNodeById(nodeId);
-
-            if (node) {
-                selectCount += 1;
-
-                this.addToSelection(node);
-            }
-        }
-
-        return selectCount !== 0;
-    }
+    return selectCount !== 0;
+  }
 }

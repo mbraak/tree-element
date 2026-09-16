@@ -12,7 +12,7 @@ export type GetNodeElementForNode = (node: Node) => NodeElement;
 
 export type GetScrollLeft = () => number;
 
-export type GetSelectedNode = () => false | Node;
+export type GetSelectedNode = () => Node | null;
 
 export type GetSelectedNodes = () => Node[];
 
@@ -24,10 +24,7 @@ export type IsNodeSelected = (node: Node) => boolean;
 
 export type LoadData = (data: NodeData[], parentNode?: Node) => void;
 
-export type OpenNode = (
-    node: Node,
-    slide?: boolean,
-) => Promise<void>;
+export type OpenNode = (node: Node, slide?: boolean) => Promise<void>;
 
 export type OpenParents = (node: Node) => void;
 
@@ -39,6 +36,6 @@ export type SelectNode = (node: Node) => void;
 
 // Trigger an event. Return if the event is processed (true) or cancelled (false).
 export type TriggerEvent = <Name extends TreeEventName>(
-    eventName: Name,
-    values?: TreeEvents[Name],
+  eventName: Name,
+  values?: TreeEvents[Name],
 ) => boolean;

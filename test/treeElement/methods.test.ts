@@ -71,7 +71,7 @@ describe("methods", () => {
         data: exampleData,
       });
 
-      expect(tree.addNodeAfter("added-node", tree.tree)).toBeNull();
+      expect(tree.addNodeAfter("added-node", tree.getTree())).toBeNull();
     });
   });
 
@@ -98,7 +98,7 @@ describe("methods", () => {
         data: exampleData,
       });
 
-      expect(tree.addNodeBefore("added-node", tree.tree)).toBeNull();
+      expect(tree.addNodeBefore("added-node", tree.getTree())).toBeNull();
     });
   });
 
@@ -162,7 +162,7 @@ describe("methods", () => {
         data: exampleData,
       });
 
-      expect(tree.addParentNode("new-parent-node", tree.tree)).toBeNull();
+      expect(tree.addParentNode("new-parent-node", tree.getTree())).toBeNull();
     });
   });
 
@@ -246,7 +246,7 @@ describe("methods", () => {
         data: exampleData,
       });
 
-      tree.appendNode("appended-node", tree.tree);
+      tree.appendNode("appended-node", tree.getTree());
 
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({ name: "node1" }),
@@ -289,7 +289,7 @@ describe("methods", () => {
           id: 99,
           name: "appended-using-object",
         },
-        tree.tree,
+        tree.getTree(),
       );
 
       expect(htmlElement).toHaveTreeStructure([
@@ -310,7 +310,7 @@ describe("methods", () => {
         id: 99,
         name: "appended-using-object",
       };
-      tree.appendNode(nodeData, tree.tree);
+      tree.appendNode(nodeData, tree.getTree());
 
       expect(tree.getNodeById(99)).toMatchObject(nodeData);
     });
@@ -352,9 +352,7 @@ describe("methods", () => {
         expect.objectContaining({
           children: [
             expect.objectContaining({
-              children: [
-                expect.objectContaining({ name: "child3" }),
-              ],
+              children: [expect.objectContaining({ name: "child3" })],
               name: "node3",
             }),
           ],
@@ -489,9 +487,7 @@ describe("methods", () => {
 
       const node1 = tree.getNodeByNameMustExist("node1");
 
-      expect(tree.getNodesByProperty("intProperty", 1)).toStrictEqual([
-        node1,
-      ]);
+      expect(tree.getNodesByProperty("intProperty", 1)).toStrictEqual([node1]);
     });
   });
 
@@ -499,7 +495,7 @@ describe("methods", () => {
     it("returns false when no node is selected and nodes have ids", () => {
       const tree = createTreeElement({ data: exampleData });
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("returns the selected node when nodes have ids", () => {
@@ -516,7 +512,7 @@ describe("methods", () => {
         data: ["without-id1", "without-id2"],
       });
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("returns the selected node when nodes don't have ids", () => {
@@ -749,30 +745,21 @@ describe("methods", () => {
 
       tree.selectNode(tree.getNodeByNameMustExist("child1"));
 
-      tree.loadData(
-        ["new-child1"],
-        tree.getNodeByNameMustExist("node1"),
-      );
+      tree.loadData(["new-child1"], tree.getNodeByNameMustExist("node1"));
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("deselects the node when the selected node doesn't have an id", () => {
       const tree = createTreeElement({
-        data: [
-          { children: ["child1", "child2"], name: "node1" },
-          "node2",
-        ],
+        data: [{ children: ["child1", "child2"], name: "node1" }, "node2"],
       });
 
       tree.selectNode(tree.getNodeByNameMustExist("child1"));
 
-      tree.loadData(
-        ["new-child1"],
-        tree.getNodeByNameMustExist("node1"),
-      );
+      tree.loadData(["new-child1"], tree.getNodeByNameMustExist("node1"));
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("keeps the drag and drop state when a node is being dragged", async () => {
@@ -804,18 +791,12 @@ describe("methods", () => {
 
     it("doesn't deselect the node when the selected child is under another node", () => {
       const tree = createTreeElement({
-        data: [
-          { children: ["child1", "child2"], name: "node1" },
-          "node2",
-        ],
+        data: [{ children: ["child1", "child2"], name: "node1" }, "node2"],
       });
 
       tree.selectNode(tree.getNodeByNameMustExist("child1"));
 
-      tree.loadData(
-        ["new-child1"],
-        tree.getNodeByNameMustExist("node2"),
-      );
+      tree.loadData(["new-child1"], tree.getNodeByNameMustExist("node2"));
 
       expect(tree.getSelectedNode()).toMatchObject({ name: "child1" });
     });
@@ -823,9 +804,7 @@ describe("methods", () => {
 
   describe("loadDataFromUrl", () => {
     it("loads the tree with a url parameter", async () => {
-      server.use(
-        http.get("/tree/", () => HttpResponse.json(exampleData)),
-      );
+      server.use(http.get("/tree/", () => HttpResponse.json(exampleData)));
 
       const tree = createTreeElement({ data: [] });
 
@@ -839,9 +818,7 @@ describe("methods", () => {
     });
 
     it("loads a subtree with a parent node", async () => {
-      server.use(
-        http.get("/tree/", () => HttpResponse.json(["new1", "new2"])),
-      );
+      server.use(http.get("/tree/", () => HttpResponse.json(["new1", "new2"])));
 
       const tree = createTreeElement({ data: ["initial1", "initial2"] });
 
@@ -863,9 +840,7 @@ describe("methods", () => {
     });
 
     it("loads the data from dataUrl without a url parameter", async () => {
-      server.use(
-        http.get("/tree/", () => HttpResponse.json(exampleData)),
-      );
+      server.use(http.get("/tree/", () => HttpResponse.json(exampleData)));
 
       const tree = createTreeElement({ data: [] });
 
@@ -880,9 +855,7 @@ describe("methods", () => {
     });
 
     it("reloads the data from the server", async () => {
-      server.use(
-        http.get("/tree2/", () => HttpResponse.json(exampleData)),
-      );
+      server.use(http.get("/tree2/", () => HttpResponse.json(exampleData)));
 
       const tree = createTreeElement({ dataUrl: "/tree2/" });
       await screen.findByText("node1");
@@ -904,9 +877,7 @@ describe("methods", () => {
     });
 
     it("returns a promise that resolves when the data is loaded", async () => {
-      server.use(
-        http.get("/tree2/", () => HttpResponse.json(exampleData)),
-      );
+      server.use(http.get("/tree2/", () => HttpResponse.json(exampleData)));
 
       const tree = createTreeElement({ dataUrl: "/tree2/" });
       await screen.findByText("node1");
@@ -951,7 +922,7 @@ describe("methods", () => {
 
       tree.moveDown();
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
   });
 
@@ -994,7 +965,7 @@ describe("methods", () => {
 
       tree.moveUp();
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
   });
 
@@ -1042,7 +1013,9 @@ describe("methods", () => {
       expect(animate).toHaveBeenCalledExactlyOnceWith(expect.any(Array), {
         duration: 0,
       });
-      expect(screen.getByRole("treeitem", { name: "node1" })).toBeAriaExpanded();
+      expect(
+        screen.getByRole("treeitem", { name: "node1" }),
+      ).toBeAriaExpanded();
 
       animate.mockRestore();
     });
@@ -1060,7 +1033,9 @@ describe("methods", () => {
       await tree.openNode(node1);
 
       expect(animate).not.toHaveBeenCalled();
-      expect(screen.getByRole("treeitem", { name: "node1" })).toBeAriaExpanded();
+      expect(
+        screen.getByRole("treeitem", { name: "node1" }),
+      ).toBeAriaExpanded();
 
       animate.mockRestore();
     });
@@ -1078,7 +1053,9 @@ describe("methods", () => {
       await tree.openNode(node1, false);
 
       expect(animate).not.toHaveBeenCalled();
-      expect(screen.getByRole("treeitem", { name: "node1" })).toBeAriaExpanded();
+      expect(
+        screen.getByRole("treeitem", { name: "node1" }),
+      ).toBeAriaExpanded();
 
       animate.mockRestore();
     });
@@ -1088,7 +1065,7 @@ describe("methods", () => {
     it("prepends the node to the root node", () => {
       const tree = createTreeElement({ data: exampleData });
 
-      tree.prependNode("prepended-node", tree.tree);
+      tree.prependNode("prepended-node", tree.getTree());
 
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({ name: "prepended-node" }),
@@ -1212,7 +1189,7 @@ describe("methods", () => {
 
       tree.removeNode(node);
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("removes the node with a parent node and its children", () => {
@@ -1235,7 +1212,7 @@ describe("methods", () => {
 
       tree.removeNode(node);
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
   });
 
@@ -1324,7 +1301,7 @@ describe("methods", () => {
 
       tree.selectNode(null);
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("doesn't select the node when the selectable option is false", () => {
@@ -1335,7 +1312,7 @@ describe("methods", () => {
 
       tree.selectNode(tree.getNodeByNameMustExist("node1"));
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("doesn't select the node when onCanSelectNode returns false", () => {
@@ -1347,7 +1324,7 @@ describe("methods", () => {
 
       tree.selectNode(tree.getNodeByNameMustExist("node1"));
 
-      expect(tree.getSelectedNode()).toBeFalse();
+      expect(tree.getSelectedNode()).toBeNull();
     });
 
     it("opens the parent node when it's closed", () => {
@@ -1376,9 +1353,7 @@ describe("methods", () => {
       });
 
       tree.setOption("selectable", true);
-      await userEvent.click(
-        screen.getByRole("treeitem", { name: "node1" }),
-      );
+      await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
 
       expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
     });
@@ -1540,9 +1515,7 @@ describe("methods", () => {
         expect.objectContaining({
           children: [
             expect.objectContaining({
-              children: [
-                expect.objectContaining({ name: "new-child" }),
-              ],
+              children: [expect.objectContaining({ name: "new-child" })],
               name: "child1",
             }),
             expect.objectContaining({ name: "child2" }),

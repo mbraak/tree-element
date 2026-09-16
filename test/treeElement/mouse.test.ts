@@ -130,6 +130,6 @@ describe("mouse", () => {
 
     await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
 
-    expect(tree.getSelectedNode()).toBeFalse();
+    expect(tree.getSelectedNode()).toBeNull();
   });
 });

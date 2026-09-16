@@ -4,7 +4,7 @@ import createClassNames, { DEFAULT_CLASS_PREFIX } from "treeElement/classNames";
  * that are created directly in a test, instead of by TreeElement.
  */
 const defaultClassNames = createClassNames({
-    classPrefix: DEFAULT_CLASS_PREFIX,
+  classPrefix: DEFAULT_CLASS_PREFIX,
 });
 
 export default defaultClassNames;

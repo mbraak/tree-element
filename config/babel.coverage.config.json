@@ -1,11 +1,24 @@
 {
-    "presets": ["@babel/preset-typescript", "@babel/preset-env"],
-    "plugins": [
-        [
-            "babel-plugin-prefix-private-members",
-            { "aliases": { "treeElement/": "./src/" } }
-        ],
-        "istanbul"
+  "presets": [
+    "@babel/preset-typescript",
+    "@babel/preset-env"
+  ],
+  "plugins": [
+    [
+      "babel-plugin-prefix-private-members",
+      {
+        "aliases": {
+          "treeElement/": "./src/"
+        },
+        "prefixParameterKeys": true,
+        "prefixPublicMembers": true,
+        "excludeClasses": [
+          "Node",
+          "TreeElement"
+        ]
+      }
     ],
-    "targets": "defaults"
+    "istanbul"
+  ],
+  "targets": "defaults"
 }

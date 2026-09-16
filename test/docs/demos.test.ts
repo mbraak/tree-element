@@ -15,7 +15,7 @@ import { getTreeButton } from "../support/queries";
 // The demos run inside vitepress; here they run in a plain test, so withBase
 // becomes the identity.
 vi.mock(import("vitepress"), () => ({
-    withBase: (url: string) => url,
+  withBase: (url: string) => url,
 }));
 
 /* Every demo that the documentation embeds through <TreeDemo demo="...">,
@@ -24,184 +24,182 @@ vi.mock(import("vitepress"), () => ({
  * silently.
  */
 describe("docs demos", () => {
-    const server = setupServer();
+  const server = setupServer();
 
-    const fixturesDirectory = path.join(
-        import.meta.dirname,
-        "../../docs/public/demo",
+  const fixturesDirectory = path.join(
+    import.meta.dirname,
+    "../../docs/public/demo",
+  );
+
+  let htmlElement: HTMLElement;
+  let treeElement: TreeElement | undefined;
+
+  const createTree = (demo: string): TreeElement => {
+    treeElement = new TreeElement({
+      htmlElement,
+      ...getDemoOptions(demo),
+    });
+
+    return treeElement;
+  };
+
+  beforeAll(() => {
+    server.listen();
+  });
+
+  beforeEach(() => {
+    // The loadOnDemand demo fetches the static json files under docs/public/demo/.
+    server.use(
+      http.get("/demo/:file", async ({ params }) => {
+        const file = path.basename(params.file as string);
+        const data = await fs.readFile(
+          path.join(fixturesDirectory, file),
+          "utf8",
+        );
+
+        return HttpResponse.json(JSON.parse(data) as DemoNodeData[]);
+      }),
     );
 
-    let htmlElement: HTMLElement;
-    let treeElement: TreeElement | undefined;
+    htmlElement = document.createElement("div");
+    document.body.append(htmlElement);
+  });
 
-    const createTree = (demo: string): TreeElement => {
-        treeElement = new TreeElement({
-            htmlElement,
-            ...getDemoOptions(demo),
-        });
+  afterEach(() => {
+    server.resetHandlers();
 
-        return treeElement;
-    };
+    treeElement?.deinit();
+    treeElement = undefined;
 
-    beforeAll(() => {
-        server.listen();
+    document.body.innerHTML = "";
+    localStorage.clear();
+  });
+
+  afterAll(() => {
+    server.close();
+  });
+
+  it.each(Object.keys(demos))("renders the %s demo", async (demo) => {
+    createTree(demo);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("treeitem").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("opens the first level and keeps deeper folders closed in the basic demo", () => {
+    createTree("basic");
+
+    expect(
+      screen.getByRole("treeitem", { name: "Saurischia" }),
+    ).toBeAriaExpanded();
+    expect(
+      screen.getByRole("treeitem", { name: "Theropods" }),
+    ).not.toBeAriaExpanded();
+  });
+
+  it("puts the toggler button on the right in the buttonRight demo", () => {
+    createTree("buttonRight");
+
+    const treeItem = screen.getByRole("treeitem", {
+      name: "Thyreophorans",
     });
 
-    beforeEach(() => {
-        // The loadOnDemand demo fetches the static json files under docs/public/demo/.
-        server.use(
-            http.get("/demo/:file", async ({ params }) => {
-                const file = path.basename(params.file as string);
-                const data = await fs.readFile(
-                    path.join(fixturesDirectory, file),
-                    "utf8",
-                );
+    expect(getTreeButton(treeItem)).toHaveClass(defaultClassNames.togglerRight);
+  });
 
-                return HttpResponse.json(JSON.parse(data) as DemoNodeData[]);
-            }),
-        );
+  it("enables drag and drop in the dragAndDrop demo", () => {
+    createTree("dragAndDrop");
 
-        htmlElement = document.createElement("div");
-        document.body.append(htmlElement);
+    expect(screen.getByRole("tree")).toHaveClass(defaultClassNames.dnd);
+  });
+
+  it("enables drag and drop in the dragIntoFoldersOnly demo", () => {
+    createTree("dragIntoFoldersOnly");
+
+    expect(screen.getByRole("tree")).toHaveClass(defaultClassNames.dnd);
+  });
+
+  it("uses the custom icons in the icons demo", async () => {
+    createTree("icons");
+
+    const treeItem = screen.getByRole("treeitem", {
+      name: "Thyreophorans",
     });
+    const button = getTreeButton(treeItem);
 
-    afterEach(() => {
-        server.resetHandlers();
+    expect(button).toHaveTextContent("−");
 
-        treeElement?.deinit();
-        treeElement = undefined;
+    await userEvent.click(button);
 
-        document.body.innerHTML = "";
-        localStorage.clear();
+    await waitFor(() => {
+      expect(getTreeButton(treeItem)).toHaveTextContent("+");
     });
+  });
 
-    afterAll(() => {
-        server.close();
+  it("fetches subtrees from the fixture files in the loadOnDemand demo", async () => {
+    createTree("loadOnDemand");
+
+    const treeItem = await screen.findByRole("treeitem", {
+      name: "Saurischia",
     });
+    await userEvent.click(getTreeButton(treeItem));
 
-    it.each(Object.keys(demos))("renders the %s demo", async (demo) => {
-        createTree(demo);
+    await expect(
+      screen.findByRole("treeitem", { name: "Theropods" }),
+    ).resolves.toBeInTheDocument();
+  });
 
-        await waitFor(() => {
-            expect(screen.getAllByRole("treeitem").length).toBeGreaterThan(0);
-        });
+  it("only allows selecting folders in the onlyFoldersSelectable demo", async () => {
+    createTree("onlyFoldersSelectable");
+
+    const leaf = screen.getByRole("treeitem", { name: "Ceratopsians" });
+    await userEvent.click(leaf);
+
+    expect(leaf).not.toBeAriaSelected();
+
+    const folder = screen.getByRole("treeitem", {
+      name: "Thyreophorans",
     });
+    await userEvent.click(folder);
 
-    it("opens the first level and keeps deeper folders closed in the basic demo", () => {
-        createTree("basic");
+    expect(folder).toBeAriaSelected();
+  });
 
-        expect(
-            screen.getByRole("treeitem", { name: "Saurischia" }),
-        ).toBeAriaExpanded();
-        expect(
-            screen.getByRole("treeitem", { name: "Theropods" }),
-        ).not.toBeAriaExpanded();
-    });
+  it("mirrors the tree in the rtl demo", () => {
+    createTree("rtl");
 
-    it("puts the toggler button on the right in the buttonRight demo", () => {
-        createTree("buttonRight");
+    expect(screen.getByRole("tree")).toHaveClass(defaultClassNames.rtl);
+  });
 
-        const treeItem = screen.getByRole("treeitem", {
-            name: "Thyreophorans",
-        });
+  it("saves the state under its own key in the saveState demo", () => {
+    const tree = createTree("saveState");
 
-        expect(getTreeButton(treeItem)).toHaveClass(
-            defaultClassNames.togglerRight,
-        );
-    });
+    tree.selectNode(tree.getNodeByNameMustExist("Saurischia"));
 
-    it("enables drag and drop in the dragAndDrop demo", () => {
-        createTree("dragAndDrop");
+    expect(localStorage.getItem("tree-element-docs-demo")).toContain(
+      '"selected_node":[1]',
+    );
+  });
 
-        expect(screen.getByRole("tree")).toHaveClass(defaultClassNames.dnd);
-    });
+  it("renders a node with an empty children array as a folder in the showEmptyFolder demo", () => {
+    createTree("showEmptyFolder");
 
-    it("enables drag and drop in the dragIntoFoldersOnly demo", () => {
-        createTree("dragIntoFoldersOnly");
+    expect(htmlElement).toHaveTreeStructure([
+      {
+        children: [],
+        name: "empty folder",
+        nodeType: "folder",
+        open: false,
+        selected: false,
+      },
+      { name: "leaf", nodeType: "child", selected: false },
+    ]);
+  });
 
-        expect(screen.getByRole("tree")).toHaveClass(defaultClassNames.dnd);
-    });
-
-    it("uses the custom icons in the icons demo", async () => {
-        createTree("icons");
-
-        const treeItem = screen.getByRole("treeitem", {
-            name: "Thyreophorans",
-        });
-        const button = getTreeButton(treeItem);
-
-        expect(button).toHaveTextContent("−");
-
-        await userEvent.click(button);
-
-        await waitFor(() => {
-            expect(getTreeButton(treeItem)).toHaveTextContent("+");
-        });
-    });
-
-    it("fetches subtrees from the fixture files in the loadOnDemand demo", async () => {
-        createTree("loadOnDemand");
-
-        const treeItem = await screen.findByRole("treeitem", {
-            name: "Saurischia",
-        });
-        await userEvent.click(getTreeButton(treeItem));
-
-        await expect(
-            screen.findByRole("treeitem", { name: "Theropods" }),
-        ).resolves.toBeInTheDocument();
-    });
-
-    it("only allows selecting folders in the onlyFoldersSelectable demo", async () => {
-        createTree("onlyFoldersSelectable");
-
-        const leaf = screen.getByRole("treeitem", { name: "Ceratopsians" });
-        await userEvent.click(leaf);
-
-        expect(leaf).not.toBeAriaSelected();
-
-        const folder = screen.getByRole("treeitem", {
-            name: "Thyreophorans",
-        });
-        await userEvent.click(folder);
-
-        expect(folder).toBeAriaSelected();
-    });
-
-    it("mirrors the tree in the rtl demo", () => {
-        createTree("rtl");
-
-        expect(screen.getByRole("tree")).toHaveClass(defaultClassNames.rtl);
-    });
-
-    it("saves the state under its own key in the saveState demo", () => {
-        const tree = createTree("saveState");
-
-        tree.selectNode(tree.getNodeByNameMustExist("Saurischia"));
-
-        expect(localStorage.getItem("tree-element-docs-demo")).toContain(
-            '"selected_node":[1]',
-        );
-    });
-
-    it("renders a node with an empty children array as a folder in the showEmptyFolder demo", () => {
-        createTree("showEmptyFolder");
-
-        expect(htmlElement).toHaveTreeStructure([
-            {
-                children: [],
-                name: "empty folder",
-                nodeType: "folder",
-                open: false,
-                selected: false,
-            },
-            { name: "leaf", nodeType: "child", selected: false },
-        ]);
-    });
-
-    it("throws for an unknown demo name", () => {
-        expect(() => getDemoOptions("no-such-demo")).toThrow(
-            'Unknown demo "no-such-demo"',
-        );
-    });
+  it("throws for an unknown demo name", () => {
+    expect(() => getDemoOptions("no-such-demo")).toThrow(
+      'Unknown demo "no-such-demo"',
+    );
+  });
 });

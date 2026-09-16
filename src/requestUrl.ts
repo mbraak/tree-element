@@ -7,7 +7,7 @@ const isAbsoluteUrl = (inputUrl: string) => {
   } catch {
     return false;
   }
-}
+};
 
 const LOCALHOST = "http://localhost";
 
@@ -29,7 +29,7 @@ class RequestUrl {
     this.url.searchParams.set(key, value);
   }
 
-  toString() {
+  value() {
     if (this.isAbsolute) {
       return this.url.href;
     } else {
