@@ -26,6 +26,12 @@ const plugins = [tsConfigPaths(), resolvePlugin, babelPlugin];
 
 if (!debugBuild) {
   const terserPlugin = terser({
+    compress: {
+      passes: 3,
+      // The code has no getters, so property reads can be treated as
+      // side-effect free.
+      pure_getters: true,
+    },
     mangle: {
       properties: {
         regex: /^_/,

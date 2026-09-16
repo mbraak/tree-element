@@ -9,6 +9,10 @@
         "prefixPublicMembers": true,
         "excludeClasses": ["Node", "TreeElement"]
       }
+    ],
+    [
+      "./babelPluginMinifySyntax.mjs",
+      { "excludeClasses": ["Node", "TreeElement"] }
     ]
   ],
   "env": {
