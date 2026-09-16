@@ -268,16 +268,30 @@ describe("options", () => {
       expect(button).toHaveTextContent("closed");
     });
 
-    it("escapes html", () => {
+    it("renders html", () => {
       createTreeElement({
-        closedIcon: "<span>test</span>",
+        closedIcon: '<i class="abc"></i> test',
+        data: exampleData,
+      });
+
+      const treeItem = screen.getByRole("treeitem", { name: "node1" });
+      const button = getTreeButton(treeItem);
+      const icon = button.querySelector("i.abc"); // eslint-disable-line testing-library/no-node-access
+
+      expect(icon).toBeInTheDocument();
+      expect(button).toHaveTextContent("test");
+    });
+
+    it("renders a html entity", () => {
+      createTreeElement({
+        closedIcon: "&#x25ba;",
         data: exampleData,
       });
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
       const button = getTreeButton(treeItem);
 
-      expect(button).toHaveTextContent("<span>test</span>");
+      expect(button).toHaveTextContent("►");
     });
 
     it("renders a html element", () => {

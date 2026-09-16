@@ -10,9 +10,9 @@ import defaultClassNames from "../../support/classNames";
 import { getTreeButton, getTreeListElement } from "../../support/queries";
 
 interface CreateFolderElementParams {
-    closedIconElement?: HTMLElement | Text;
+    closedIconElement?: globalThis.Node;
     isOpen?: boolean;
-    openedIconElement?: HTMLElement | Text;
+    openedIconElement?: globalThis.Node;
 }
 
 const createFolderElement = ({

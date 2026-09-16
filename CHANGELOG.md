@@ -6,6 +6,11 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Fixed
+
+- The options `closedIcon` and `openedIcon` render a string as html instead of
+  as text.
+
 ### Changed
 
 - Make rendering faster by using templates.
