@@ -4,7 +4,7 @@ import type NodeElement from "./nodeElement";
 
 export type AddToSelection = (node: Node) => void;
 
-export type CloseNode = (node: Node) => void;
+export type CloseNode = (node: Node) => Promise<void>;
 
 export type GetNodeById = (nodeId: NodeId) => Node | null;
 

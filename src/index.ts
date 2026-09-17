@@ -349,14 +349,21 @@ export default class TreeElement {
   }
 
   /**
-   * Closes a folder.
+   * Closes a folder. Await the promise when you need to know the closing
+   * animation has finished.
+   *
+   * @example
+   * ```js
+   * await tree.closeNode(node);
+   * console.log("closed");
+   * ```
    *
    * @param slide - Override the `slide` option for this call.
    * @group Opening and closing
    */
-  public closeNode(node: Node, slide?: boolean): void {
+  public async closeNode(node: Node, slide?: boolean): Promise<void> {
     if (node.isFolder() || node.isEmptyFolder) {
-      this.createFolderElement(node).close(
+      await this.createFolderElement(node).close(
         slide ?? this.options.slide,
         this.options.animationSpeed,
       );
@@ -778,18 +785,23 @@ export default class TreeElement {
   }
 
   /**
-   * Closes an open node and opens a closed one.
+   * Closes an open node and opens a closed one. Await the promise when you
+   * need to know the node is really open or closed, like with `openNode` and
+   * `closeNode`.
    *
    * @param slide - Override the `slide` option for this call.
    * @group Opening and closing
    */
-  public toggle(node: Node, slide: boolean | null = null) {
+  public async toggle(
+    node: Node,
+    slide: boolean | null = null,
+  ): Promise<void> {
     const mustSlide = slide ?? this.options.slide;
 
     if (node.is_open) {
-      this.closeNode(node, mustSlide);
+      await this.closeNode(node, mustSlide);
     } else {
-      void this.openNode(node, mustSlide);
+      await this.openNode(node, mustSlide);
     }
   }
 
@@ -845,6 +857,35 @@ export default class TreeElement {
     }
 
     this.refreshElements(node);
+  }
+
+  // Open the nodes up to the autoOpen level. A folder that is loaded on
+  // demand is fetched first, and its children are opened when the data has
+  // arrived.
+  private async autoOpenNodesOnDemand(): Promise<void> {
+    const maxLevel = this.getAutoOpenMaxLevel();
+
+    const openNodes = async (): Promise<void> => {
+      const loading: Promise<void>[] = [];
+
+      this.tree.iterate((node: Node, level: number) => {
+        if (node.load_on_demand) {
+          if (!node.is_loading) {
+            loading.push(this.openNode(node, false).then(openNodes));
+          }
+
+          return false;
+        } else {
+          void this.openNode(node, false);
+
+          return level !== maxLevel;
+        }
+      });
+
+      await Promise.all(loading);
+    };
+
+    await openNodes();
   }
 
   private createFolderElement(node: Node) {
@@ -1190,60 +1231,13 @@ export default class TreeElement {
 
   // Set the initial state for nodes that are loaded on demand
   private async setInitialStateOnDemand(): Promise<void> {
-    return new Promise((resolve) => {
-      const restoreState = (): boolean => {
-        const state = this.saveStateHandler.getStateFromStorage();
+    const state = this.saveStateHandler.getStateFromStorage();
 
-        if (!state) {
-          return false;
-        } else {
-          void this.saveStateHandler.setInitialStateOnDemand(state).then(() => {
-            resolve();
-          });
-
-          return true;
-        }
-      };
-
-      const autoOpenNodes = (): void => {
-        const maxLevel = this.getAutoOpenMaxLevel();
-        let loadingCount = 0;
-
-        const loadAndOpenNode = (node: Node): void => {
-          loadingCount += 1;
-          void this.openNode(node, false).then(() => {
-            loadingCount -= 1;
-            openNodes();
-          });
-        };
-
-        const openNodes = (): void => {
-          this.tree.iterate((node: Node, level: number) => {
-            if (node.load_on_demand) {
-              if (!node.is_loading) {
-                loadAndOpenNode(node);
-              }
-
-              return false;
-            } else {
-              void this.openNode(node, false);
-
-              return level !== maxLevel;
-            }
-          });
-
-          if (loadingCount === 0) {
-            resolve();
-          }
-        };
-
-        openNodes();
-      };
-
-      if (!restoreState()) {
-        autoOpenNodes();
-      }
-    });
+    if (state) {
+      await this.saveStateHandler.setInitialStateOnDemand(state);
+    } else {
+      await this.autoOpenNodesOnDemand();
+    }
   }
 
   // Set this HTML element to this node in the node map.

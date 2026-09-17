@@ -999,7 +999,7 @@ var TreeElement = (function () {
       }
       if (selectedNode.isFolder() && selectedNode.is_open) {
         // Left on an open node closes the node
-        this._closeNode(selectedNode);
+        void this._closeNode(selectedNode);
         return true;
       } else {
         // Left on a closed or end node moves focus to the node's parent
@@ -2206,7 +2206,7 @@ var TreeElement = (function () {
     }
     return duration === "slow" ? 600 : 200;
   };
-  let slideDown = (element, animationSpeed, onFinished) => {
+  let slideDown = (element, animationSpeed) => {
     element.style.display = "block";
     let animation = element.animate([{
       height: "0",
@@ -2217,11 +2217,13 @@ var TreeElement = (function () {
     }], {
       duration: getAnimationDuration(animationSpeed)
     });
-    animation.onfinish = () => {
-      onFinished();
-    };
+    return new Promise(resolve => {
+      animation.onfinish = () => {
+        resolve();
+      };
+    });
   };
-  let slideUp = (element, animationSpeed, onFinished) => {
+  let slideUp = (element, animationSpeed) => {
     let animation = element.animate([{
       height: `${element.scrollHeight}px`,
       overflow: "hidden"
@@ -2231,10 +2233,12 @@ var TreeElement = (function () {
     }], {
       duration: getAnimationDuration(animationSpeed)
     });
-    animation.onfinish = () => {
-      element.style.display = "none";
-      onFinished();
-    };
+    return new Promise(resolve => {
+      animation.onfinish = () => {
+        element.style.display = "none";
+        resolve();
+      };
+    });
   };
 
   class FolderElement extends NodeElement {
@@ -2261,7 +2265,7 @@ var TreeElement = (function () {
       this._renderChildren = renderChildren;
       this._triggerEvent = triggerEvent;
     }
-    _close(slide, animationSpeed) {
+    async _close(slide, animationSpeed) {
       if (!this._node.is_open) {
         return;
       }
@@ -2280,23 +2284,20 @@ var TreeElement = (function () {
         let icon = closedIconElement.cloneNode(true);
         button.appendChild(icon);
       }
-      let doClose = () => {
-        this._element.classList.add(this._classNames.closed);
-        let titleSpan = this._getTitleSpan();
-        titleSpan.setAttribute("aria-expanded", "false");
-        this._triggerEvent("tree.close", {
-          node: this._node
-        });
-      };
       let ul = this._getUl();
-      if (!ul) {
-        doClose();
-      } else if (slide) {
-        slideUp(ul, animationSpeed, doClose);
-      } else {
-        ul.style.display = "none";
-        doClose();
+      if (ul) {
+        if (slide) {
+          await slideUp(ul, animationSpeed);
+        } else {
+          ul.style.display = "none";
+        }
       }
+      this._element.classList.add(this._classNames.closed);
+      let titleSpan = this._getTitleSpan();
+      titleSpan.setAttribute("aria-expanded", "false");
+      this._triggerEvent("tree.close", {
+        node: this._node
+      });
     }
     async _open(slide, animationSpeed) {
       return new Promise(resolve => {
@@ -2336,7 +2337,7 @@ var TreeElement = (function () {
         if (!ul) {
           doOpen();
         } else if (slide) {
-          slideDown(ul, animationSpeed, doOpen);
+          void slideDown(ul, animationSpeed).then(doOpen);
         } else {
           ul.style.display = "block";
           doOpen();
@@ -3325,14 +3326,21 @@ var TreeElement = (function () {
     }
 
     /**
-     * Closes a folder.
+     * Closes a folder. Await the promise when you need to know the closing
+     * animation has finished.
+     *
+     * @example
+     * ```js
+     * await tree.closeNode(node);
+     * console.log("closed");
+     * ```
      *
      * @param slide - Override the `slide` option for this call.
      * @group Opening and closing
      */
-    closeNode(node, slide) {
+    async closeNode(node, slide) {
       if (node.isFolder() || node.isEmptyFolder) {
-        this._createFolderElement(node)._close(slide ?? this._options.slide, this._options.animationSpeed);
+        await this._createFolderElement(node)._close(slide ?? this._options.slide, this._options.animationSpeed);
         this._saveState();
       }
     }
@@ -3732,7 +3740,7 @@ var TreeElement = (function () {
     toggle(node, slide = null) {
       let mustSlide = slide ?? this._options.slide;
       if (node.is_open) {
-        this.closeNode(node, mustSlide);
+        void this.closeNode(node, mustSlide);
       } else {
         void this.openNode(node, mustSlide);
       }

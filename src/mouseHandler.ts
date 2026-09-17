@@ -23,7 +23,7 @@ interface MouseHandlerParams {
   element: HTMLElement;
   getMouseDelay: () => number;
   getNode: GetNode;
-  onClickButton: (node: Node) => void;
+  onClickButton: (node: Node) => Promise<void>;
   onClickTitle: (node: Node) => void;
   onMouseCapture: MouseCapture;
   onMouseDrag: (positionInfo: PositionInfo) => void;
@@ -46,7 +46,7 @@ class MouseHandler {
   private mouseDelayTimer: null | number;
 
   private mouseDownInfo: null | PositionInfo;
-  private onClickButton: (node: Node) => void;
+  private onClickButton: (node: Node) => Promise<void>;
   private onClickTitle: (node: Node) => void;
 
   private onMouseCapture: MouseCapture;
@@ -159,7 +159,7 @@ class MouseHandler {
 
     switch (clickTarget.type) {
       case "button":
-        this.onClickButton(clickTarget.node);
+        void this.onClickButton(clickTarget.node);
 
         e.preventDefault();
         e.stopPropagation();

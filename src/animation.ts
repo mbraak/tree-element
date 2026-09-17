@@ -11,8 +11,7 @@ export const getAnimationDuration = (duration: AnimationSpeed): number => {
 export const slideDown = (
   element: HTMLElement,
   animationSpeed: AnimationSpeed,
-  onFinished: () => void,
-): void => {
+): Promise<void> => {
   element.style.display = "block";
 
   const animation = element.animate(
@@ -23,16 +22,17 @@ export const slideDown = (
     { duration: getAnimationDuration(animationSpeed) },
   );
 
-  animation.onfinish = () => {
-    onFinished();
-  };
+  return new Promise((resolve) => {
+    animation.onfinish = () => {
+      resolve();
+    };
+  });
 };
 
 export const slideUp = (
   element: HTMLElement,
   animationSpeed: AnimationSpeed,
-  onFinished: () => void,
-): void => {
+): Promise<void> => {
   const animation = element.animate(
     [
       { height: `${element.scrollHeight}px`, overflow: "hidden" },
@@ -41,8 +41,10 @@ export const slideUp = (
     { duration: getAnimationDuration(animationSpeed) },
   );
 
-  animation.onfinish = () => {
-    element.style.display = "none";
-    onFinished();
-  };
+  return new Promise((resolve) => {
+    animation.onfinish = () => {
+      element.style.display = "none";
+      resolve();
+    };
+  });
 };

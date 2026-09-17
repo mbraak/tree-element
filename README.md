@@ -162,7 +162,8 @@ Nodes are `Node` instances. Get one with `getNodeById`, `getNodeByName`,
 
 **Nodes**: `appendNode(data, parentNode)`, `prependNode(data, parentNode)`, `addNodeAfter(data, node)`, `addNodeBefore(data, node)`, `addParentNode(data, node)`, `updateNode(node, data)`, `removeNode(node)`, `moveNode(node, targetNode, position)`
 
-**Opening**: `openNode(node, slide?)`, `closeNode(node, slide?)`, `toggle(node, slide?)`
+**Opening**: `openNode(node, slide?)`, `closeNode(node, slide?)`, `toggle(node, slide?)`.
+`openNode`, `closeNode` and `toggle` return a promise that is resolved when the folder is open or closed.
 
 **Selection**: `selectNode(node, options?)`, `getSelectedNode()`, `getSelectedNodes()`, `isNodeSelected(node)`, `addToSelection(node, mustSetFocus?)`, `removeFromSelection(node)`, `moveUp()`, `moveDown()`
 

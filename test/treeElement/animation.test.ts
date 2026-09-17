@@ -26,12 +26,12 @@ const createElement = () => {
 };
 
 describe("slideDown", () => {
-  it("shows the element and calls onFinished when the animation ends", async () => {
+  it("shows the element and resolves when the animation ends", async () => {
     const element = createElement();
-    const onFinished = vi.fn();
     const animate = vi.spyOn(element, "animate");
+    const onFinished = vi.fn();
 
-    slideDown(element, 123, onFinished);
+    const promise = slideDown(element, 123).then(onFinished);
 
     expect(animate).toHaveBeenCalledExactlyOnceWith(expect.any(Array), {
       duration: 123,
@@ -39,29 +39,29 @@ describe("slideDown", () => {
     expect(element).toBeVisible();
     expect(onFinished).not.toHaveBeenCalled();
 
-    await element.getAnimations()[0]?.finished;
+    await promise;
 
-    expect(onFinished).toHaveBeenCalledExactlyOnceWith();
+    expect(onFinished).toHaveBeenCalledExactlyOnceWith(undefined);
   });
 });
 
 describe("slideUp", () => {
-  it("hides the element and calls onFinished when the animation ends", async () => {
+  it("hides the element and resolves when the animation ends", async () => {
     const element = createElement();
     element.style.display = "block";
-    const onFinished = vi.fn();
     const animate = vi.spyOn(element, "animate");
+    const onFinished = vi.fn();
 
-    slideUp(element, 123, onFinished);
+    const promise = slideUp(element, 123).then(onFinished);
 
     expect(animate).toHaveBeenCalledExactlyOnceWith(expect.any(Array), {
       duration: 123,
     });
     expect(onFinished).not.toHaveBeenCalled();
 
-    await element.getAnimations()[0]?.finished;
+    await promise;
 
     expect(element).not.toBeVisible();
-    expect(onFinished).toHaveBeenCalledExactlyOnceWith();
+    expect(onFinished).toHaveBeenCalledExactlyOnceWith(undefined);
   });
 });

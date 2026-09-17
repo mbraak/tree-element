@@ -6,6 +6,12 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Changed
+
+- The methods `closeNode` and `toggle` return a promise that is resolved when
+  the folder is closed or opened, like `openNode`. Await it when you need to
+  know the animation has finished.
+
 ## 0.2.0 - 2026-09-16
 
 ### Fixed

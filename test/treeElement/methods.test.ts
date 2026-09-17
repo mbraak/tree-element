@@ -317,28 +317,28 @@ describe("methods", () => {
   });
 
   describe("closeNode", () => {
-    it("closes the node", () => {
+    it("closes the node", async () => {
       const tree = createTreeElement({
         autoOpen: true,
         data: exampleData,
       });
 
       const node1 = tree.getNodeByNameMustExist("node1");
-      tree.closeNode(node1, false);
+      await tree.closeNode(node1, false);
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
       expect(treeItem).not.toBeAriaExpanded();
     });
 
-    it("doesn't close a node without children", () => {
+    it("doesn't close a node without children", async () => {
       const tree = createTreeElement({
         autoOpen: true,
         data: exampleData,
       });
 
       const child1 = tree.getNodeByNameMustExist("child1");
-      tree.closeNode(child1, false);
+      await tree.closeNode(child1, false);
 
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({
@@ -1421,28 +1421,28 @@ describe("methods", () => {
   });
 
   describe("toggle", () => {
-    it("opens the node when the node is closed", () => {
+    it("opens the node when the node is closed", async () => {
       const tree = createTreeElement({
         autoOpen: false,
         data: exampleData,
       });
 
       const node1 = tree.getNodeByNameMustExist("node1");
-      tree.toggle(node1, false);
+      await tree.toggle(node1, false);
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
       expect(treeItem).toBeAriaExpanded();
     });
 
-    it("closes the node when the node is open", () => {
+    it("closes the node when the node is open", async () => {
       const tree = createTreeElement({
         autoOpen: true,
         data: exampleData,
       });
 
       const node1 = tree.getNodeByNameMustExist("node1");
-      tree.toggle(node1, false);
+      await tree.toggle(node1, false);
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
