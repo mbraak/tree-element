@@ -349,14 +349,21 @@ export default class TreeElement {
   }
 
   /**
-   * Closes a folder.
+   * Closes a folder. Await the promise when you need to know the closing
+   * animation has finished.
+   *
+   * @example
+   * ```js
+   * await tree.closeNode(node);
+   * console.log("closed");
+   * ```
    *
    * @param slide - Override the `slide` option for this call.
    * @group Opening and closing
    */
-  public closeNode(node: Node, slide?: boolean): void {
+  public async closeNode(node: Node, slide?: boolean): Promise<void> {
     if (node.isFolder() || node.isEmptyFolder) {
-      this.createFolderElement(node).close(
+      await this.createFolderElement(node).close(
         slide ?? this.options.slide,
         this.options.animationSpeed,
       );
@@ -787,7 +794,7 @@ export default class TreeElement {
     const mustSlide = slide ?? this.options.slide;
 
     if (node.is_open) {
-      this.closeNode(node, mustSlide);
+      void this.closeNode(node, mustSlide);
     } else {
       void this.openNode(node, mustSlide);
     }

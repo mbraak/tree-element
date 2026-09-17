@@ -46,7 +46,10 @@ class FolderElement extends NodeElement {
     this.triggerEvent = triggerEvent;
   }
 
-  public close(slide: boolean, animationSpeed: AnimationSpeed): void {
+  public async close(
+    slide: boolean,
+    animationSpeed: AnimationSpeed,
+  ): Promise<void> {
     if (!this.node.is_open) {
       return;
     }
@@ -69,27 +72,24 @@ class FolderElement extends NodeElement {
       button.appendChild(icon);
     }
 
-    const doClose = (): void => {
-      this.element.classList.add(this.classNames.closed);
-
-      const titleSpan = this.getTitleSpan();
-      titleSpan.setAttribute("aria-expanded", "false");
-
-      this.triggerEvent("tree.close", {
-        node: this.node,
-      });
-    };
-
     const ul = this.getUl();
 
-    if (!ul) {
-      doClose();
-    } else if (slide) {
-      slideUp(ul, animationSpeed, doClose);
-    } else {
-      ul.style.display = "none";
-      doClose();
+    if (ul) {
+      if (slide) {
+        await slideUp(ul, animationSpeed);
+      } else {
+        ul.style.display = "none";
+      }
     }
+
+    this.element.classList.add(this.classNames.closed);
+
+    const titleSpan = this.getTitleSpan();
+    titleSpan.setAttribute("aria-expanded", "false");
+
+    this.triggerEvent("tree.close", {
+      node: this.node,
+    });
   }
 
   public async open(
@@ -141,7 +141,7 @@ class FolderElement extends NodeElement {
       if (!ul) {
         doOpen();
       } else if (slide) {
-        slideDown(ul, animationSpeed, doOpen);
+        void slideDown(ul, animationSpeed).then(doOpen);
       } else {
         ul.style.display = "block";
         doOpen();

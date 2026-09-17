@@ -107,7 +107,7 @@ export default class KeyHandler {
 
     if (selectedNode.isFolder() && selectedNode.is_open) {
       // Left on an open node closes the node
-      this.closeNode(selectedNode);
+      void this.closeNode(selectedNode);
       return true;
     } else {
       // Left on a closed or end node moves focus to the node's parent

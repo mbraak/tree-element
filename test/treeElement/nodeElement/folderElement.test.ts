@@ -66,7 +66,7 @@ describe("close", () => {
         document.body.innerHTML = "";
     });
 
-    it("closes an open node without animation", () => {
+    it("closes an open node without animation", async () => {
         const { folderElement, folderNode } = createFolderElement({
             isOpen: true,
         });
@@ -74,7 +74,7 @@ describe("close", () => {
 
         expect(treeItem).toBeAriaExpanded();
 
-        folderElement.close(false, 0);
+        await folderElement.close(false, 0);
 
         expect(folderNode.is_open).toBeFalse();
         expect(treeItem).not.toBeAriaExpanded();
@@ -89,21 +89,21 @@ describe("close", () => {
         expect(treeItem).toHaveAttribute("aria-expanded", "false");
     });
 
-    it("triggers the tree.close event", () => {
+    it("triggers the tree.close event", async () => {
         const { folderElement, folderNode, triggerEvent } = createFolderElement(
             {
                 isOpen: true,
             },
         );
 
-        folderElement.close(false, 0);
+        await folderElement.close(false, 0);
 
         expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.close", {
             node: folderNode,
         });
     });
 
-    it("only sets the state when the node isn't rendered", () => {
+    it("only sets the state when the node isn't rendered", async () => {
         const { folderElement, folderNode, triggerEvent } = createFolderElement(
             {
                 isOpen: true,
@@ -112,7 +112,7 @@ describe("close", () => {
         const treeItem = screen.getByRole("treeitem", { name: "node1" });
         folderNode.element = undefined;
 
-        folderElement.close(false, 0);
+        await folderElement.close(false, 0);
 
         expect(folderNode.is_open).toBeFalse();
         expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.close", {
@@ -121,20 +121,20 @@ describe("close", () => {
         expect(treeItem).toBeAriaExpanded();
     });
 
-    it("does nothing when the node is already closed", () => {
+    it("does nothing when the node is already closed", async () => {
         const { folderElement, folderNode, triggerEvent } = createFolderElement(
             {
                 isOpen: false,
             },
         );
 
-        folderElement.close(false, 0);
+        await folderElement.close(false, 0);
 
         expect(folderNode.is_open).toBeFalse();
         expect(triggerEvent).not.toHaveBeenCalled();
     });
 
-    it("renders the closed icon in the button", () => {
+    it("renders the closed icon in the button", async () => {
         const closedIconElement = document.createElement("span");
         closedIconElement.classList.add("closed-icon");
 
@@ -142,7 +142,7 @@ describe("close", () => {
             closedIconElement,
             isOpen: true,
         });
-        folderElement.close(false, 0);
+        await folderElement.close(false, 0);
 
         const treeItem = screen.getByRole("treeitem", { name: "node1" });
         const button = getTreeButton(treeItem)
@@ -160,13 +160,14 @@ describe("close", () => {
         const ul = getTreeListElement(treeItem).querySelector(":scope > ul[role=group]") as HTMLElement;
         const animate = vi.spyOn(ul, "animate");
 
-        folderElement.close(true, 123);
+        const promise = folderElement.close(true, 123);
 
         expect(animate).toHaveBeenCalledExactlyOnceWith(expect.any(Array), {
             duration: 123,
         });
+        expect(treeItem).toBeAriaExpanded();
 
-        await ul.getAnimations()[0]?.finished;
+        await promise;
 
         expect(treeItem).not.toBeAriaExpanded();
         expect(ul).not.toBeVisible();
@@ -221,7 +222,7 @@ describe("open", () => {
         });
 
         await folderElement.open(false, 0);
-        folderElement.close(false, 0);
+        await folderElement.close(false, 0);
         await folderElement.open(false, 0);
 
         expect(screen.getAllByRole("treeitem", { name: "child1" })).toHaveLength(1);

@@ -358,13 +358,13 @@ describe("events", () => {
       );
     });
 
-    it("fires tree.close when a node is closed", () => {
+    it("fires tree.close when a node is closed", async () => {
       const tree = createTreeElement({ autoOpen: true, data: exampleData });
 
       const onClose = listenToEvent("tree.close");
 
       const node1 = tree.getNodeByNameMustExist("node1");
-      tree.closeNode(node1, false);
+      await tree.closeNode(node1, false);
 
       expect(onClose).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({ node: node1 }),
