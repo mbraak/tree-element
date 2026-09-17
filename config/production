@@ -5,4 +5,4 @@ DEBUG_BUILD=true rollup -c config/rollup.config.mjs &&
 rollup -c config/rollup.lib.config.mjs &&
 tsc --project tsconfig.build.json &&
 node config/fixDeclarationExtensions.mjs &&
-postcss --config ./config -o tree_element.css css/tree_element.postcss
+postcss -o tree_element.css css/tree_element.postcss
