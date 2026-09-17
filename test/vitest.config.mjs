@@ -20,6 +20,6 @@ export default defineConfig({
     globals: true,
     include: ["test/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
 
-    setupFiles: ["./test/support/setupTests.ts", "jest-extended/all"],
+    setupFiles: ["./test/support/setupTests.ts"],
   },
 });

@@ -145,9 +145,11 @@ describe("docs demos", () => {
     });
     await userEvent.click(getTreeButton(treeItem));
 
-    await expect(
-      screen.findByRole("treeitem", { name: "Theropods" }),
-    ).resolves.toBeInTheDocument();
+    const theropods = await screen.findByRole("treeitem", {
+      name: "Theropods",
+    });
+
+    expect(theropods).toBeInTheDocument();
   });
 
   it("only allows selecting folders in the onlyFoldersSelectable demo", async () => {
