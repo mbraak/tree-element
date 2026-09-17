@@ -1137,7 +1137,7 @@ var TreeElement = (function () {
       }
       switch (clickTarget.type) {
         case "button":
-          this._onClickButton(clickTarget.node);
+          void this._onClickButton(clickTarget.node);
           e.preventDefault();
           e.stopPropagation();
           break;
@@ -2300,48 +2300,40 @@ var TreeElement = (function () {
       });
     }
     async _open(slide, animationSpeed) {
-      return new Promise(resolve => {
-        if (this._node.is_open) {
-          resolve();
-          return;
-        }
-        this._node.is_open = true;
-        if (!this._isRendered()) {
-          // The folder is rendered open when its parent is opened
-          this._triggerEvent("tree.open", {
-            node: this._node
-          });
-          resolve();
-          return;
-        }
-        let button = this._getButton();
-        button.classList.remove(this._classNames.closed);
-        button.innerHTML = "";
-        let openedIconElement = this._openedIconElement;
-        if (openedIconElement) {
-          let icon = openedIconElement.cloneNode(true);
-          button.appendChild(icon);
-        }
-        let doOpen = () => {
-          this._element.classList.remove(this._classNames.closed);
-          let titleSpan = this._getTitleSpan();
-          titleSpan.setAttribute("aria-expanded", "true");
-          this._triggerEvent("tree.open", {
-            node: this._node
-          });
-          resolve();
-        };
+      if (this._node.is_open) {
+        return;
+      }
+      this._node.is_open = true;
+      if (!this._isRendered()) {
+        // The folder is rendered open when its parent is opened
+        this._triggerEvent("tree.open", {
+          node: this._node
+        });
+        return;
+      }
+      let button = this._getButton();
+      button.classList.remove(this._classNames.closed);
+      button.innerHTML = "";
+      let openedIconElement = this._openedIconElement;
+      if (openedIconElement) {
+        let icon = openedIconElement.cloneNode(true);
+        button.appendChild(icon);
+      }
 
-        // The children are rendered the first time the folder is opened
-        let ul = this._getUl() ?? this._renderChildren(this._node);
-        if (!ul) {
-          doOpen();
-        } else if (slide) {
-          void slideDown(ul, animationSpeed).then(doOpen);
+      // The children are rendered the first time the folder is opened
+      let ul = this._getUl() ?? this._renderChildren(this._node);
+      if (ul) {
+        if (slide) {
+          await slideDown(ul, animationSpeed);
         } else {
           ul.style.display = "block";
-          doOpen();
         }
+      }
+      this._element.classList.remove(this._classNames.closed);
+      let titleSpan = this._getTitleSpan();
+      titleSpan.setAttribute("aria-expanded", "true");
+      this._triggerEvent("tree.open", {
+        node: this._node
       });
     }
     _mustShowBorderDropHint(position) {
@@ -3732,17 +3724,19 @@ var TreeElement = (function () {
     }
 
     /**
-     * Closes an open node and opens a closed one.
+     * Closes an open node and opens a closed one. Await the promise when you
+     * need to know the node is really open or closed, like with `openNode` and
+     * `closeNode`.
      *
      * @param slide - Override the `slide` option for this call.
      * @group Opening and closing
      */
-    toggle(node, slide = null) {
+    async toggle(node, slide = null) {
       let mustSlide = slide ?? this._options.slide;
       if (node.is_open) {
-        void this.closeNode(node, mustSlide);
+        await this.closeNode(node, mustSlide);
       } else {
-        void this.openNode(node, mustSlide);
+        await this.openNode(node, mustSlide);
       }
     }
 
@@ -3787,6 +3781,29 @@ var TreeElement = (function () {
         }
       }
       this._refreshElements(node);
+    }
+
+    // Open the nodes up to the autoOpen level. A folder that is loaded on
+    // demand is fetched first, and its children are opened when the data has
+    // arrived.
+    async _autoOpenNodesOnDemand() {
+      let maxLevel = this._getAutoOpenMaxLevel();
+      let openNodes = async () => {
+        let loading = [];
+        this._tree.iterate((node, level) => {
+          if (node.load_on_demand) {
+            if (!node.is_loading) {
+              loading.push(this.openNode(node, false).then(openNodes));
+            }
+            return false;
+          } else {
+            void this.openNode(node, false);
+            return level !== maxLevel;
+          }
+        });
+        await Promise.all(loading);
+      };
+      await openNodes();
     }
     _createFolderElement(node) {
       let classNames = this._classNames;
@@ -4071,50 +4088,12 @@ var TreeElement = (function () {
 
     // Set the initial state for nodes that are loaded on demand
     async _setInitialStateOnDemand() {
-      return new Promise(resolve => {
-        let restoreState = () => {
-          let state = this._saveStateHandler._getStateFromStorage();
-          if (!state) {
-            return false;
-          } else {
-            void this._saveStateHandler._setInitialStateOnDemand(state).then(() => {
-              resolve();
-            });
-            return true;
-          }
-        };
-        let autoOpenNodes = () => {
-          let maxLevel = this._getAutoOpenMaxLevel();
-          let loadingCount = 0;
-          let loadAndOpenNode = node => {
-            loadingCount += 1;
-            void this.openNode(node, false).then(() => {
-              loadingCount -= 1;
-              openNodes();
-            });
-          };
-          let openNodes = () => {
-            this._tree.iterate((node, level) => {
-              if (node.load_on_demand) {
-                if (!node.is_loading) {
-                  loadAndOpenNode(node);
-                }
-                return false;
-              } else {
-                void this.openNode(node, false);
-                return level !== maxLevel;
-              }
-            });
-            if (loadingCount === 0) {
-              resolve();
-            }
-          };
-          openNodes();
-        };
-        if (!restoreState()) {
-          autoOpenNodes();
-        }
-      });
+      let state = this._saveStateHandler._getStateFromStorage();
+      if (state) {
+        await this._saveStateHandler._setInitialStateOnDemand(state);
+      } else {
+        await this._autoOpenNodesOnDemand();
+      }
     }
 
     // Set this HTML element to this node in the node map.
