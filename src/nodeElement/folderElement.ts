@@ -96,56 +96,47 @@ class FolderElement extends NodeElement {
     slide: boolean,
     animationSpeed: AnimationSpeed,
   ): Promise<void> {
-    return new Promise((resolve) => {
-      if (this.node.is_open) {
-        resolve();
-        return;
-      }
+    if (this.node.is_open) {
+      return;
+    }
 
-      this.node.is_open = true;
+    this.node.is_open = true;
 
-      if (!this.isRendered()) {
-        // The folder is rendered open when its parent is opened
-        this.triggerEvent("tree.open", { node: this.node });
-        resolve();
-        return;
-      }
+    if (!this.isRendered()) {
+      // The folder is rendered open when its parent is opened
+      this.triggerEvent("tree.open", { node: this.node });
+      return;
+    }
 
-      const button = this.getButton();
-      button.classList.remove(this.classNames.closed);
-      button.innerHTML = "";
+    const button = this.getButton();
+    button.classList.remove(this.classNames.closed);
+    button.innerHTML = "";
 
-      const openedIconElement = this.openedIconElement;
+    const openedIconElement = this.openedIconElement;
 
-      if (openedIconElement) {
-        const icon = openedIconElement.cloneNode(true);
-        button.appendChild(icon);
-      }
+    if (openedIconElement) {
+      const icon = openedIconElement.cloneNode(true);
+      button.appendChild(icon);
+    }
 
-      const doOpen = (): void => {
-        this.element.classList.remove(this.classNames.closed);
+    // The children are rendered the first time the folder is opened
+    const ul = this.getUl() ?? this.renderChildren(this.node);
 
-        const titleSpan = this.getTitleSpan();
-        titleSpan.setAttribute("aria-expanded", "true");
-
-        this.triggerEvent("tree.open", {
-          node: this.node,
-        });
-
-        resolve();
-      };
-
-      // The children are rendered the first time the folder is opened
-      const ul = this.getUl() ?? this.renderChildren(this.node);
-
-      if (!ul) {
-        doOpen();
-      } else if (slide) {
-        void slideDown(ul, animationSpeed).then(doOpen);
+    if (ul) {
+      if (slide) {
+        await slideDown(ul, animationSpeed);
       } else {
         ul.style.display = "block";
-        doOpen();
       }
+    }
+
+    this.element.classList.remove(this.classNames.closed);
+
+    const titleSpan = this.getTitleSpan();
+    titleSpan.setAttribute("aria-expanded", "true");
+
+    this.triggerEvent("tree.open", {
+      node: this.node,
     });
   }
 
