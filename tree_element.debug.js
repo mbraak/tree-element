@@ -735,12 +735,16 @@ var TreeElement = (function () {
       node.element = li;
       this._setNodeElement(li, node);
     }
+
+    /* Returns the template of a toggler icon; it is cloned for every folder.
+     * A string is parsed as html and becomes a fragment, so it can hold
+     * entities, text and elements.
+     */
     _createButtonElement(value) {
       if (typeof value === "string") {
-        // convert value to html
-        let div = document.createElement("div");
-        div.innerHTML = value;
-        return document.createTextNode(div.innerHTML);
+        let template = document.createElement("template");
+        template.innerHTML = value;
+        return template.content;
       } else if (value.nodeType) {
         return value;
       } else {
@@ -3708,13 +3712,15 @@ var TreeElement = (function () {
     }
 
     /**
-     * Applies a state to the tree.
+     * Applies a state to the tree, and saves it to storage when `saveState` is
+     * enabled.
      *
      * @group State
      */
     setState(state) {
       this._saveStateHandler._setInitialState(state);
       this._refreshElements(null);
+      this._saveState();
     }
 
     /**

@@ -9,15 +9,15 @@ import NodeElement from "./index";
 export type RenderChildren = (node: Node) => HTMLUListElement | null;
 
 interface FolderElementParams extends NodeElementParams {
-  closedIconElement?: HTMLElement | Text;
-  openedIconElement?: HTMLElement | Text;
+  closedIconElement?: globalThis.Node;
+  openedIconElement?: globalThis.Node;
   renderChildren: RenderChildren;
   triggerEvent: TriggerEvent;
 }
 
 class FolderElement extends NodeElement {
-  private closedIconElement?: HTMLElement | Text;
-  private openedIconElement?: HTMLElement | Text;
+  private closedIconElement?: globalThis.Node;
+  private openedIconElement?: globalThis.Node;
   private renderChildren: RenderChildren;
   private triggerEvent: TriggerEvent;
 
