@@ -785,18 +785,23 @@ export default class TreeElement {
   }
 
   /**
-   * Closes an open node and opens a closed one.
+   * Closes an open node and opens a closed one. Await the promise when you
+   * need to know the node is really open or closed, like with `openNode` and
+   * `closeNode`.
    *
    * @param slide - Override the `slide` option for this call.
    * @group Opening and closing
    */
-  public toggle(node: Node, slide: boolean | null = null) {
+  public async toggle(
+    node: Node,
+    slide: boolean | null = null,
+  ): Promise<void> {
     const mustSlide = slide ?? this.options.slide;
 
     if (node.is_open) {
-      void this.closeNode(node, mustSlide);
+      await this.closeNode(node, mustSlide);
     } else {
-      void this.openNode(node, mustSlide);
+      await this.openNode(node, mustSlide);
     }
   }
 

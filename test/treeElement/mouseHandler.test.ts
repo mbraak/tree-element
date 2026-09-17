@@ -17,7 +17,7 @@ interface CreateMouseHandlerParams {
   element: HTMLElement;
   getMouseDelay?: GetMouseDelay;
   getNode?: GetNode;
-  onClickButton?: (node: Node) => void;
+  onClickButton?: (node: Node) => Promise<void>;
   onClickTitle?: (node: Node) => void;
   onMouseCapture?: MouseCapture;
   onMouseDrag?: (positionInfo: PositionInfo) => void;

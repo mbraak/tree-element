@@ -1421,28 +1421,28 @@ describe("methods", () => {
   });
 
   describe("toggle", () => {
-    it("opens the node when the node is closed", () => {
+    it("opens the node when the node is closed", async () => {
       const tree = createTreeElement({
         autoOpen: false,
         data: exampleData,
       });
 
       const node1 = tree.getNodeByNameMustExist("node1");
-      tree.toggle(node1, false);
+      await tree.toggle(node1, false);
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
       expect(treeItem).toBeAriaExpanded();
     });
 
-    it("closes the node when the node is open", () => {
+    it("closes the node when the node is open", async () => {
       const tree = createTreeElement({
         autoOpen: true,
         data: exampleData,
       });
 
       const node1 = tree.getNodeByNameMustExist("node1");
-      tree.toggle(node1, false);
+      await tree.toggle(node1, false);
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
