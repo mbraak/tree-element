@@ -11,6 +11,7 @@ jobs:
 
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      DEBUG="pw:*""
 
     steps:
       - name: Check out repository code
