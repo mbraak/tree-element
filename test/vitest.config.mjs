@@ -19,6 +19,8 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     include: ["test/**/*.{test,spec}.?(c|m)[jt]s?(x)"],
+    // Share the jsdom environment between test files instead of creating it for every file
+    isolate: false,
 
     setupFiles: ["./test/support/setupTests.ts"],
   },
