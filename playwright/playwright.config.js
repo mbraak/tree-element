@@ -1,6 +1,7 @@
-import { devices } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
+import process from "node:process";
 
-const config = {
+export default defineConfig({
   projects: [
     {
       name: "Chromium",
@@ -12,10 +13,10 @@ const config = {
     // Run rollup directly instead of `pnpm devserver-with-coverage`: pnpm
     // 12.6 leaves the rollup child running when Playwright stops the server,
     // so Playwright never exits.
-    command: "COVERAGE=true SERVE=true rollup --config config/rollup.config.mjs",
+    command:
+      "COVERAGE=true SERVE=true rollup --config config/rollup.config.mjs",
     cwd: "..",
     port: 8080,
   },
-};
-
-export default config;
+  workers: process.env.CI ? 1 : undefined,
+});
