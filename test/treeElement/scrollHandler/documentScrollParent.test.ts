@@ -65,6 +65,10 @@ describe("checkHorizontalScrolling", () => {
 });
 
 describe("checkVerticalScrolling", () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
     it("scrolls to the top when pageY is near the top edge", () => {
         vi.useFakeTimers();
         const scrollBy = vi.fn();
