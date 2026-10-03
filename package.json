@@ -20,6 +20,10 @@
     "./package.json": "./package.json"
   },
   "sideEffects": false,
+  "browserslist": [
+    "defaults",
+    "not op_mini all"
+  ],
   "files": [
     "tree_element.css",
     "tree_element.debug.js",
@@ -79,6 +83,7 @@
     "babel-plugin-prefix-private-members": "^0.3.0",
     "eslint": "^10.11.0",
     "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-compat": "^7.0.2",
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-jest-dom": "^5.10.1",
     "eslint-plugin-jest-extended": "github:mbraak/eslint-plugin-jest-extended#modernize",
