@@ -124,9 +124,13 @@ export interface TreeEvents {
    * @group Selection
    */
   "tree.select": {
-    /** The node that was selected before, if any. */
+    /**
+    The node that was selected before, if any.
+    */
     deselectedNode: Node | null;
-    /** The node that is now selected. */
+    /**
+    The node that is now selected.
+    */
     node: Node;
   };
   /**
@@ -170,7 +174,9 @@ export interface TreeEvents {
    * @group Drag and drop
    */
   "tree.move": {
-    /** @hidden The fields are in the table above. */
+    /**
+    @hidden The fields are in the table above.
+    */
     moveInfo: MoveInfo;
   };
   /**
@@ -180,7 +186,9 @@ export interface TreeEvents {
    * @group Loading data
    */
   "tree.set_data": {
-    /** The node whose children were replaced, if it was a subtree. */
+    /**
+    The node whose children were replaced, if it was a subtree.
+    */
     node?: Node;
     treeData?: NodeData[];
   };
@@ -191,7 +199,9 @@ export interface TreeEvents {
    */
   "tree.loading_data": {
     element: HTMLElement;
-    /** The node whose children are loading, if it is a subtree. */
+    /**
+    The node whose children are loading, if it is a subtree.
+    */
     node?: Node;
   };
   /**
@@ -202,7 +212,9 @@ export interface TreeEvents {
    */
   "tree.loaded_data": {
     element: HTMLElement;
-    /** The node whose children were loaded, if it was a subtree. */
+    /**
+    The node whose children were loaded, if it was a subtree.
+    */
     node?: Node;
   };
   /**
@@ -222,9 +234,13 @@ export interface TreeEvents {
    * @group Loading data
    */
   "tree.load_failed": {
-    /** The error thrown by `fetch`, if the request failed with a network error. */
+    /**
+    The error thrown by `fetch`, if the request failed with a network error.
+    */
     error?: unknown;
-    /** The response, if the request returned an error status. */
+    /**
+    The response, if the request returned an error status.
+    */
     response?: Response;
   };
 }

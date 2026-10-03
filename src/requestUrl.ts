@@ -1,12 +1,7 @@
 // Url class for absolute and relative urls.
 
 const isAbsoluteUrl = (inputUrl: string) => {
-  try {
-    new URL(inputUrl);
-    return true;
-  } catch {
-    return false;
-  }
+  return URL.canParse(inputUrl);
 };
 
 const LOCALHOST = "http://localhost";
@@ -30,11 +25,9 @@ class RequestUrl {
   }
 
   value() {
-    if (this.isAbsolute) {
-      return this.url.href;
-    } else {
-      return this.url.href.slice(LOCALHOST.length);
-    }
+    return this.isAbsolute
+      ? this.url.href
+      : this.url.href.slice(LOCALHOST.length);
   }
 }
 

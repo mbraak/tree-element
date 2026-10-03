@@ -28,7 +28,7 @@ describe("methods", () => {
   });
 
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 
     htmlElement = document.createElement("div");
     document.body.append(htmlElement);
@@ -40,7 +40,7 @@ describe("methods", () => {
     treeElement?.deinit();
     treeElement = undefined;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     localStorage.clear();
   });
 
@@ -421,7 +421,7 @@ describe("methods", () => {
     it("returns null when the node doesn't exist", () => {
       const tree = createTreeElement({ data: exampleData });
 
-      expect(tree.getNodeById(99999)).toBeNull();
+      expect(tree.getNodeById(99_999)).toBeNull();
     });
 
     it("returns the node with a string parameter when the data has string ids", () => {

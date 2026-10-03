@@ -158,12 +158,13 @@ class MouseHandler {
     }
 
     switch (clickTarget.type) {
-      case "button":
+      case "button": {
         void this.onClickButton(clickTarget.node);
 
         e.preventDefault();
         e.stopPropagation();
         break;
+      }
 
       case "label": {
         if (
@@ -273,10 +274,12 @@ class MouseHandler {
     this.isMouseDelayMet = false;
     this.mouseDownInfo = null;
 
-    if (this.isMouseStarted) {
-      this.isMouseStarted = false;
-      this.onMouseStop(positionInfo);
+    if (!this.isMouseStarted) {
+      return;
     }
+
+    this.isMouseStarted = false;
+    this.onMouseStop(positionInfo);
   }
 
   private handleStartMouse(): void {

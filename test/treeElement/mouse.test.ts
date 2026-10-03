@@ -18,7 +18,7 @@ describe("mouse", () => {
   };
 
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 
     htmlElement = document.createElement("div");
     document.body.append(htmlElement);
@@ -28,7 +28,7 @@ describe("mouse", () => {
     treeElement?.deinit();
     treeElement = undefined;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("selects a node and sets the focus when it is clicked", async () => {

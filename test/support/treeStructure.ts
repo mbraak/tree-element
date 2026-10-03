@@ -37,19 +37,18 @@ const getTreeNode = (li: HTMLElement): TreeNode => {
       open: !li.classList.contains("tree-element-closed"),
       selected,
     };
-  } else {
-    return {
-      name,
-      nodeType: "child",
-      selected,
-    };
   }
+  return {
+    name,
+    nodeType: "child",
+    selected,
+  };
 };
 
 const getChildNodes = (ul: HTMLElement) =>
-  Array.from(
-    ul.querySelectorAll<HTMLElement>(":scope > li.tree-element-common"),
-  ).map((li) => getTreeNode(li));
+  [...ul.querySelectorAll<HTMLElement>(":scope > li.tree-element-common")].map(
+    (li) => getTreeNode(li),
+  );
 
 const treeStructure = (el: HTMLElement): TreeStructure => {
   const element = el.querySelector<HTMLElement>(

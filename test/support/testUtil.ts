@@ -30,19 +30,19 @@ export const generateHtmlElementsForTree = (tree: Node) => {
       const element = document.createElement("ul");
       element.className = "tree-element";
       return element;
-    } else {
-      const li = document.createElement("li");
-
-      if (node.isFolder()) {
-        li.className = "tree-element-folder";
-
-        if (!node.is_open) {
-          li.classList.add("tree-element-closed");
-        }
-      }
-
-      return li;
     }
+
+    const li = document.createElement("li");
+
+    if (node.isFolder()) {
+      li.className = "tree-element-folder";
+
+      if (!node.is_open) {
+        li.classList.add("tree-element-closed");
+      }
+    }
+
+    return li;
   };
 
   function generateHtmlElementsForNode(

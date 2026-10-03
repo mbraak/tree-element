@@ -63,13 +63,13 @@ class FolderElement extends NodeElement {
 
     const button = this.getButton();
     button.classList.add(this.classNames.closed);
-    button.innerHTML = "";
+    button.replaceChildren();
 
     const closedIconElement = this.closedIconElement;
 
     if (closedIconElement) {
       const icon = closedIconElement.cloneNode(true);
-      button.appendChild(icon);
+      button.append(icon);
     }
 
     const ul = this.getUl();
@@ -110,13 +110,13 @@ class FolderElement extends NodeElement {
 
     const button = this.getButton();
     button.classList.remove(this.classNames.closed);
-    button.innerHTML = "";
+    button.replaceChildren();
 
     const openedIconElement = this.openedIconElement;
 
     if (openedIconElement) {
       const icon = openedIconElement.cloneNode(true);
-      button.appendChild(icon);
+      button.append(icon);
     }
 
     // The children are rendered the first time the folder is opened

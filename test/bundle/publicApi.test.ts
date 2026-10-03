@@ -29,10 +29,12 @@ interface PublicApi {
 }
 
 const isPublic = (node: ts.HasModifiers): boolean =>
-  !(ts.getModifiers(node) ?? []).some(
+  (ts.getModifiers(node) ?? []).every(
     (modifier) =>
-      modifier.kind === ts.SyntaxKind.PrivateKeyword ||
-      modifier.kind === ts.SyntaxKind.ProtectedKeyword,
+      !(
+        modifier.kind === ts.SyntaxKind.PrivateKeyword ||
+        modifier.kind === ts.SyntaxKind.ProtectedKeyword
+      ),
   );
 
 const findClass = (
@@ -126,7 +128,7 @@ const isPrefixed = (name: string) => name.startsWith("_");
 const getUnprefixedNames = (object: object, ignore: string[] = []): string[] =>
   Object.getOwnPropertyNames(object)
     .filter((name) => !isPrefixed(name) && !ignore.includes(name))
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 
 describe("the public API of the bundle", () => {
   const BundledTreeElement = loadBundle();
@@ -174,7 +176,9 @@ describe("the public API of the bundle", () => {
     });
 
     it("has no other unprefixed members on the prototype", () => {
-      const expected = [...api.methods, ...api.accessors].sort();
+      const expected = [...api.methods, ...api.accessors].sort((a, b) =>
+        a.localeCompare(b),
+      );
 
       expect(getUnprefixedNames(prototype, ["constructor"])).toStrictEqual(
         expected,

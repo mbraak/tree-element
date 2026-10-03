@@ -73,11 +73,7 @@ export default class SaveStateHandler {
 
     const state = this.getStateFromStorage();
 
-    if (state?.selected_node) {
-      return state.selected_node[0] ?? null;
-    } else {
-      return null;
-    }
+    return state?.selected_node ? (state.selected_node[0] ?? null) : null;
   }
 
   public getState(): SavedState {
@@ -97,11 +93,11 @@ export default class SaveStateHandler {
     const getSelectedNodeIds = (): NodeId[] => {
       const selectedNodeIds: NodeId[] = [];
 
-      this.getSelectedNodes().forEach((node) => {
+      for (const node of this.getSelectedNodes()) {
         if (node.id != null) {
           selectedNodeIds.push(node.id);
         }
-      });
+      }
 
       return selectedNodeIds;
     };
@@ -119,11 +115,7 @@ export default class SaveStateHandler {
 
     const jsonData = this.loadFromStorage();
 
-    if (jsonData) {
-      return this.parseState(jsonData);
-    } else {
-      return null;
-    }
+    return jsonData ? this.parseState(jsonData) : null;
   }
 
   public saveState(): void {
@@ -147,11 +139,9 @@ export default class SaveStateHandler {
     result: must load on demand (boolean)
     */
   public setInitialState(state: SavedState): boolean {
-    let mustLoadOnDemand = false;
-
-    if (state.open_nodes) {
-      mustLoadOnDemand = this.openInitialNodes(state.open_nodes);
-    }
+    const mustLoadOnDemand = state.open_nodes
+      ? this.openInitialNodes(state.open_nodes)
+      : false;
 
     this.resetSelection();
 
@@ -175,9 +165,7 @@ export default class SaveStateHandler {
       for (const nodeId of nodeIds) {
         const node = this.getNodeById(nodeId);
 
-        if (!node) {
-          newNodesIds.push(nodeId);
-        } else {
+        if (node) {
           if (!node.is_loading) {
             if (node.load_on_demand) {
               await loadAndOpenNode(node);
@@ -185,15 +173,15 @@ export default class SaveStateHandler {
               await this.openNode(node, false);
             }
           }
+        } else {
+          newNodesIds.push(nodeId);
         }
       }
 
       nodeIds = newNodesIds;
 
-      if (state.selected_node) {
-        if (this.selectInitialNodes(state.selected_node)) {
-          this.refreshElements(null);
-        }
+      if (state.selected_node && this.selectInitialNodes(state.selected_node)) {
+        this.refreshElements(null);
       }
     };
 
@@ -206,19 +194,15 @@ export default class SaveStateHandler {
   }
 
   private getKeyName(): string {
-    if (typeof this.saveStateOption === "string") {
-      return this.saveStateOption;
-    } else {
-      return "tree";
-    }
+    return typeof this.saveStateOption === "string"
+      ? this.saveStateOption
+      : "tree";
   }
 
   private loadFromStorage(): null | string {
-    if (this.onGetStateFromStorage) {
-      return this.onGetStateFromStorage();
-    } else {
-      return localStorage.getItem(this.getKeyName());
-    }
+    return this.onGetStateFromStorage
+      ? this.onGetStateFromStorage()
+      : localStorage.getItem(this.getKeyName());
   }
 
   private openInitialNodes(nodeIds: NodeId[]): boolean {
@@ -228,10 +212,10 @@ export default class SaveStateHandler {
       const node = this.getNodeById(nodeId);
 
       if (node) {
-        if (!node.load_on_demand) {
-          node.is_open = true;
-        } else {
+        if (node.load_on_demand) {
           mustLoadOnDemand = true;
+        } else {
+          node.is_open = true;
         }
       }
     }
@@ -254,9 +238,9 @@ export default class SaveStateHandler {
   private resetSelection(): void {
     const selectedNodes = this.getSelectedNodes();
 
-    selectedNodes.forEach((node) => {
+    for (const node of selectedNodes) {
       this.removeFromSelection(node);
-    });
+    }
   }
 
   private selectInitialNodes(nodeIds: NodeId[]): boolean {
@@ -265,11 +249,13 @@ export default class SaveStateHandler {
     for (const nodeId of nodeIds) {
       const node = this.getNodeById(nodeId);
 
-      if (node) {
-        selectCount += 1;
-
-        this.addToSelection(node);
+      if (!node) {
+        continue;
       }
+
+      selectCount += 1;
+
+      this.addToSelection(node);
     }
 
     return selectCount !== 0;

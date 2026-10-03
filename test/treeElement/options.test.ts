@@ -28,7 +28,7 @@ describe("options", () => {
   });
 
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 
     htmlElement = document.createElement("div");
     document.body.append(htmlElement);
@@ -40,7 +40,7 @@ describe("options", () => {
     treeElement?.deinit();
     treeElement = undefined;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     localStorage.clear();
   });
 
@@ -396,14 +396,15 @@ describe("options", () => {
       server.use(http.get("/tree/", () => HttpResponse.json(exampleData)));
     });
 
-    testCases.forEach(({ dataUrl, expectedNode, expectedStructure, name }) => {
-      it(`loads the data from the url with ${name}`, async () => {
+    it.each(testCases)(
+      "loads the data from the url with $name",
+      async ({ dataUrl, expectedNode, expectedStructure }) => {
         createTreeElement({ dataUrl });
         await screen.findByRole("treeitem", { name: expectedNode });
 
         expect(htmlElement).toHaveTreeStructure(expectedStructure);
-      });
-    });
+      },
+    );
 
     it("loads the data and selects the node when the state contains a selected node", async () => {
       localStorage.setItem("tree", '{"selected_node":[124]}');

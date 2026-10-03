@@ -40,20 +40,9 @@ class NodeElement {
   }
 
   public addDropHint(position: Position): DropHint {
-    if (this.mustShowBorderDropHint(position)) {
-      return new BorderDropHint(
-        this.element,
-        this.getScrollLeft(),
-        this.classNames,
-      );
-    } else {
-      return new GhostDropHint(
-        this.node,
-        this.element,
-        position,
-        this.classNames,
-      );
-    }
+    return this.mustShowBorderDropHint(position)
+      ? new BorderDropHint(this.element, this.getScrollLeft(), this.classNames)
+      : new GhostDropHint(this.node, this.element, position, this.classNames);
   }
 
   public deselect(): void {

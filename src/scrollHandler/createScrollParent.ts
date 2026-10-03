@@ -43,9 +43,8 @@ const createScrollParent = (
       container,
       refreshHitAreas,
     });
-  } else {
-    return new DocumentScrollParent({ refreshHitAreas, treeElement });
   }
+  return new DocumentScrollParent({ refreshHitAreas, treeElement });
 };
 
 export default createScrollParent;

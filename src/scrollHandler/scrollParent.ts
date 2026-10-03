@@ -24,19 +24,21 @@ export abstract class ScrollParent {
     const newHorizontalScrollDirection =
       this.getNewHorizontalScrollDirection(pageX);
 
-    if (this.horizontalScrollDirection !== newHorizontalScrollDirection) {
-      this.horizontalScrollDirection = newHorizontalScrollDirection;
+    if (this.horizontalScrollDirection === newHorizontalScrollDirection) {
+      return;
+    }
 
-      if (this.horizontalScrollTimeout != null) {
-        window.clearTimeout(this.horizontalScrollTimeout);
-      }
+    this.horizontalScrollDirection = newHorizontalScrollDirection;
 
-      if (newHorizontalScrollDirection) {
-        this.horizontalScrollTimeout = window.setTimeout(
-          this.scrollHorizontally.bind(this),
-          40,
-        );
-      }
+    if (this.horizontalScrollTimeout != null) {
+      window.clearTimeout(this.horizontalScrollTimeout);
+    }
+
+    if (newHorizontalScrollDirection) {
+      this.horizontalScrollTimeout = window.setTimeout(
+        this.scrollHorizontally.bind(this),
+        40,
+      );
     }
   }
 
@@ -44,20 +46,22 @@ export abstract class ScrollParent {
     const newVerticalScrollDirection =
       this.getNewVerticalScrollDirection(pageY);
 
-    if (this.verticalScrollDirection !== newVerticalScrollDirection) {
-      this.verticalScrollDirection = newVerticalScrollDirection;
+    if (this.verticalScrollDirection === newVerticalScrollDirection) {
+      return;
+    }
 
-      if (this.verticalScrollTimeout != null) {
-        window.clearTimeout(this.verticalScrollTimeout);
-        this.verticalScrollTimeout = undefined;
-      }
+    this.verticalScrollDirection = newVerticalScrollDirection;
 
-      if (newVerticalScrollDirection) {
-        this.verticalScrollTimeout = window.setTimeout(
-          this.scrollVertically.bind(this),
-          40,
-        );
-      }
+    if (this.verticalScrollTimeout != null) {
+      window.clearTimeout(this.verticalScrollTimeout);
+      this.verticalScrollTimeout = undefined;
+    }
+
+    if (newVerticalScrollDirection) {
+      this.verticalScrollTimeout = window.setTimeout(
+        this.scrollVertically.bind(this),
+        40,
+      );
     }
   }
 

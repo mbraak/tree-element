@@ -54,10 +54,10 @@ export default class SelectNodeHandler {
   }
 
   public addToSelection(node: Node): void {
-    if (node.id != null) {
-      this.selectedNodes.add(node.id);
-    } else {
+    if (node.id == null) {
       this.selectedSingleNode = node;
+    } else {
+      this.selectedNodes.add(node.id);
     }
   }
 
@@ -69,59 +69,50 @@ export default class SelectNodeHandler {
   public getSelectedNode(): Node | null {
     const selectedNodes = this.getSelectedNodes();
 
-    if (selectedNodes.length) {
-      return selectedNodes[0] ?? null;
-    } else {
-      return null;
-    }
+    return selectedNodes.length ? (selectedNodes[0] ?? null) : null;
   }
 
   public getSelectedNodes(): Node[] {
     if (this.selectedSingleNode) {
       return [this.selectedSingleNode];
-    } else {
-      const selectedNodes: Node[] = [];
-
-      this.selectedNodes.forEach((id) => {
-        const node = this.getNodeById(id);
-        if (node) {
-          selectedNodes.push(node);
-        }
-      });
-
-      return selectedNodes;
     }
+
+    const selectedNodes: Node[] = [];
+
+    this.selectedNodes.forEach((id) => {
+      const node = this.getNodeById(id);
+      if (node) {
+        selectedNodes.push(node);
+      }
+    });
+
+    return selectedNodes;
   }
 
   public getSelectedNodesUnder(parent: Node): Node[] {
     if (this.selectedSingleNode) {
-      if (parent.isParentOf(this.selectedSingleNode)) {
-        return [this.selectedSingleNode];
-      } else {
-        return [];
-      }
-    } else {
-      const selectedNodes: Node[] = [];
-
-      this.selectedNodes.forEach((id) => {
-        const node = this.getNodeById(id);
-        if (node && parent.isParentOf(node)) {
-          selectedNodes.push(node);
-        }
-      });
-
-      return selectedNodes;
+      return parent.isParentOf(this.selectedSingleNode)
+        ? [this.selectedSingleNode]
+        : [];
     }
+
+    const selectedNodes: Node[] = [];
+
+    this.selectedNodes.forEach((id) => {
+      const node = this.getNodeById(id);
+      if (node && parent.isParentOf(node)) {
+        selectedNodes.push(node);
+      }
+    });
+
+    return selectedNodes;
   }
 
   public isNodeSelected(node: Node): boolean {
     if (node.id != null) {
       return this.selectedNodes.has(node.id);
-    } else if (this.selectedSingleNode) {
-      return this.selectedSingleNode === node;
-    } else {
-      return false;
     }
+    return this.selectedSingleNode ? this.selectedSingleNode === node : false;
   }
 
   public removeFromSelection(node: Node, includeChildren = false): void {
@@ -155,7 +146,7 @@ export default class SelectNodeHandler {
    */
   public selectSingleNode(node: Node, optionsParam?: SelectNodeOptions) {
     const defaultOptions = { mustSetFocus: true, mustToggle: true };
-    const selectOptions = { ...defaultOptions, ...(optionsParam ?? {}) };
+    const selectOptions = { ...defaultOptions, ...optionsParam };
 
     const canSelect = (): boolean => {
       if (!this.getSelectable()) {

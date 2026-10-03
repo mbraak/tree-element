@@ -1,5 +1,5 @@
-import fs from "fs";
 import jsonfile from "jsonfile";
+import fs from "node:fs";
 
 // Package.json is the single source of truth for the version. Generate
 // src/version.ts from it, so that getVersion() cannot drift from the version

@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 
 // Helpers for CHANGELOG.md, which follows Keep a Changelog. Two commands:
 //
@@ -14,7 +14,7 @@ const changelogFile = "CHANGELOG.md";
 
 const isHeading = (line) => line.startsWith("## ");
 
-const headingVersion = (line) => line.slice(3).trim().split(/\s+/)[0];
+const headingVersion = (line) => line.slice(3).trim().split(/\s+/, 1)[0];
 
 const readSections = () => {
   const lines = fs.readFileSync(changelogFile, "utf8").split("\n");
@@ -43,7 +43,7 @@ const trimBlankLines = (lines) => {
     result.shift();
   }
 
-  while (result.length && result[result.length - 1].trim() === "") {
+  while (result.length && result.at(-1).trim() === "") {
     result.pop();
   }
 
@@ -79,9 +79,9 @@ const release = (version, date = new Date().toISOString().slice(0, 10)) => {
     "",
     `## ${version} - ${date}`,
     ...unreleased.lines,
-    ...sections
-      .filter((section) => section !== unreleased)
-      .flatMap((section) => [section.heading, ...section.lines]),
+    ...sections.flatMap((section) =>
+      section === unreleased ? [] : [section.heading, ...section.lines],
+    ),
   ];
 
   fs.writeFileSync(changelogFile, output.join("\n"));
@@ -106,7 +106,7 @@ const notes = (version) => {
 const commands = { notes, release };
 const [command, ...args] = process.argv.slice(2);
 
-if (!(command in commands)) {
+if (!Object.hasOwn(commands, command)) {
   console.error(
     "Usage: changelog.mjs release <version> [date] | notes <version>",
   );
