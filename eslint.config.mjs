@@ -10,6 +10,7 @@ import jestExtendedPlugin from "eslint-plugin-jest-extended";
 import perfectionistPlugin from "eslint-plugin-perfectionist";
 import playwrightPlugin from "eslint-plugin-playwright";
 import testingLibraryPlugin from "eslint-plugin-testing-library";
+import tsdocPlugin from "eslint-plugin-tsdoc";
 import unicornPlugin from "eslint-plugin-unicorn";
 import vitestPlugin from "@vitest/eslint-plugin";
 
@@ -95,6 +96,13 @@ export default defineConfig([
   {
     files: ["src/**/*.ts"],
     ...compatPlugin.configs["flat/recommended"],
+  },
+  {
+    files: ["**/*.ts"],
+    plugins: { tsdoc: tsdocPlugin },
+    rules: {
+      "tsdoc/syntax": "error",
+    },
   },
   {
     // The javascript build configuration is not part of the typescript
