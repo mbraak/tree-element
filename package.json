@@ -74,7 +74,6 @@
     "@types/node": "^26.6.1",
     "@vitest/coverage-istanbul": "^5",
     "@vitest/eslint-plugin": "^1.6.27",
-    "autoprefixer": "^10.6.1",
     "axe-core": "^4.13.0",
     "babel-plugin-istanbul": "^8.0.0",
     "babel-plugin-prefix-private-members": "^0.2.0",
