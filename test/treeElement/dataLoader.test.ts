@@ -119,7 +119,7 @@ describe("loadFromUrl", () => {
       "tree.load_failed",
       expect.objectContaining({
         error: expect.objectContaining({
-          message: "Failed to fetch",
+          message: "fetch failed",
           name: "TypeError",
         }) as TypeError,
       }),
