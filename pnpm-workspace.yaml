@@ -5,3 +5,6 @@ allowBuilds:
   babel-plugin-prefix-private-members: true
 minimumReleaseAgeExclude:
   - babel-plugin-prefix-private-members@0.2.0
+peerDependencyRules:
+  allowedVersions:
+    "@rollup/plugin-babel>@babel/core": "8"
