@@ -1,4 +1,5 @@
 import cspellESLintPluginRecommended from "@cspell/eslint-plugin/recommended";
+import compatPlugin from "eslint-plugin-compat";
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import importPlugin from "eslint-plugin-import-x";
@@ -85,6 +86,10 @@ export default [
         },
       ],
     },
+  },
+  {
+    files: ["src/**/*.ts"],
+    ...compatPlugin.configs["flat/recommended"],
   },
   {
     // The javascript build configuration is not part of the typescript
