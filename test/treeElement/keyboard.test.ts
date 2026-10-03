@@ -22,7 +22,7 @@ describe("keyboard support", () => {
   };
 
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 
     htmlElement = document.createElement("div");
     document.body.append(htmlElement);
@@ -32,7 +32,7 @@ describe("keyboard support", () => {
     treeElement?.deinit();
     treeElement = undefined;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   describe("with key down", () => {

@@ -1,5 +1,5 @@
-import { execFileSync } from "child_process";
-import fs from "fs";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 
 // Release a new version. Usage:
 //
@@ -97,7 +97,7 @@ const main = () => {
   const args = process.argv.slice(2);
   const skipCiCheck = args.includes("--skip-ci-check");
   const dryRun = args.includes("--dry-run");
-  const [bump] = args.filter((arg) => !arg.startsWith("--"));
+  const bump = args.find((arg) => !arg.startsWith("--"));
 
   if (!bump) {
     fail(

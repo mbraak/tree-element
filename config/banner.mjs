@@ -1,6 +1,6 @@
-import fs from "fs";
 import jsonfile from "jsonfile";
 import template from "lodash/template.js";
+import fs from "node:fs";
 
 export const getBanner = () => {
   const headerTemplate = fs.readFileSync("./src/header.txt", "utf8");

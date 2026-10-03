@@ -7,6 +7,7 @@ import jestExtendedPlugin from "eslint-plugin-jest-extended";
 import perfectionistPlugin from "eslint-plugin-perfectionist";
 import playwrightPlugin from "eslint-plugin-playwright";
 import testingLibraryPlugin from "eslint-plugin-testing-library";
+import unicornPlugin from "eslint-plugin-unicorn";
 import vitestPlugin from "@vitest/eslint-plugin";
 
 export default [
@@ -17,6 +18,7 @@ export default [
   importPlugin.flatConfigs.typescript,
   perfectionistPlugin.configs["recommended-natural"],
   cspellESLintPluginRecommended,
+  unicornPlugin.configs.recommended,
   {
     languageOptions: {
       parserOptions: {
@@ -52,6 +54,30 @@ export default [
         },
       ],
       "@typescript-eslint/unified-signatures": "off",
+      // Node.children is the tree data, not the DOM
+      "unicorn/better-dom-traversing": "off",
+      "unicorn/consistent-boolean-name": "off",
+      "unicorn/consistent-class-member-order": "off",
+      // !x.length is shorter in the minified bundle
+      "unicorn/explicit-length-check": "off",
+      "unicorn/filename-case": "off",
+      "unicorn/name-replacements": "off",
+      "unicorn/no-null": "off",
+      // toSorted is ES2023, the project targets ES2022
+      "unicorn/no-array-sort": "off",
+      "unicorn/prefer-await": "off",
+      // Node.remove and Node.removeChild are tree methods, not DOM
+      "unicorn/prefer-dom-node-remove": "off",
+      // getHTML and setHTML are too new for the supported browsers
+      "unicorn/prefer-dom-node-html-methods": "off",
+      "unicorn/prefer-logical-operator-over-ternary": "off",
+      // parseInt("3px") and Number("3px") differ
+      "unicorn/prefer-number-coercion": "off",
+      // Browser library: globalThis.setTimeout resolves to the node typings
+      "unicorn/prefer-global-this": "off",
+      "unicorn/prefer-number-is-safe-integer": "off",
+      "unicorn/prefer-simple-condition-first": "off",
+      "unicorn/max-nested-calls": "off",
       "@cspell/spellchecker": [
         "error",
         {
@@ -71,6 +97,12 @@ export default [
         console: "readonly",
         process: "readonly",
       },
+    },
+    rules: {
+      ...tseslint.configs.disableTypeChecked.rules,
+      "unicorn/no-process-exit": "off",
+      // Rollup plugin hooks are called with a plugin context as `this`
+      "unicorn/no-this-outside-of-class": "off",
     },
   },
   {
@@ -93,6 +125,7 @@ export default [
       "vitest/prefer-strict-boolean-matchers": "off",
       "vitest/require-hook": "off",
       "vitest/require-mock-type-parameters": "off",
+      "unicorn/consistent-function-scoping": "off",
     },
   },
   {

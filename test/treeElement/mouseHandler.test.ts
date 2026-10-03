@@ -56,7 +56,7 @@ const createMouseHandler = ({
 
 describe("handleClick", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("handles a button click", () => {
@@ -64,18 +64,14 @@ describe("handleClick", () => {
 
     const button = document.createElement("button");
     button.classList.add("tree-element-toggler");
-    element.appendChild(button);
+    element.append(button);
 
     document.body.append(element);
 
     const node = new Node();
 
     const getNode = vi.fn((element: HTMLElement) => {
-      if (element === button) {
-        return node;
-      } else {
-        return null;
-      }
+      return element === button ? node : null;
     });
 
     const onClickButton = vi.fn();
@@ -106,18 +102,14 @@ describe("handleClick", () => {
 
     const label = document.createElement("div");
     label.classList.add("tree-element-element");
-    element.appendChild(label);
+    element.append(label);
 
     document.body.append(element);
 
     const node = new Node();
 
     const getNode = vi.fn((element: HTMLElement) => {
-      if (element === label) {
-        return node;
-      } else {
-        return null;
-      }
+      return element === label ? node : null;
     });
 
     const triggerEvent = vi.fn<TriggerEvent>(() => true);
@@ -140,18 +132,14 @@ describe("handleClick", () => {
 
     const label = document.createElement("div");
     label.classList.add("tree-element-element");
-    element.appendChild(label);
+    element.append(label);
 
     document.body.append(element);
 
     const node = new Node();
 
     const getNode = vi.fn((element: HTMLElement) => {
-      if (element === label) {
-        return node;
-      } else {
-        return null;
-      }
+      return element === label ? node : null;
     });
 
     const triggerEvent = vi.fn<TriggerEvent>(() => false);
@@ -168,26 +156,22 @@ describe("handleClick", () => {
 
 describe("handleContextmenu", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("handles a context menu event on a node", () => {
     const treeElement = document.createElement("ul");
     treeElement.classList.add("tree-element");
-    document.body.appendChild(treeElement);
+    document.body.append(treeElement);
 
     const nodeElement = document.createElement("div");
     nodeElement.className = "tree-element-element";
-    treeElement.appendChild(nodeElement);
+    treeElement.append(nodeElement);
 
     const node = new Node();
 
     const getNode = vi.fn((element: HTMLElement) => {
-      if (element === nodeElement) {
-        return node;
-      } else {
-        return null;
-      }
+      return element === nodeElement ? node : null;
     });
 
     const triggerEvent = vi.fn<TriggerEvent>();
@@ -205,7 +189,7 @@ describe("handleContextmenu", () => {
 
   it("handles a context menu event that's not on a node", () => {
     const element = document.createElement("div");
-    document.body.appendChild(element);
+    document.body.append(element);
 
     const getNode = vi.fn(() => null);
     const triggerEvent = vi.fn<TriggerEvent>();
@@ -220,7 +204,7 @@ describe("handleContextmenu", () => {
 
   it("handles a context menu event without a target", () => {
     const element = document.createElement("div");
-    document.body.appendChild(element);
+    document.body.append(element);
 
     const triggerEvent = vi.fn<TriggerEvent>();
 
@@ -237,7 +221,7 @@ describe("handleContextmenu", () => {
 
 describe("handleDblclick", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("handles a double click on a label", () => {
@@ -245,18 +229,14 @@ describe("handleDblclick", () => {
 
     const label = document.createElement("div");
     label.classList.add("tree-element-element");
-    element.appendChild(label);
+    element.append(label);
 
     document.body.append(element);
 
     const node = new Node();
 
     const getNode = vi.fn((element: HTMLElement) => {
-      if (element === label) {
-        return node;
-      } else {
-        return null;
-      }
+      return element === label ? node : null;
     });
 
     const triggerEvent = vi.fn<TriggerEvent>();
@@ -274,7 +254,7 @@ describe("handleDblclick", () => {
 
   it("handles a double click event without a target", () => {
     const element = document.createElement("div");
-    document.body.appendChild(element);
+    document.body.append(element);
 
     const triggerEvent = vi.fn<TriggerEvent>();
 
@@ -291,7 +271,7 @@ describe("handleDblclick", () => {
 
 describe("touchStart", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("handles a touchstart event", () => {
@@ -363,7 +343,7 @@ describe("touchStart", () => {
 
 describe("touchEnd", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("handles a touchend event after a touchstart and a touchmove event", () => {
@@ -455,7 +435,7 @@ describe("touchEnd", () => {
 
 describe("touchMove", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("handles a touchmove event without touches", () => {
@@ -527,7 +507,7 @@ describe("touchMove", () => {
 
 describe("mouseMove", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   afterEach(() => {
@@ -539,23 +519,19 @@ describe("mouseMove", () => {
 
     const treeElement = document.createElement("ul");
     treeElement.classList.add("tree-element");
-    document.body.appendChild(treeElement);
+    document.body.append(treeElement);
 
     const nodeElement = document.createElement("div");
     nodeElement.className = "tree-element-element";
-    treeElement.appendChild(nodeElement);
+    treeElement.append(nodeElement);
 
     const node = new Node();
 
     const getNode = vi.fn((element: HTMLElement) => {
-      if (element === nodeElement) {
-        return node;
-      } else {
-        return null;
-      }
+      return element === nodeElement ? node : null;
     });
 
-    const getMouseDelay = vi.fn(() => 1_000);
+    const getMouseDelay = vi.fn(() => 1000);
     const onMouseCapture = vi.fn(() => true);
     const onMouseStart = vi.fn(() => true);
 
@@ -573,7 +549,7 @@ describe("mouseMove", () => {
 
     expect(onMouseStart).not.toHaveBeenCalled();
 
-    vi.advanceTimersByTime(1_500);
+    vi.advanceTimersByTime(1500);
 
     nodeElement.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 
@@ -589,23 +565,19 @@ describe("mouseMove", () => {
 
     const treeElement = document.createElement("ul");
     treeElement.classList.add("tree-element");
-    document.body.appendChild(treeElement);
+    document.body.append(treeElement);
 
     const nodeElement = document.createElement("div");
     nodeElement.className = "tree-element-element";
-    treeElement.appendChild(nodeElement);
+    treeElement.append(nodeElement);
 
     const node = new Node();
 
     const getNode = vi.fn((element: HTMLElement) => {
-      if (element === nodeElement) {
-        return node;
-      } else {
-        return null;
-      }
+      return element === nodeElement ? node : null;
     });
 
-    const getMouseDelay = vi.fn(() => 1_000);
+    const getMouseDelay = vi.fn(() => 1000);
     const onMouseCapture = vi.fn(() => true);
     const onMouseStart = vi.fn(() => true);
 

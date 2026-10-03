@@ -139,10 +139,8 @@ export class DragAndDropHandler {
 
     let nodeElement = this.getNodeElement(element);
 
-    if (nodeElement && this.onCanMove) {
-      if (!this.onCanMove(nodeElement.node)) {
-        nodeElement = null;
-      }
+    if (nodeElement && this.onCanMove && !this.onCanMove(nodeElement.node)) {
+      nodeElement = null;
     }
 
     this.currentItem = nodeElement;
@@ -181,10 +179,8 @@ export class DragAndDropHandler {
       this.hoveredArea = area;
     }
 
-    if (!area) {
-      if (this.onDragMove) {
-        this.onDragMove(this.currentItem.node, positionInfo.originalEvent);
-      }
+    if (!area && this.onDragMove) {
+      this.onDragMove(this.currentItem.node, positionInfo.originalEvent);
     }
 
     return true;
@@ -232,10 +228,8 @@ export class DragAndDropHandler {
 
     this.isDragging = false;
 
-    if (!this.hoveredArea && currentItem) {
-      if (this.onDragStop) {
-        this.onDragStop(currentItem.node, positionInfo.originalEvent);
-      }
+    if (!this.hoveredArea && currentItem && this.onDragStop) {
+      this.onDragStop(currentItem.node, positionInfo.originalEvent);
     }
 
     return false;
@@ -244,30 +238,32 @@ export class DragAndDropHandler {
   public refresh(): void {
     this.removeHitAreas();
 
-    if (this.currentItem) {
-      const currentNode = this.currentItem.node;
-      this.generateHitAreas(currentNode);
-      this.currentItem = this.getNodeElementForNode(currentNode);
+    if (!this.currentItem) {
+      return;
+    }
 
-      if (this.isDragging) {
-        this.currentItem.element.classList.add(this.classNames.moving);
-      }
+    const currentNode = this.currentItem.node;
+    this.generateHitAreas(currentNode);
+    this.currentItem = this.getNodeElementForNode(currentNode);
+
+    if (this.isDragging) {
+      this.currentItem.element.classList.add(this.classNames.moving);
     }
   }
 
   private canMoveToArea(area: HitArea, currentItem: NodeElement): boolean {
-    if (!this.onCanMoveTo) {
-      return true;
-    }
-
-    return this.onCanMoveTo(currentItem.node, area.node, area.position);
+    return this.onCanMoveTo
+      ? this.onCanMoveTo(currentItem.node, area.node, area.position)
+      : true;
   }
 
   private clear(): void {
-    if (this.dragElement) {
-      this.dragElement.remove();
-      this.dragElement = null;
+    if (!this.dragElement) {
+      return;
     }
+
+    this.dragElement.remove();
+    this.dragElement = null;
   }
 
   private findHoveredArea(x: number, y: number): HitArea | null {
@@ -285,26 +281,17 @@ export class DragAndDropHandler {
     return binarySearch<HitArea>(this.hitAreas, (area) => {
       if (y < area.top) {
         return 1;
-      } else if (y > area.bottom) {
-        return -1;
-      } else {
-        return 0;
       }
+      return y > area.bottom ? -1 : 0;
     });
   }
 
   private generateHitAreas(currentNode: Node): void {
     const tree = this.getTree();
 
-    if (!tree) {
-      this.hitAreas = [];
-    } else {
-      this.hitAreas = generateHitAreas(
-        tree,
-        currentNode,
-        this.getTreeDimensions().bottom,
-      );
-    }
+    this.hitAreas = tree
+      ? generateHitAreas(tree, currentNode, this.getTreeDimensions().bottom)
+      : [];
   }
 
   private getTreeDimensions(): Dimensions {
@@ -322,47 +309,53 @@ export class DragAndDropHandler {
     };
   }
 
-  /* Move the dragged node to the selected position in the tree. */
+  /*
+  Move the dragged node to the selected position in the tree.
+  */
   private moveItem(positionInfo: PositionInfo): void {
-    if (
+    if (!(
       this.currentItem &&
       this.hoveredArea?.position &&
       this.canMoveToArea(this.hoveredArea, this.currentItem)
+    )) {
+      return;
+    }
+
+    const movedNode = this.currentItem.node;
+    const targetNode = this.hoveredArea.node;
+    const position = this.hoveredArea.position;
+    const previousParent = movedNode.parent;
+
+    if (position === "inside") {
+      this.hoveredArea.node.is_open = true;
+    }
+
+    const doMove = (): void => {
+      const tree = this.getTree();
+
+      if (!tree) {
+        return;
+      }
+
+      tree.moveNode(movedNode, targetNode, position);
+
+      this.treeElement.textContent = "";
+      this.refreshElements(null);
+    };
+
+    if (
+      this.triggerEvent("tree.move", {
+        moveInfo: {
+          doMove,
+          movedNode,
+          originalEvent: positionInfo.originalEvent,
+          position,
+          previousParent,
+          targetNode,
+        },
+      })
     ) {
-      const movedNode = this.currentItem.node;
-      const targetNode = this.hoveredArea.node;
-      const position = this.hoveredArea.position;
-      const previousParent = movedNode.parent;
-
-      if (position === "inside") {
-        this.hoveredArea.node.is_open = true;
-      }
-
-      const doMove = (): void => {
-        const tree = this.getTree();
-
-        if (tree) {
-          tree.moveNode(movedNode, targetNode, position);
-
-          this.treeElement.textContent = "";
-          this.refreshElements(null);
-        }
-      };
-
-      if (
-        this.triggerEvent("tree.move", {
-          moveInfo: {
-            doMove,
-            movedNode,
-            originalEvent: positionInfo.originalEvent,
-            position,
-            previousParent,
-            targetNode,
-          },
-        })
-      ) {
-        doMove();
-      }
+      doMove();
     }
   }
 
@@ -412,10 +405,12 @@ export class DragAndDropHandler {
   }
 
   private stopOpenFolderTimer(): void {
-    if (this.openFolderTimer) {
-      clearTimeout(this.openFolderTimer);
-      this.openFolderTimer = null;
+    if (!this.openFolderTimer) {
+      return;
     }
+
+    clearTimeout(this.openFolderTimer);
+    this.openFolderTimer = null;
   }
 
   private updateDropHint(): void {

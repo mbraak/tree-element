@@ -26,15 +26,13 @@ export default class ContainerScrollParent extends ScrollParent {
     const rightEdge = scrollParentOffset.left + containerWidth;
     const leftEdge = scrollParentOffset.left;
     const isNearRightEdge = pageX > rightEdge - 20;
-    const isNearLeftEdge = pageX < leftEdge + 20;
 
     if (isNearRightEdge) {
       return "right";
-    } else if (isNearLeftEdge) {
-      return "left";
     }
 
-    return undefined;
+    const isNearLeftEdge = pageX < leftEdge + 20;
+    return isNearLeftEdge ? "left" : undefined;
   }
 
   protected getNewVerticalScrollDirection(
@@ -44,11 +42,7 @@ export default class ContainerScrollParent extends ScrollParent {
       return "top";
     }
 
-    if (pageY > this.getScrollParentBottom()) {
-      return "bottom";
-    }
-
-    return undefined;
+    return pageY > this.getScrollParentBottom() ? "bottom" : undefined;
   }
 
   private getScrollParentBottom() {

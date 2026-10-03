@@ -219,11 +219,7 @@ describe("setInitialStateOnDemand", () => {
   it("opens a node when the node id is in open_nodes in the state", async () => {
     const node = new Node({ id: 123 });
     const getNodeById = vi.fn((nodeId) => {
-      if (nodeId === 123) {
-        return node;
-      } else {
-        return null;
-      }
+      return nodeId === 123 ? node : null;
     });
     const openNode = vi.fn();
 
@@ -239,11 +235,7 @@ describe("setInitialStateOnDemand", () => {
   it("selects a node and redraws the tree when the node id is in selected_node in the state", async () => {
     const node = new Node({ id: 123 });
     const getNodeById = vi.fn((nodeId) => {
-      if (nodeId === 123) {
-        return node;
-      } else {
-        return null;
-      }
+      return nodeId === 123 ? node : null;
     });
     const addToSelection = vi.fn();
     const refreshElements = vi.fn();
@@ -270,19 +262,20 @@ describe("setInitialStateOnDemand", () => {
 
     const getNodeById = vi.fn((nodeId) => {
       switch (nodeId) {
-        case 1:
+        case 1: {
           return node1;
+        }
         case 2: {
           // Return the node the second time.
           if (calledGetNodeByIdForNode2) {
             return node2;
-          } else {
-            calledGetNodeByIdForNode2 = true;
-            return null;
           }
-        }
-        default:
+          calledGetNodeByIdForNode2 = true;
           return null;
+        }
+        default: {
+          return null;
+        }
       }
     });
 

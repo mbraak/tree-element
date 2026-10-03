@@ -39,7 +39,7 @@ describe("load on demand", () => {
   });
 
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 
     htmlElement = document.createElement("div");
     document.body.append(htmlElement);
@@ -51,11 +51,9 @@ describe("load on demand", () => {
         const url = new URL(request.url);
         const parentId = url.searchParams.get("node");
 
-        if (parentId === "1") {
-          return HttpResponse.json([{ id: 2, name: "loaded-on-demand" }]);
-        } else {
-          return new HttpResponse(null, { status: 400 });
-        }
+        return parentId === "1"
+          ? HttpResponse.json([{ id: 2, name: "loaded-on-demand" }])
+          : new HttpResponse(null, { status: 400 });
       }),
     );
   });
@@ -66,7 +64,7 @@ describe("load on demand", () => {
     treeElement?.deinit();
     treeElement = undefined;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     localStorage.clear();
   });
 

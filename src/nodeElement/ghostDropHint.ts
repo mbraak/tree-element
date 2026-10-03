@@ -20,13 +20,15 @@ class GhostDropHint implements DropHint {
     this.ghost = this.createGhostElement();
 
     switch (position) {
-      case "after":
+      case "after": {
         this.moveAfter();
         break;
+      }
 
-      case "before":
+      case "before": {
         this.moveBefore();
         break;
+      }
 
       case "inside": {
         if (node.isFolder() && node.is_open) {

@@ -71,7 +71,7 @@ describe("docs demos", () => {
     treeElement?.deinit();
     treeElement = undefined;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     localStorage.clear();
   });
 

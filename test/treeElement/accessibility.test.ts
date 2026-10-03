@@ -28,7 +28,7 @@ describe("accessibility", () => {
 
   beforeEach(() => {
     document.title = "Test title";
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
     document.documentElement.setAttribute("lang", "en");
 
     const mainElement = document.createElement("main");
@@ -41,7 +41,7 @@ describe("accessibility", () => {
     treeElement?.deinit();
     treeElement = undefined;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("has an accessible ui", async () => {

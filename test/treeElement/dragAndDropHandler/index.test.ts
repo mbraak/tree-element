@@ -79,9 +79,8 @@ const createDragAndDropHandler = ({
                 node: resultNode,
                 treeElement,
             });
-        } else {
-            return null;
         }
+        return null;
     });
 
     const dragAndDropHandler = new DragAndDropHandler({
@@ -108,7 +107,7 @@ const createDragAndDropHandler = ({
 
 describe("DragAndDropHandler", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     afterEach(() => {
@@ -170,7 +169,7 @@ describe("DragAndDropHandler", () => {
             const { dragAndDropHandler } = createDragAndDropHandler({ tree });
 
             const element = document.createElement("div");
-            (node2.element as HTMLElement).appendChild(element);
+            (node2.element as HTMLElement).append(element);
 
             const positionInfo = {
                 originalEvent: new Event("click"),
@@ -193,7 +192,7 @@ describe("DragAndDropHandler", () => {
             const { dragAndDropHandler } = createDragAndDropHandler({ tree });
 
             const element = document.createElement("input");
-            (node2.element as HTMLElement).appendChild(element);
+            (node2.element as HTMLElement).append(element);
 
             const positionInfo = {
                 originalEvent: new Event("click"),
@@ -275,7 +274,7 @@ describe("DragAndDropHandler", () => {
             });
 
             const element = document.createElement("div");
-            (node2.element as HTMLElement).appendChild(element);
+            (node2.element as HTMLElement).append(element);
 
             const positionInfo = {
                 originalEvent: new Event("click"),
@@ -305,7 +304,7 @@ describe("DragAndDropHandler", () => {
             });
 
             const element = document.createElement("div");
-            (node2.element as HTMLElement).appendChild(element);
+            (node2.element as HTMLElement).append(element);
 
             const positionInfo = {
                 originalEvent: new Event("click"),

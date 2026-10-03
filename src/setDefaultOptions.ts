@@ -10,7 +10,7 @@ const defaults: TreeElementOptions = {
   buttonLeft: true,
   classPrefix: DEFAULT_CLASS_PREFIX, // the prefix of all css classes
   // The symbol to use for a closed node - ► BLACK RIGHT-POINTING POINTER
-  // http://www.fileformat.info/info/unicode/char/25ba/index.htm
+  // https://www.fileformat.info/info/unicode/char/25ba/index.htm
   // closedIcon: undefined,
   // commonClassName: undefined, // the class of every element; the default is "<classPrefix>-common"
   // data: undefined,
@@ -31,7 +31,7 @@ const defaults: TreeElementOptions = {
   // openedIcon: undefined,
   openFolderDelay: 500, // The delay for opening a folder during drag and drop; the value is in milliseconds
   // The symbol to use for an open node - ▼ BLACK DOWN-POINTING TRIANGLE
-  // http://www.fileformat.info/info/unicode/char/25bc/index.htm
+  // https://www.fileformat.info/info/unicode/char/25bc/index.htm
   // rtl: undefined, // right-to-left support; true / false (default)
   saveState: false, // true / false / string (local storage key; the default key is "tree")
   selectable: true,
@@ -61,10 +61,9 @@ const getDefaultClosedIcon = (options: TreeElementOptions): string => {
   if (options.rtl) {
     // triangle to the left
     return "&#x25c0;";
-  } else {
-    // triangle to the right
-    return "&#x25ba;";
   }
+  // triangle to the right
+  return "&#x25ba;";
 };
 
 const getRtlOptionFromHTMLElement = (htmlElement: HTMLElement): boolean => {
@@ -72,11 +71,8 @@ const getRtlOptionFromHTMLElement = (htmlElement: HTMLElement): boolean => {
 
   if (dataRtl == "") {
     return true;
-  } else if (dataRtl === "false") {
-    return false;
-  } else {
-    return Boolean(dataRtl);
   }
+  return dataRtl === "false" ? false : Boolean(dataRtl);
 };
 
 export default setDefaultOptions;

@@ -684,14 +684,10 @@ test.describe("autoscroll when the container is scrollable horizontally", () => 
         await page.waitForFunction(() => {
             const container = document.querySelector("#container");
 
-            if (!container) {
-                return false;
-            }
-
-            return (
+            return container ? (
                 container.scrollLeft >=
                 container.scrollWidth - container.clientWidth
-            );
+            ) : false;
         });
 
         await moveMouseToNode(page, "Tyrannosauroids");

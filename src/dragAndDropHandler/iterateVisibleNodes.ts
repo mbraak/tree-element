@@ -57,27 +57,29 @@ const iterateVisibleNodes = (
       }
     }
 
-    if (mustIterateInside) {
-      const childrenLength = node.children.length;
-      node.children.forEach((_, i) => {
-        const child = node.children[i];
+    if (!mustIterateInside) {
+      return;
+    }
 
-        if (child) {
-          if (i === childrenLength - 1) {
-            iterate(child, null);
-          } else {
-            const nextChild = node.children[i + 1];
+    const childrenLength = node.children.length;
+    for (const i of node.children.keys()) {
+      const child = node.children[i];
 
-            if (nextChild) {
-              iterate(child, nextChild);
-            }
+      if (child) {
+        if (i === childrenLength - 1) {
+          iterate(child, null);
+        } else {
+          const nextChild = node.children[i + 1];
+
+          if (nextChild) {
+            iterate(child, nextChild);
           }
         }
-      });
-
-      if (node.is_open && element) {
-        handleAfterOpenFolder(node, nextNode);
       }
+    }
+
+    if (node.is_open && element) {
+      handleAfterOpenFolder(node, nextNode);
     }
   };
 

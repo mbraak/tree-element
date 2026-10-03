@@ -27,7 +27,7 @@ class DragElement {
 
     this.element = this.createElement(nodeName, autoEscape, classNames);
 
-    treeElement.appendChild(this.element);
+    treeElement.append(this.element);
   }
 
   public move(pageX: number, pageY: number): void {

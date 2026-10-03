@@ -79,7 +79,7 @@ const getTreeItem = (name: string) => screen.getByRole("treeitem", { name });
 
 describe("render", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("renders from the root when the node is null", () => {
@@ -122,7 +122,7 @@ describe("render", () => {
 
 describe("renderFromNode", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("does nothing when the node has no element", () => {
@@ -201,7 +201,7 @@ describe("renderFromNode", () => {
 
 describe("renderChildren", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("renders the children of the node and returns the list", () => {
@@ -251,7 +251,7 @@ describe("renderChildren", () => {
 
 describe("renderFromRoot", () => {
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
   });
 
   it("renders the tree", () => {

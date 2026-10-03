@@ -47,7 +47,7 @@ const createNodeElement = ({ tabIndex }: CreateNodeElementParams = {}) => {
 
 describe("init", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("sets the element to the element of the node", () => {
@@ -108,7 +108,7 @@ describe("init", () => {
 
 describe("addDropHint", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("returns a border drop hint for position inside", () => {
@@ -134,7 +134,7 @@ describe("addDropHint", () => {
 
 describe("select", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("adds the selected class to the element", () => {
@@ -195,7 +195,7 @@ describe("select", () => {
 
 describe("deselect", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("removes the selected class from the element", () => {

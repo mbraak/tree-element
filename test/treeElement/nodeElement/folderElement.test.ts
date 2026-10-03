@@ -63,7 +63,7 @@ const createFolderElement = ({
 
 describe("close", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("closes an open node without animation", async () => {
@@ -176,7 +176,7 @@ describe("close", () => {
 
 describe("open", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("opens a closed node without animation", async () => {
@@ -318,7 +318,7 @@ describe("open", () => {
 
 describe("addDropHint", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("returns a border drop hint for a closed node and position inside", () => {

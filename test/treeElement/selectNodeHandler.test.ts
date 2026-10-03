@@ -173,9 +173,10 @@ describe("selectSingleNode", () => {
     const node1 = new Node({ id: 1 });
     const node2 = new Node({ id: 2 });
 
-    const nodeElements = new Map<Node, MockNodeElement>();
-    nodeElements.set(node1, createMockNodeElement());
-    nodeElements.set(node2, createMockNodeElement());
+    const nodeElements = new Map<Node, MockNodeElement>([
+      [node1, createMockNodeElement()],
+      [node2, createMockNodeElement()],
+    ]);
 
     const getNodeElementForNode = vi.fn((node: Node) =>
       asNodeElement(nodeElements.get(node) ?? createMockNodeElement()),

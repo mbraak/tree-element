@@ -104,16 +104,14 @@ export default class ElementsRenderer {
    * null when the folder is not rendered or has no children.
    */
   public renderChildren(node: Node): HTMLUListElement | null {
-    if (!node.element || !node.hasChildren()) {
-      return null;
-    }
-
-    return this.createDomElements(
-      node.element,
-      node.children,
-      false,
-      node.getLevel() + 1,
-    );
+    return !node.element || !node.hasChildren()
+      ? null
+      : this.createDomElements(
+          node.element,
+          node.children,
+          false,
+          node.getLevel() + 1,
+        );
   }
 
   public renderFromNode(node: Node): void {
@@ -155,11 +153,8 @@ export default class ElementsRenderer {
       template.innerHTML = value;
 
       return template.content;
-    } else if (value.nodeType) {
-      return value;
-    } else {
-      return undefined;
     }
+    return value.nodeType ? value : undefined;
   }
 
   private createDomElements(
@@ -170,11 +165,11 @@ export default class ElementsRenderer {
   ): HTMLUListElement {
     const template = isRootNode ? this.rootUlTemplate : this.groupUlTemplate;
     const ul = template.cloneNode() as HTMLUListElement;
-    element.appendChild(ul);
+    element.append(ul);
 
     for (const child of children) {
       const li = this.createLi(child, level);
-      ul.appendChild(li);
+      ul.append(li);
 
       if (this.mustRenderChildren(child)) {
         this.createDomElements(li, child.children, false, level + 1);
@@ -237,20 +232,20 @@ export default class ElementsRenderer {
       : this.closedIconElement;
 
     if (iconElement) {
-      buttonLink.appendChild(iconElement.cloneNode(true));
+      buttonLink.append(iconElement.cloneNode(true));
     }
 
     if (this.buttonLeft) {
-      div.appendChild(buttonLink);
+      div.append(buttonLink);
     }
 
     // title span
     const titleSpan = this.createTitleSpanTemplate(true);
     titleSpan.setAttribute("aria-expanded", getBoolString(isOpen));
-    div.appendChild(titleSpan);
+    div.append(titleSpan);
 
     if (!this.buttonLeft) {
-      div.appendChild(buttonLink);
+      div.append(buttonLink);
     }
 
     return li;
@@ -279,7 +274,9 @@ export default class ElementsRenderer {
     return li;
   }
 
-  /* Create the outer part of a <li> template: li > div */
+  /*
+  Create the outer part of a <li> template: li > div
+  */
   private createLiTemplate(liClasses: string): HTMLLIElement {
     const li = document.createElement("li");
     li.className = liClasses;
@@ -289,7 +286,7 @@ export default class ElementsRenderer {
     div.className = `${this.classNames.element} ${this.classNames.common}`;
     div.setAttribute("role", "none");
 
-    li.appendChild(div);
+    li.append(div);
 
     return li;
   }
@@ -314,12 +311,14 @@ export default class ElementsRenderer {
     return li;
   }
 
-  /* Template for a <li> without children: li > div > title span */
+  /*
+  Template for a <li> without children: li > div > title span
+  */
   private createNodeTemplate(): HTMLLIElement {
     const li = this.createLiTemplate(this.classNames.common);
     const div = li.firstChild as HTMLDivElement;
 
-    div.appendChild(this.createTitleSpanTemplate(false));
+    div.append(this.createTitleSpanTemplate(false));
 
     return li;
   }
@@ -346,16 +345,16 @@ export default class ElementsRenderer {
     let classString;
     let role;
 
-    if (!isRootNode) {
-      classString = "";
-      role = "group";
-    } else {
+    if (isRootNode) {
       classString = this.classNames.tree;
       role = "tree";
 
       if (this.rtl) {
         classString += ` ${this.classNames.rtl}`;
       }
+    } else {
+      classString = "";
+      role = "group";
     }
 
     if (this.dragAndDrop) {
@@ -370,7 +369,9 @@ export default class ElementsRenderer {
     return ul;
   }
 
-  /* Set the parts of a cloned title span that differ per node */
+  /*
+  Set the parts of a cloned title span that differ per node
+  */
   private fillTitleSpan(
     titleSpan: HTMLSpanElement,
     nodeName: string,
@@ -378,7 +379,7 @@ export default class ElementsRenderer {
     level: number,
   ): void {
     titleSpan.setAttribute("aria-label", nodeName);
-    titleSpan.setAttribute("aria-level", `${level}`);
+    titleSpan.setAttribute("aria-level", String(level));
 
     if (isSelected) {
       titleSpan.setAttribute("aria-selected", "true");
@@ -386,7 +387,7 @@ export default class ElementsRenderer {
       const tabIndex = this.tabIndex;
 
       if (tabIndex !== undefined) {
-        titleSpan.setAttribute("tabindex", `${tabIndex}`);
+        titleSpan.setAttribute("tabindex", String(tabIndex));
       }
     }
 
@@ -413,7 +414,9 @@ export default class ElementsRenderer {
     return classes.join(" ");
   }
 
-  /* The children of a closed folder are rendered when it is opened */
+  /*
+  The children of a closed folder are rendered when it is opened
+  */
   private mustRenderChildren(node: Node): boolean {
     return node.hasChildren() && node.is_open === true;
   }

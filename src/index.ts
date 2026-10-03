@@ -1,5 +1,5 @@
 import type { ClassNames } from "./classNames";
-import type { MoveInfo, TreeEvent, TreeEventName, TreeEvents } from "./events";
+import type {   TreeEventName, TreeEvents } from "./events";
 import type { PositionInfo } from "./mouseUtils";
 import type { NodeData, NodeId, Position } from "./node";
 import type { TreeElementOptions } from "./options";
@@ -28,19 +28,7 @@ import __version__ from "./version";
 // the submodules directly, because those are not exposed in package.json.
 // Type only, so that the iife build keeps exposing the TreeElement class itself
 // as its global, instead of an object of named exports.
-export type {
-  MoveInfo,
-  Node,
-  NodeData,
-  NodeId,
-  Position,
-  SavedState,
-  SelectNodeOptions,
-  TreeElementOptions,
-  TreeEvent,
-  TreeEventName,
-  TreeEvents,
-};
+
 
 export type TriggerEventProvider = (
   element: HTMLElement,
@@ -49,7 +37,9 @@ export type TriggerEventProvider = (
 ) => boolean;
 
 interface TreeElementParams extends Partial<TreeElementOptions> {
-  /** The element the tree is rendered into. Its content is replaced. */
+  /**
+  The element the tree is rendered into. Its content is replaced.
+  */
   htmlElement: HTMLElement;
   /** Replaces how events are dispatched. It must return whether the event
    * was not cancelled. This exists for tests and for integrating with
@@ -74,7 +64,9 @@ export default class TreeElement {
   private tree: Node;
   private triggerEventProvider: TriggerEventProvider;
 
-  /** @hidden */
+  /**
+  @hidden
+  */
   constructor({
     htmlElement,
     overrideTriggerEventProvider,
@@ -362,14 +354,16 @@ export default class TreeElement {
    * @group Opening and closing
    */
   public async closeNode(node: Node, slide?: boolean): Promise<void> {
-    if (node.isFolder() || node.isEmptyFolder) {
-      await this.createFolderElement(node).close(
-        slide ?? this.options.slide,
-        this.options.animationSpeed,
-      );
-
-      this.saveState();
+    if (!(node.isFolder() || node.isEmptyFolder)) {
+      return;
     }
+
+    await this.createFolderElement(node).close(
+      slide ?? this.options.slide,
+      this.options.animationSpeed,
+    );
+
+    this.saveState();
   }
 
   /**
@@ -398,11 +392,7 @@ export default class TreeElement {
       `li.${this.classNames.common}`,
     );
 
-    if (liElement) {
-      return this.nodeMap.get(liElement) ?? null;
-    } else {
-      return null;
-    }
+    return liElement ? this.nodeMap.get(liElement) ?? null : null;
   }
 
   /**
@@ -847,7 +837,7 @@ export default class TreeElement {
     if (
       typeof data === "object" &&
       data.children &&
-      data.children instanceof Array
+      Array.isArray(data.children)
     ) {
       node.removeChildren();
 
@@ -875,11 +865,10 @@ export default class TreeElement {
           }
 
           return false;
-        } else {
-          void this.openNode(node, false);
-
-          return level !== maxLevel;
         }
+        void this.openNode(node, false);
+
+        return level !== maxLevel;
       });
 
       await Promise.all(loading);
@@ -937,13 +926,7 @@ export default class TreeElement {
   private createRequestUrl(node?: Node): null | RequestUrl {
     const dataUrl = this.options.dataUrl;
 
-    let url;
-
-    if (typeof dataUrl === "function") {
-      url = dataUrl(node);
-    } else {
-      url = dataUrl;
-    }
+    const url = typeof dataUrl === "function" ? dataUrl(node) : dataUrl;
 
     if (!url) {
       return null;
@@ -985,9 +968,11 @@ export default class TreeElement {
   private getAutoOpenMaxLevel(): number {
     if (this.options.autoOpen === true) {
       return -1;
-    } else if (typeof this.options.autoOpen === "number") {
+    }
+    if (typeof this.options.autoOpen === "number") {
       return this.options.autoOpen;
-    } else if (typeof this.options.autoOpen === "string") {
+    }
+    if (typeof this.options.autoOpen === "string") {
       return parseInt(this.options.autoOpen, 10);
     }
 
@@ -997,19 +982,11 @@ export default class TreeElement {
 
   private getNodeElement(element: HTMLElement): NodeElement | null {
     const node = this.getNode(element);
-    if (node) {
-      return this.getNodeElementForNode(node);
-    } else {
-      return null;
-    }
+    return node ? this.getNodeElementForNode(node) : null;
   }
 
   private getNodeElementForNode(node: Node): NodeElement {
-    if (node.isFolder()) {
-      return this.createFolderElement(node);
-    } else {
-      return this.createNodeElement(node);
-    }
+    return node.isFolder() ? this.createFolderElement(node) : this.createNodeElement(node);
   }
 
   private getNodeIdToBeSelected(): NodeId | null {
@@ -1032,10 +1009,12 @@ export default class TreeElement {
 
   private initTree(data: NodeData[]): void {
     const doInit = (): void => {
-      if (!this.isInitialized) {
-        this.isInitialized = true;
-        this.triggerEvent("tree.init");
+      if (this.isInitialized) {
+        return;
       }
+
+      this.isInitialized = true;
+      this.triggerEvent("tree.init");
     };
 
     this.tree = new this.options.nodeClass(null, true, this.options.nodeClass);
@@ -1078,11 +1057,7 @@ export default class TreeElement {
   private isSelectedNodeInSubtree(subtree: Node): boolean {
     const selectedNode = this.getSelectedNode();
 
-    if (!selectedNode) {
-      return false;
-    } else {
-      return subtree === selectedNode || subtree.isParentOf(selectedNode);
-    }
+    return selectedNode ? subtree === selectedNode || subtree.isParentOf(selectedNode) : false;
   }
 
   private async loadFolderOnDemand(node: Node, slide: boolean): Promise<void> {
@@ -1103,11 +1078,7 @@ export default class TreeElement {
   }
 
   private mouseCapture(positionInfo: PositionInfo): boolean | null {
-    if (!this.options.dragAndDrop) {
-      return false;
-    }
-
-    return this.dndHandler.mouseCapture(positionInfo);
+    return this.options.dragAndDrop ? this.dndHandler.mouseCapture(positionInfo) : false;
   }
 
   private mouseDrag(positionInfo: PositionInfo): boolean {
@@ -1123,6 +1094,7 @@ export default class TreeElement {
 
   private mouseStart(positionInfo: PositionInfo): boolean {
     /* istanbul ignore if */
+    // eslint-disable-next-line unicorn/prefer-ternary
     if (!this.options.dragAndDrop) {
       return false;
     }
@@ -1173,10 +1145,12 @@ export default class TreeElement {
 
   private selectCurrentNode(mustSetFocus: boolean): void {
     const node = this.getSelectedNode();
-    if (node) {
-      const nodeElement = this.getNodeElementForNode(node);
-      nodeElement.select(mustSetFocus);
+    if (!node) {
+      return;
     }
+
+    const nodeElement = this.getNodeElementForNode(node);
+    nodeElement.select(mustSetFocus);
   }
 
   // Set initial state, either by restoring the state or auto-opening nodes
@@ -1186,14 +1160,13 @@ export default class TreeElement {
       // result: is state restored, must load on demand?
       const state = this.saveStateHandler.getStateFromStorage();
 
-      if (!state) {
-        return [false, false];
-      } else {
+      if (state) {
         const mustLoadOnDemand = this.saveStateHandler.setInitialState(state);
 
         // return true: the state is restored
         return [true, mustLoadOnDemand];
       }
+      return [false, false];
     };
 
     const autoOpenNodes = (): boolean => {
@@ -1209,12 +1182,12 @@ export default class TreeElement {
         if (node.load_on_demand) {
           mustLoadOnDemand = true;
           return false;
-        } else if (!node.hasChildren()) {
-          return false;
-        } else {
+        }
+        if (node.hasChildren()) {
           node.is_open = true;
           return level !== maxLevel;
         }
+        return false;
       });
 
       return mustLoadOnDemand;
@@ -1252,3 +1225,9 @@ export default class TreeElement {
     return this.triggerEventProvider(this.htmlElement, eventName, values);
   }
 }
+
+export {type MoveInfo, type TreeEvent, type TreeEventName, type TreeEvents} from "./events";
+export {type Node, type NodeData, type NodeId, type Position} from "./node";
+export {type TreeElementOptions} from "./options";
+export {type SavedState} from "./saveStateHandler";
+export {type SelectNodeOptions} from "./selectNodeHandler";

@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 // Typescript emits relative imports in declaration files exactly as they are
 // written in the source: without a file extension. That is fine for bundlers,
@@ -28,11 +28,9 @@ const resolveSpecifier = (declarationFile, specifier) => {
     return `${specifier}.js`;
   }
 
-  if (fs.existsSync(path.join(target, "index.d.ts"))) {
-    return `${specifier}/index.js`;
-  }
-
-  return undefined;
+  return fs.existsSync(path.join(target, "index.d.ts"))
+    ? `${specifier}/index.js`
+    : undefined;
 };
 
 const fixDeclarationFile = (declarationFile) => {
@@ -40,7 +38,7 @@ const fixDeclarationFile = (declarationFile) => {
   const unresolved = [];
 
   // Matches the module specifier of import/export ... from "..." statements.
-  const fixed = source.replace(
+  const fixed = source.replaceAll(
     /(\bfrom\s+")(\.[^"]*)(")/g,
     (match, before, specifier, after) => {
       if (path.extname(specifier)) {
@@ -69,4 +67,6 @@ const fixDeclarationFile = (declarationFile) => {
   }
 };
 
-findDeclarationFiles(libDirectory).forEach(fixDeclarationFile);
+for (const declarationFile of findDeclarationFiles(libDirectory)) {
+  fixDeclarationFile(declarationFile);
+}

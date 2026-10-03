@@ -42,17 +42,13 @@ export default class DocumentScrollParent extends ScrollParent {
     const windowWidth = window.innerWidth;
 
     const isNearRightEdge = pageX > windowWidth - 20;
-    const isNearLeftEdge = pageX - scrollLeft < 20;
 
     if (isNearRightEdge && this.canScrollRight()) {
       return "right";
     }
 
-    if (isNearLeftEdge) {
-      return "left";
-    }
-
-    return undefined;
+    const isNearLeftEdge = pageX - scrollLeft < 20;
+    return isNearLeftEdge ? "left" : undefined;
   }
 
   protected getNewVerticalScrollDirection(
@@ -67,11 +63,9 @@ export default class DocumentScrollParent extends ScrollParent {
 
     const windowHeight = window.innerHeight;
 
-    if (windowHeight - (pageY - scrollTop) < 20 && this.canScrollDown()) {
-      return "bottom";
-    }
-
-    return undefined;
+    return windowHeight - (pageY - scrollTop) < 20 && this.canScrollDown()
+      ? "bottom"
+      : undefined;
   }
 
   private canScrollDown() {

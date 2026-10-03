@@ -10,7 +10,8 @@ const assertSingleElement = (
       `Unable to find ${name} element`,
       container,
     );
-  } else if (elements.length > 1) {
+  }
+  if (elements.length > 1) {
     throw queryHelpers.getElementError(
       `Found multiple ${name} elements`,
       container,

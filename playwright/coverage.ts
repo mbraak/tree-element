@@ -1,8 +1,8 @@
 import type { BrowserContext } from "@playwright/test";
 
-import crypto from "crypto";
-import fs from "fs";
-import path from "path";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 
 const istanbulCLIOutput = path.join(process.cwd(), ".nyc_output");
 
@@ -14,13 +14,15 @@ export const initCoverage = async (context: BrowserContext) => {
     await context.exposeFunction(
         "collectIstanbulCoverage",
         (coverageJSON: string) => {
-            if (coverageJSON) {
-                const filename = path.join(
-                    istanbulCLIOutput,
-                    `playwright_coverage_${generateUUID()}.json`,
-                );
-                fs.writeFileSync(filename, coverageJSON);
+            if (!coverageJSON) {
+                return;
             }
+
+            const filename = path.join(
+                istanbulCLIOutput,
+                `playwright_coverage_${generateUUID()}.json`,
+            );
+            fs.writeFileSync(filename, coverageJSON);
         },
     );
 };
@@ -29,7 +31,7 @@ export const saveCoverage = async (context: BrowserContext) => {
     for (const page of context.pages()) {
         await page.evaluate(() => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const anyWindow = window as any;
+            const anyWindow = globalThis as any;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             const coverageData = anyWindow.__coverage__;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access

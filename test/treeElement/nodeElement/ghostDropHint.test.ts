@@ -5,7 +5,7 @@ import defaultClassNames from "../../support/classNames";
 
 describe("GhostDropHint", () => {
     beforeEach(() => {
-        document.body.innerHTML = "";
+        document.body.replaceChildren();
     });
 
     it("creates a hint element after the node element when the position is After", () => {

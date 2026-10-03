@@ -36,7 +36,7 @@ const mockLayout = (htmlElement: HTMLElement) => {
     const listItemElements =
       listElement.querySelectorAll<HTMLElement>(":scope > li"); // eslint-disable-line testing-library/no-node-access
 
-    return Array.from(listItemElements).flatMap((listItemElement) => {
+    return [...listItemElements].flatMap((listItemElement) => {
       const isClosed = listItemElement.classList.contains(
         "tree-element-closed",
       );
@@ -62,7 +62,7 @@ const mockLayout = (htmlElement: HTMLElement) => {
 
   const listElements = getVisibleListElements(treeListElement);
 
-  listElements.forEach((listItemElement, index) => {
+  for (const [index, listItemElement] of listElements.entries()) {
     // The height of a node includes the height of its visible children.
     const childCount = getVisibleListElements(listItemElement).length;
 
@@ -71,7 +71,7 @@ const mockLayout = (htmlElement: HTMLElement) => {
       index * rowHeight,
       (childCount + 1) * rowHeight,
     );
-  });
+  }
 
   mockElement(htmlElement, 0, listElements.length * rowHeight);
 };
@@ -128,7 +128,7 @@ describe("drag and drop", () => {
   };
 
   beforeEach(() => {
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 
     // The user must be set up once, so that the mouse stays pressed between
     // the pointer actions of a drag.
@@ -142,7 +142,7 @@ describe("drag and drop", () => {
     treeElement?.deinit();
     treeElement = undefined;
 
-    document.body.innerHTML = "";
+    document.body.replaceChildren();
 
     vi.restoreAllMocks();
   });

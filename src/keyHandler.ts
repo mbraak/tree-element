@@ -74,21 +74,25 @@ export default class KeyHandler {
     const selectedNode = this.getSelectedNode();
     if (selectedNode) {
       switch (e.key) {
-        case "ArrowDown":
+        case "ArrowDown": {
           isKeyHandled = this.moveDown();
           break;
+        }
 
-        case "ArrowLeft":
+        case "ArrowLeft": {
           isKeyHandled = this.moveLeft();
           break;
+        }
 
-        case "ArrowRight":
+        case "ArrowRight": {
           isKeyHandled = this.moveRight();
           break;
+        }
 
-        case "ArrowUp":
+        case "ArrowUp": {
           isKeyHandled = this.moveUp();
           break;
+        }
       }
     }
 
@@ -109,28 +113,25 @@ export default class KeyHandler {
       // Left on an open node closes the node
       void this.closeNode(selectedNode);
       return true;
-    } else {
-      // Left on a closed or end node moves focus to the node's parent
-      return this.selectNode(selectedNode.getParent());
     }
+    // Left on a closed or end node moves focus to the node's parent
+    return this.selectNode(selectedNode.getParent());
   }
 
   private moveRight(): boolean {
     const selectedNode = this.getSelectedNode();
 
-    if (!selectedNode?.isFolder()) {
-      return false;
-    } else {
+    if (selectedNode?.isFolder()) {
       // folder node
       if (selectedNode.is_open) {
         // Right moves to the first child of an open node
         return this.selectNode(selectedNode.getNextVisibleNode());
-      } else {
-        // Right expands a closed node
-        void this.openNode(selectedNode);
-        return true;
       }
+      // Right expands a closed node
+      void this.openNode(selectedNode);
+      return true;
     }
+    return false;
   }
 
   /* Select the node.
@@ -138,12 +139,11 @@ export default class KeyHandler {
    * Result: a different node was selected.
    */
   private selectNode(node?: Node | null): boolean {
-    if (!node) {
-      return false;
-    } else {
+    if (node) {
       this.originalSelectNode(node);
 
       return true;
     }
+    return false;
   }
 }
