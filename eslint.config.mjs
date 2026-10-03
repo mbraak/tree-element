@@ -1,6 +1,8 @@
 import cspellESLintPluginRecommended from "@cspell/eslint-plugin/recommended";
 import compatPlugin from "eslint-plugin-compat";
+import css from "@eslint/css";
 import eslint from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
 import importPlugin from "eslint-plugin-import-x";
 import jestDomPlugin from "eslint-plugin-jest-dom";
@@ -11,16 +13,19 @@ import testingLibraryPlugin from "eslint-plugin-testing-library";
 import unicornPlugin from "eslint-plugin-unicorn";
 import vitestPlugin from "@vitest/eslint-plugin";
 
-export default [
-  eslint.configs.recommended,
-  ...tseslint.configs.strictTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
-  importPlugin.flatConfigs.recommended,
-  importPlugin.flatConfigs.typescript,
-  perfectionistPlugin.configs["recommended-natural"],
-  cspellESLintPluginRecommended,
-  unicornPlugin.configs.recommended,
+export default defineConfig([
   {
+    files: ["**/*.{js,mjs,ts}"],
+    extends: [
+      eslint.configs.recommended,
+      tseslint.configs.strictTypeChecked,
+      tseslint.configs.stylisticTypeChecked,
+      importPlugin.flatConfigs.recommended,
+      importPlugin.flatConfigs.typescript,
+      perfectionistPlugin.configs["recommended-natural"],
+      cspellESLintPluginRecommended,
+      unicornPlugin.configs.recommended,
+    ],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -160,4 +165,10 @@ export default [
     files: ["playwright/**/*.ts"],
     ...playwrightPlugin.configs["flat/recommended"],
   },
-];
+  {
+    files: ["**/*.css", "**/*.postcss"],
+    language: "css/css",
+    plugins: { css },
+    extends: ["css/recommended"],
+  },
+]);
