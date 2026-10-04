@@ -50,6 +50,7 @@ class DragElement {
     if (autoEscape) {
       element.textContent = nodeName;
     } else {
+      // eslint-disable-next-line no-unsanitized/property -- the user opted out of escaping with autoEscape: false
       element.innerHTML = nodeName;
     }
 
