@@ -7,6 +7,7 @@ import tseslint from "typescript-eslint";
 import importPlugin from "eslint-plugin-import-x";
 import jestDomPlugin from "eslint-plugin-jest-dom";
 import jestExtendedPlugin from "eslint-plugin-jest-extended";
+import noUnsanitizedPlugin from "eslint-plugin-no-unsanitized";
 import perfectionistPlugin from "eslint-plugin-perfectionist";
 import playwrightPlugin from "eslint-plugin-playwright";
 import testingLibraryPlugin from "eslint-plugin-testing-library";
@@ -96,6 +97,10 @@ export default defineConfig([
   {
     files: ["src/**/*.ts"],
     ...compatPlugin.configs["flat/recommended"],
+  },
+  {
+    files: ["src/**/*.ts"],
+    ...noUnsanitizedPlugin.configs.recommended,
   },
   {
     files: ["**/*.ts"],
