@@ -6,74 +6,80 @@ import type { TreeStructure } from "../test/support/treeStructure";
 
 import { initCoverage, saveCoverage } from "./coverage";
 import {
-    dragAndDrop,
-    getNodeRect,
-    getTreeStructure,
-    moveMouseToNode,
-    sleep,
+  dragAndDrop,
+  getNodeRect,
+  getTreeStructure,
+  moveMouseToNode,
+  sleep,
 } from "./testUtils";
 
 const expectDefaultStructure = (structure: TreeStructure) => {
-    expect(structure).toEqual([
+  expect(structure).toEqual([
+    expect.objectContaining({
+      children: [
+        expect.objectContaining({ name: "Herrerasaurians" }),
+        expect.objectContaining({ name: "Theropods" }),
+        expect.objectContaining({ name: "Sauropodomorphs" }),
+      ],
+      name: "Saurischia",
+      open: true,
+    }),
+    expect.objectContaining({
+      children: [
         expect.objectContaining({
-            children: [
-                expect.objectContaining({ name: "Herrerasaurians" }),
-                expect.objectContaining({ name: "Theropods" }),
-                expect.objectContaining({ name: "Sauropodomorphs" }),
-            ],
-            name: "Saurischia",
-            open: true,
+          name: "Heterodontosaurids",
         }),
         expect.objectContaining({
-            children: [
-                expect.objectContaining({
-                    name: "Heterodontosaurids",
-                }),
-                expect.objectContaining({
-                    name: "Thyreophorans",
-                    open: false,
-                }),
-                expect.objectContaining({
-                    name: "Ornithopods",
-                    open: false,
-                }),
-                expect.objectContaining({
-                    name: "Pachycephalosaurians",
-                }),
-                expect.objectContaining({ name: "Ceratopsians" }),
-            ],
-            name: "Ornithischians",
-            open: true,
+          name: "Thyreophorans",
+          open: false,
         }),
-    ]);
+        expect.objectContaining({
+          name: "Ornithopods",
+          open: false,
+        }),
+        expect.objectContaining({
+          name: "Pachycephalosaurians",
+        }),
+        expect.objectContaining({ name: "Ceratopsians" }),
+      ],
+      name: "Ornithischians",
+      open: true,
+    }),
+  ]);
 };
 
 const initPage = async (page: Page, baseURL: string | undefined) => {
-    if (!baseURL) {
-        throw new Error("Missing baseURL");
-    }
+  if (!baseURL) {
+    throw new Error("Missing baseURL");
+  }
 
-    await page.goto(`${baseURL}/test_index.html`);
-    await page.waitForLoadState("domcontentloaded");
+  await page.goto(`${baseURL}/test_index.html`);
+  await page.waitForLoadState("domcontentloaded");
 
-    page.on("console", (msg) => {
-        console.log(`console: ${msg.text()}`);
-    });
+  page.on("console", (msg) => {
+    console.log(`console: ${msg.text()}`);
+  });
 };
 
 interface InitTreeOptions {
-    autoOpen?: number;
-    dragAndDrop?: boolean;
-    onCanMove?: boolean;
-    onCanMoveTo?: boolean;
-    rtl?: boolean;
+  autoOpen?: number;
+  dragAndDrop?: boolean;
+  onCanMove?: boolean;
+  onCanMoveTo?: boolean;
+  rtl?: boolean;
 }
 
 const initTree = async (
-    page: Page,
-    { autoOpen, dragAndDrop, onCanMove, onCanMoveTo, rtl }: InitTreeOptions,
+  page: Page,
+  {
+    autoOpen = 0,
+    dragAndDrop = false,
+    onCanMove,
+    onCanMoveTo,
+    rtl = false,
+  }: InitTreeOptions,
 ) => {
-    await page.evaluate(`
+  await page.evaluate(`
         const onCanMove = (node) => node.name !== "Herrerasaurians";
 
         const onCanMoveTo = (node, targetNode) => targetNode.name !== "Ornithischians";
@@ -82,476 +88,467 @@ const initTree = async (
 
         window.treeElement = new TreeElement({
             animationSpeed: 0,
-            autoOpen: ${autoOpen ?? 0},
+            autoOpen: ${autoOpen},
             data: ExampleData.exampleData,
-            dragAndDrop: ${dragAndDrop ?? false},
+            dragAndDrop: ${dragAndDrop},
             htmlElement,
             onCanMove: ${onCanMove ? "onCanMove" : "null"},
             onCanMoveTo: ${onCanMoveTo ? "onCanMoveTo" : "null"},
             openFolderDelay: 100,
-            rtl: ${rtl ?? false},
+            rtl: ${rtl},
             startDndDelay: 100
         });
     `);
 };
 
 test.beforeEach(async ({ context }) => {
-    await initCoverage(context);
+  await initCoverage(context);
 });
 
 test.afterEach(async ({ context }) => {
-    await saveCoverage(context);
+  await saveCoverage(context);
 });
 
 test.describe("without dragAndDrop", () => {
-    test.beforeEach(async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: false });
-    });
+  test.beforeEach(async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: false });
+  });
 
-    test("displays a tree", async ({ page }) => {
-        const structure = await getTreeStructure(page);
-        expectDefaultStructure(structure);
+  test("displays a tree", async ({ page }) => {
+    const structure = await getTreeStructure(page);
+    expectDefaultStructure(structure);
 
-        const screenshot = await page.screenshot();
-        expect(screenshot).toMatchSnapshot();
-    });
+    const screenshot = await page.screenshot();
+    expect(screenshot).toMatchSnapshot();
+  });
 
-    test("selects a node", async ({ page }) => {
-        const treeItem = page.getByRole("treeitem", { name: "Saurischia" });
-        await treeItem.click();
+  test("selects a node", async ({ page }) => {
+    const treeItem = page.getByRole("treeitem", { name: "Saurischia" });
+    await treeItem.click();
 
-        await expect(treeItem).toHaveAttribute("aria-selected", "true");
+    await expect(treeItem).toHaveAttribute("aria-selected", "true");
 
-        const screenshot = await page.screenshot();
-        expect(screenshot).toMatchSnapshot();
-    });
+    const screenshot = await page.screenshot();
+    expect(screenshot).toMatchSnapshot();
+  });
 
-    // eslint-disable-next-line playwright/expect-expect
-    test("doesn't drag a node", async ({ page }) => {
-        await dragAndDrop(page, "Herrerasaurians", "Ornithischians");
+  // eslint-disable-next-line playwright/expect-expect
+  test("doesn't drag a node", async ({ page }) => {
+    await dragAndDrop(page, "Herrerasaurians", "Ornithischians");
 
-        const structure = await getTreeStructure(page);
-        expectDefaultStructure(structure);
-    });
-
+    const structure = await getTreeStructure(page);
+    expectDefaultStructure(structure);
+  });
 });
 
 test.describe("multiple selection", () => {
-    test.beforeEach(async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: false });
-    });
+  test.beforeEach(async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: false });
+  });
 
-    test("selects multiple nodes with addToSelection", async ({ page }) => {
-        await page.evaluate(`
+  test("selects multiple nodes with addToSelection", async ({ page }) => {
+    await page.evaluate(`
             treeElement.addToSelection(treeElement.getNodeByName("Herrerasaurians"));
             treeElement.addToSelection(treeElement.getNodeByName("Ceratopsians"));
         `);
 
-        await expect(
-            page.getByRole("treeitem", { name: "Herrerasaurians" }),
-        ).toHaveAttribute("aria-selected", "true");
-        await expect(
-            page.getByRole("treeitem", { name: "Ceratopsians" }),
-        ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      page.getByRole("treeitem", { name: "Herrerasaurians" }),
+    ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      page.getByRole("treeitem", { name: "Ceratopsians" }),
+    ).toHaveAttribute("aria-selected", "true");
 
-        const selectedNamesJson = await page.evaluate<string>(`
+    const selectedNamesJson = await page.evaluate<string>(`
             JSON.stringify(treeElement.getSelectedNodes().map((node) => node.name));
         `);
-        expect(JSON.parse(selectedNamesJson)).toEqual([
-            "Herrerasaurians",
-            "Ceratopsians",
-        ]);
+    expect(JSON.parse(selectedNamesJson)).toEqual([
+      "Herrerasaurians",
+      "Ceratopsians",
+    ]);
 
-        const screenshot = await page.screenshot();
-        expect(screenshot).toMatchSnapshot();
-    });
+    const screenshot = await page.screenshot();
+    expect(screenshot).toMatchSnapshot();
+  });
 
-    test("removes a node from the selection", async ({ page }) => {
-        await page.evaluate(`
+  test("removes a node from the selection", async ({ page }) => {
+    await page.evaluate(`
             treeElement.addToSelection(treeElement.getNodeByName("Herrerasaurians"));
             treeElement.addToSelection(treeElement.getNodeByName("Ceratopsians"));
             treeElement.removeFromSelection(treeElement.getNodeByName("Herrerasaurians"));
         `);
 
-        await expect(
-            page.getByRole("treeitem", { name: "Herrerasaurians" }),
-        ).toHaveAttribute("aria-selected", "false");
-        await expect(
-            page.getByRole("treeitem", { name: "Ceratopsians" }),
-        ).toHaveAttribute("aria-selected", "true");
+    await expect(
+      page.getByRole("treeitem", { name: "Herrerasaurians" }),
+    ).toHaveAttribute("aria-selected", "false");
+    await expect(
+      page.getByRole("treeitem", { name: "Ceratopsians" }),
+    ).toHaveAttribute("aria-selected", "true");
 
-        const selectedNamesJson = await page.evaluate<string>(`
+    const selectedNamesJson = await page.evaluate<string>(`
             JSON.stringify(treeElement.getSelectedNodes().map((node) => node.name));
         `);
-        expect(JSON.parse(selectedNamesJson)).toEqual(["Ceratopsians"]);
-    });
+    expect(JSON.parse(selectedNamesJson)).toEqual(["Ceratopsians"]);
+  });
 });
 
 test.describe("with rtl", () => {
-    test("displays the tree right-to-left", async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { rtl: true });
+  test("displays the tree right-to-left", async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { rtl: true });
 
-        const tree = page.getByRole("tree");
-        await expect(tree).toHaveClass(/tree-element-rtl/);
-        await expect(tree).toHaveCSS("direction", "rtl");
+    const tree = page.getByRole("tree");
+    await expect(tree).toHaveClass(/tree-element-rtl/);
+    await expect(tree).toHaveCSS("direction", "rtl");
 
-        const structure = await getTreeStructure(page);
-        expectDefaultStructure(structure);
+    const structure = await getTreeStructure(page);
+    expectDefaultStructure(structure);
 
-        const screenshot = await page.screenshot();
-        expect(screenshot).toMatchSnapshot();
-    });
+    const screenshot = await page.screenshot();
+    expect(screenshot).toMatchSnapshot();
+  });
 });
 
 test.describe("with dragAndDrop", () => {
-    test("moves a node", async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: true });
+  test("moves a node", async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: true });
 
-        await dragAndDrop(page, "Herrerasaurians", "Ornithischians");
+    await dragAndDrop(page, "Herrerasaurians", "Ornithischians");
 
-        const structure = await getTreeStructure(page);
+    const structure = await getTreeStructure(page);
 
-        expect(structure).toEqual([
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({ name: "Theropods", open: false }),
-                    expect.objectContaining({
-                        name: "Sauropodomorphs",
-                        open: false,
-                    }),
-                ],
-                name: "Saurischia",
-                open: true,
-            }),
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({ name: "Herrerasaurians" }),
-                    expect.objectContaining({ name: "Heterodontosaurids" }),
-                    expect.objectContaining({
-                        name: "Thyreophorans",
-                        open: false,
-                    }),
-                    expect.objectContaining({
-                        name: "Ornithopods",
-                        open: false,
-                    }),
-                    expect.objectContaining({
-                        name: "Pachycephalosaurians",
-                    }),
-                    expect.objectContaining({ name: "Ceratopsians" }),
-                ],
-                name: "Ornithischians",
-                open: true,
-            }),
-        ]);
+    expect(structure).toEqual([
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "Theropods", open: false }),
+          expect.objectContaining({
+            name: "Sauropodomorphs",
+            open: false,
+          }),
+        ],
+        name: "Saurischia",
+        open: true,
+      }),
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "Herrerasaurians" }),
+          expect.objectContaining({ name: "Heterodontosaurids" }),
+          expect.objectContaining({
+            name: "Thyreophorans",
+            open: false,
+          }),
+          expect.objectContaining({
+            name: "Ornithopods",
+            open: false,
+          }),
+          expect.objectContaining({
+            name: "Pachycephalosaurians",
+          }),
+          expect.objectContaining({ name: "Ceratopsians" }),
+        ],
+        name: "Ornithischians",
+        open: true,
+      }),
+    ]);
 
-        const screenshot = await page.screenshot();
-        expect(screenshot).toMatchSnapshot();
+    const screenshot = await page.screenshot();
+    expect(screenshot).toMatchSnapshot();
+  });
+
+  test("moves a node with touch events", async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: true });
+
+    const client = await page.context().newCDPSession(page);
+
+    const box1 = await getNodeRect(page, "Herrerasaurians");
+
+    await client.send("Input.dispatchTouchEvent", {
+      touchPoints: [{ x: box1.x + 10, y: box1.y + box1.height / 2 }],
+      type: "touchStart",
     });
 
-    test("moves a node with touch events", async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: true });
+    await sleep(page, 200);
 
-        const client = await page.context().newCDPSession(page);
-
-        const box1 = await getNodeRect(page, "Herrerasaurians");
-
-        await client.send("Input.dispatchTouchEvent", {
-            touchPoints: [{ x: box1.x + 10, y: box1.y + box1.height / 2 }],
-            type: "touchStart",
-        });
-
-        await sleep(page, 200);
-
-        const box2 = await getNodeRect(page, "Ornithischians");
-        await client.send("Input.dispatchTouchEvent", {
-            touchPoints: [{ x: box2.x + 10, y: box2.y + box2.height / 2 }],
-            type: "touchEnd",
-        });
-
-        const structure = await getTreeStructure(page);
-
-        expect(structure).toEqual([
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({ name: "Theropods" }),
-                    expect.objectContaining({ name: "Sauropodomorphs" }),
-                ],
-                name: "Saurischia",
-            }),
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({ name: "Herrerasaurians" }),
-                    expect.objectContaining({ name: "Heterodontosaurids" }),
-                    expect.objectContaining({ name: "Thyreophorans" }),
-                    expect.objectContaining({ name: "Ornithopods" }),
-                    expect.objectContaining({
-                        name: "Pachycephalosaurians",
-                    }),
-                    expect.objectContaining({ name: "Ceratopsians" }),
-                ],
-                name: "Ornithischians",
-            }),
-        ]);
+    const box2 = await getNodeRect(page, "Ornithischians");
+    await client.send("Input.dispatchTouchEvent", {
+      touchPoints: [{ x: box2.x + 10, y: box2.y + box2.height / 2 }],
+      type: "touchEnd",
     });
 
-    test("opens a node when a dragged node is hovered over it with a touch event", async ({
-        baseURL,
-        page,
-    }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: true });
+    const structure = await getTreeStructure(page);
 
-        const client = await page.context().newCDPSession(page);
+    expect(structure).toEqual([
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "Theropods" }),
+          expect.objectContaining({ name: "Sauropodomorphs" }),
+        ],
+        name: "Saurischia",
+      }),
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "Herrerasaurians" }),
+          expect.objectContaining({ name: "Heterodontosaurids" }),
+          expect.objectContaining({ name: "Thyreophorans" }),
+          expect.objectContaining({ name: "Ornithopods" }),
+          expect.objectContaining({
+            name: "Pachycephalosaurians",
+          }),
+          expect.objectContaining({ name: "Ceratopsians" }),
+        ],
+        name: "Ornithischians",
+      }),
+    ]);
+  });
 
-        const box1 = await getNodeRect(page, "Herrerasaurians");
+  test("opens a node when a dragged node is hovered over it with a touch event", async ({
+    baseURL,
+    page,
+  }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: true });
 
-        await client.send("Input.dispatchTouchEvent", {
-            touchPoints: [{ x: box1.x + 10, y: box1.y + box1.height / 2 }],
-            type: "touchStart",
-        });
+    const client = await page.context().newCDPSession(page);
 
-        await sleep(page, 200);
+    const box1 = await getNodeRect(page, "Herrerasaurians");
 
-        const box2 = await getNodeRect(page, "Thyreophorans");
-        await client.send("Input.dispatchTouchEvent", {
-            touchPoints: [{ x: box2.x + 10, y: box2.y + box2.height / 2 }],
-            type: "touchMove",
-        });
-
-        await sleep(page, 200);
-
-        const structure = await getTreeStructure(page);
-
-        expect(structure).toEqual([
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({
-                        name: "Herrerasaurians",
-                    }),
-                    expect.objectContaining({ name: "Theropods", open: false }),
-                    expect.objectContaining({
-                        name: "Sauropodomorphs",
-                        open: false,
-                    }),
-                ],
-                name: "Saurischia",
-                open: true,
-            }),
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({ name: "Heterodontosaurids" }),
-                    expect.objectContaining({
-                        name: "Thyreophorans",
-                        open: true,
-                    }),
-                    expect.objectContaining({
-                        name: "Ornithopods",
-                        open: false,
-                    }),
-                    expect.objectContaining({
-                        name: "Pachycephalosaurians",
-                    }),
-                    expect.objectContaining({ name: "Ceratopsians" }),
-                ],
-                name: "Ornithischians",
-                open: true,
-            }),
-        ]);
+    await client.send("Input.dispatchTouchEvent", {
+      touchPoints: [{ x: box1.x + 10, y: box1.y + box1.height / 2 }],
+      type: "touchStart",
     });
 
-    // eslint-disable-next-line playwright/expect-expect
-    test("onCanMove prevents move from a node", async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: true, onCanMove: true });
+    await sleep(page, 200);
 
-        await dragAndDrop(page, "Herrerasaurians", "Ornithischians");
-
-        const structure = await getTreeStructure(page);
-        expectDefaultStructure(structure);
+    const box2 = await getNodeRect(page, "Thyreophorans");
+    await client.send("Input.dispatchTouchEvent", {
+      touchPoints: [{ x: box2.x + 10, y: box2.y + box2.height / 2 }],
+      type: "touchMove",
     });
 
-    test("onCanMove doesn't prevent move from another node", async ({
-        baseURL,
-        page,
-    }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: true, onCanMove: true });
+    await sleep(page, 200);
 
-        await dragAndDrop(page, "Theropods", "Ornithischians");
+    const structure = await getTreeStructure(page);
 
-        const structure = await getTreeStructure(page);
+    expect(structure).toEqual([
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({
+            name: "Herrerasaurians",
+          }),
+          expect.objectContaining({ name: "Theropods", open: false }),
+          expect.objectContaining({
+            name: "Sauropodomorphs",
+            open: false,
+          }),
+        ],
+        name: "Saurischia",
+        open: true,
+      }),
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "Heterodontosaurids" }),
+          expect.objectContaining({
+            name: "Thyreophorans",
+            open: true,
+          }),
+          expect.objectContaining({
+            name: "Ornithopods",
+            open: false,
+          }),
+          expect.objectContaining({
+            name: "Pachycephalosaurians",
+          }),
+          expect.objectContaining({ name: "Ceratopsians" }),
+        ],
+        name: "Ornithischians",
+        open: true,
+      }),
+    ]);
+  });
 
-        expect(structure).toEqual([
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({ name: "Herrerasaurians" }),
-                    expect.objectContaining({ name: "Sauropodomorphs" }),
-                ],
-                name: "Saurischia",
-            }),
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({ name: "Theropods" }),
-                    expect.objectContaining({ name: "Heterodontosaurids" }),
-                    expect.objectContaining({ name: "Thyreophorans" }),
-                    expect.objectContaining({ name: "Ornithopods" }),
-                    expect.objectContaining({
-                        name: "Pachycephalosaurians",
-                    }),
-                    expect.objectContaining({ name: "Ceratopsians" }),
-                ],
-                name: "Ornithischians",
-            }),
-        ]);
-    });
+  // eslint-disable-next-line playwright/expect-expect
+  test("onCanMove prevents move from a node", async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: true, onCanMove: true });
 
-    // eslint-disable-next-line playwright/expect-expect
-    test("onCanMoveTo prevents move to a node", async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: true, onCanMoveTo: true });
+    await dragAndDrop(page, "Herrerasaurians", "Ornithischians");
 
-        await dragAndDrop(page, "Herrerasaurians", "Ornithischians");
+    const structure = await getTreeStructure(page);
+    expectDefaultStructure(structure);
+  });
 
-        const structure = await getTreeStructure(page);
-        expectDefaultStructure(structure);
-    });
+  test("onCanMove doesn't prevent move from another node", async ({
+    baseURL,
+    page,
+  }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: true, onCanMove: true });
 
-    test("onCanMoveTo doesn't prevent move to another node", async ({
-        baseURL,
-        page,
-    }) => {
-        await initPage(page, baseURL);
-        await initTree(page, { dragAndDrop: true, onCanMoveTo: true });
+    await dragAndDrop(page, "Theropods", "Ornithischians");
 
-        await dragAndDrop(page, "Herrerasaurians", "Heterodontosaurids");
+    const structure = await getTreeStructure(page);
 
-        const structure = await getTreeStructure(page);
+    expect(structure).toEqual([
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "Herrerasaurians" }),
+          expect.objectContaining({ name: "Sauropodomorphs" }),
+        ],
+        name: "Saurischia",
+      }),
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "Theropods" }),
+          expect.objectContaining({ name: "Heterodontosaurids" }),
+          expect.objectContaining({ name: "Thyreophorans" }),
+          expect.objectContaining({ name: "Ornithopods" }),
+          expect.objectContaining({
+            name: "Pachycephalosaurians",
+          }),
+          expect.objectContaining({ name: "Ceratopsians" }),
+        ],
+        name: "Ornithischians",
+      }),
+    ]);
+  });
 
-        expect(structure).toEqual([
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({ name: "Theropods" }),
-                    expect.objectContaining({ name: "Sauropodomorphs" }),
-                ],
-                name: "Saurischia",
-            }),
-            expect.objectContaining({
-                children: [
-                    expect.objectContaining({
-                        children: [
-                            expect.objectContaining({
-                                name: "Herrerasaurians",
-                            }),
-                        ],
-                        name: "Heterodontosaurids",
-                    }),
-                    expect.objectContaining({ name: "Thyreophorans" }),
-                    expect.objectContaining({ name: "Ornithopods" }),
-                    expect.objectContaining({
-                        name: "Pachycephalosaurians",
-                    }),
-                    expect.objectContaining({ name: "Ceratopsians" }),
-                ],
-                name: "Ornithischians",
-            }),
-        ]);
-    });
+  // eslint-disable-next-line playwright/expect-expect
+  test("onCanMoveTo prevents move to a node", async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: true, onCanMoveTo: true });
+
+    await dragAndDrop(page, "Herrerasaurians", "Ornithischians");
+
+    const structure = await getTreeStructure(page);
+    expectDefaultStructure(structure);
+  });
+
+  test("onCanMoveTo doesn't prevent move to another node", async ({
+    baseURL,
+    page,
+  }) => {
+    await initPage(page, baseURL);
+    await initTree(page, { dragAndDrop: true, onCanMoveTo: true });
+
+    await dragAndDrop(page, "Herrerasaurians", "Heterodontosaurids");
+
+    const structure = await getTreeStructure(page);
+
+    expect(structure).toEqual([
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({ name: "Theropods" }),
+          expect.objectContaining({ name: "Sauropodomorphs" }),
+        ],
+        name: "Saurischia",
+      }),
+      expect.objectContaining({
+        children: [
+          expect.objectContaining({
+            children: [
+              expect.objectContaining({
+                name: "Herrerasaurians",
+              }),
+            ],
+            name: "Heterodontosaurids",
+          }),
+          expect.objectContaining({ name: "Thyreophorans" }),
+          expect.objectContaining({ name: "Ornithopods" }),
+          expect.objectContaining({
+            name: "Pachycephalosaurians",
+          }),
+          expect.objectContaining({ name: "Ceratopsians" }),
+        ],
+        name: "Ornithischians",
+      }),
+    ]);
+  });
 });
 
 test.describe("autoscroll when the window is scrollable", () => {
-    test("it scrolls vertically when the users drags an element to the bottom", async ({
-        baseURL,
-        page,
-    }) => {
-        await page.setViewportSize({ height: 100, width: 200 });
-        await initPage(page, baseURL);
-        await initTree(page, { autoOpen: 3, dragAndDrop: true });
+  test("it scrolls vertically when the users drags an element to the bottom", async ({
+    baseURL,
+    page,
+  }) => {
+    await page.setViewportSize({ height: 100, width: 200 });
+    await initPage(page, baseURL);
+    await initTree(page, { autoOpen: 3, dragAndDrop: true });
 
-        expect(
-            await page
-                .getByRole("document")
-                .evaluate((element) => element.scrollTop),
-        ).toEqual(0);
+    expect(
+      await page.getByRole("document").evaluate((element) => element.scrollTop),
+    ).toEqual(0);
 
-        await moveMouseToNode(page, "Saurischia");
-        await page.mouse.down();
+    await moveMouseToNode(page, "Saurischia");
+    await page.mouse.down();
 
-        await sleep(page, 200);
+    await sleep(page, 200);
 
-        await page.mouse.move(20, 190);
-        await sleep(page, 50);
+    await page.mouse.move(20, 190);
+    await sleep(page, 50);
 
-        expect(
-            await page
-                .getByRole("document")
-                .evaluate((element) => element.scrollTop),
-        ).toBeGreaterThan(0);
-    });
+    expect(
+      await page.getByRole("document").evaluate((element) => element.scrollTop),
+    ).toBeGreaterThan(0);
+  });
 
-    test("it scrolls horizontally when the users drags an element to the right", async ({
-        baseURL,
-        page,
-    }) => {
-        await page.setViewportSize({ height: 400, width: 60 });
-        await initPage(page, baseURL);
-        await initTree(page, { autoOpen: 3, dragAndDrop: true });
+  test("it scrolls horizontally when the users drags an element to the right", async ({
+    baseURL,
+    page,
+  }) => {
+    await page.setViewportSize({ height: 400, width: 60 });
+    await initPage(page, baseURL);
+    await initTree(page, { autoOpen: 3, dragAndDrop: true });
 
-        expect(
-            await page
-                .getByRole("document")
-                .evaluate((element) => element.scrollLeft),
-        ).toEqual(0);
+    expect(
+      await page
+        .getByRole("document")
+        .evaluate((element) => element.scrollLeft),
+    ).toEqual(0);
 
-        await moveMouseToNode(page, "Saurischia");
-        await page.mouse.down();
-        await sleep(page, 200);
+    await moveMouseToNode(page, "Saurischia");
+    await page.mouse.down();
+    await sleep(page, 200);
 
-        await page.mouse.move(55, 10);
-        await sleep(page, 50);
+    await page.mouse.move(55, 10);
+    await sleep(page, 50);
 
-        expect(
-            await page
-                .getByRole("document")
-                .evaluate((element) => element.scrollLeft),
-        ).toBeGreaterThan(0);
-    });
+    expect(
+      await page
+        .getByRole("document")
+        .evaluate((element) => element.scrollLeft),
+    ).toBeGreaterThan(0);
+  });
 
-    test("scrollToNode scrolls to a node", async ({ baseURL, page }) => {
-        await page.setViewportSize({ height: 100, width: 200 });
-        await initPage(page, baseURL);
-        await initTree(page, { autoOpen: 3, dragAndDrop: true });
+  test("scrollToNode scrolls to a node", async ({ baseURL, page }) => {
+    await page.setViewportSize({ height: 100, width: 200 });
+    await initPage(page, baseURL);
+    await initTree(page, { autoOpen: 3, dragAndDrop: true });
 
-        expect(
-            await page
-                .getByRole("document")
-                .evaluate((element) => element.scrollTop),
-        ).toEqual(0);
+    expect(
+      await page.getByRole("document").evaluate((element) => element.scrollTop),
+    ).toEqual(0);
 
-        await page.evaluate(`
+    await page.evaluate(`
             const node = treeElement.getNodeByName("Sauropodomorphs");
             treeElement.scrollToNode(node);
         `);
 
-        expect(
-            await page
-                .getByRole("document")
-                .evaluate((element) => element.scrollTop),
-        ).toBeGreaterThan(0);
-    });
+    expect(
+      await page.getByRole("document").evaluate((element) => element.scrollTop),
+    ).toBeGreaterThan(0);
+  });
 });
 
 test.describe("autoscroll when the container is scrollable vertically", () => {
-    test.beforeEach(async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
+  test.beforeEach(async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
 
-        // Add a container and make it the parent of the tree element
-        await page.evaluate(`
+    // Add a container and make it the parent of the tree element
+    await page.evaluate(`
             document.body.style.marginLeft = "40px";
             document.body.style.marginTop = "40px";
 
@@ -566,54 +563,50 @@ test.describe("autoscroll when the container is scrollable vertically", () => {
             container.appendChild(treeElement);
         `);
 
-        await initTree(page, { autoOpen: 3, dragAndDrop: true });
-    });
+    await initTree(page, { autoOpen: 3, dragAndDrop: true });
+  });
 
-    test("it scrolls vertically when the users drags an element to the bottom", async ({
-        page,
-    }) => {
-        const container = page.locator("#container");
+  test("it scrolls vertically when the users drags an element to the bottom", async ({
+    page,
+  }) => {
+    const container = page.locator("#container");
 
-        expect(
-            await container.evaluate((element) => element.scrollTop),
-        ).toEqual(0);
+    expect(await container.evaluate((element) => element.scrollTop)).toEqual(0);
 
-        await moveMouseToNode(page, "Saurischia");
-        await page.mouse.down();
-        await sleep(page, 200);
+    await moveMouseToNode(page, "Saurischia");
+    await page.mouse.down();
+    await sleep(page, 200);
 
-        await page.mouse.move(20, 245);
-        await sleep(page, 50);
+    await page.mouse.move(20, 245);
+    await sleep(page, 50);
 
-        expect(
-            await container.evaluate((element) => element.scrollTop),
-        ).toBeGreaterThan(0);
-    });
+    expect(
+      await container.evaluate((element) => element.scrollTop),
+    ).toBeGreaterThan(0);
+  });
 
-    test("scrollToNode scrolls to a node", async ({ page }) => {
-        const container = page.locator("#container");
+  test("scrollToNode scrolls to a node", async ({ page }) => {
+    const container = page.locator("#container");
 
-        expect(
-            await container.evaluate((element) => element.scrollTop),
-        ).toEqual(0);
+    expect(await container.evaluate((element) => element.scrollTop)).toEqual(0);
 
-        await page.evaluate(`
+    await page.evaluate(`
             const node = treeElement.getNodeByName("Sauropodomorphs");
             treeElement.scrollToNode(node);
         `);
 
-        expect(
-            await container.evaluate((element) => element.scrollTop),
-        ).toBeGreaterThan(0);
-    });
+    expect(
+      await container.evaluate((element) => element.scrollTop),
+    ).toBeGreaterThan(0);
+  });
 });
 
 test.describe("autoscroll when the container is scrollable horizontally", () => {
-    test.beforeEach(async ({ baseURL, page }) => {
-        await initPage(page, baseURL);
+  test.beforeEach(async ({ baseURL, page }) => {
+    await initPage(page, baseURL);
 
-        // Add a container and make it the parent of the tree element
-        await page.evaluate(`
+    // Add a container and make it the parent of the tree element
+    await page.evaluate(`
             document.body.style.marginLeft = "40px";
             document.body.style.marginTop = "40px";
 
@@ -629,76 +622,75 @@ test.describe("autoscroll when the container is scrollable horizontally", () => 
             container.appendChild(treeElement);
         `);
 
-        await initTree(page, { autoOpen: 3, dragAndDrop: true });
+    await initTree(page, { autoOpen: 3, dragAndDrop: true });
+  });
+
+  test("it scrolls horizontally when the users drags an element to the right", async ({
+    page,
+  }) => {
+    const container = page.locator("#container");
+
+    expect(await container.evaluate((element) => element.scrollLeft)).toEqual(
+      0,
+    );
+
+    await moveMouseToNode(page, "Saurischia");
+    await page.mouse.down();
+    await sleep(page, 200);
+
+    const containerBox = await container.boundingBox();
+
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (!containerBox) {
+      throw new Error("Could not determine bounding box for container");
+    }
+
+    await page.mouse.move(
+      containerBox.x + containerBox.width,
+      containerBox.y + 10,
+    );
+    await sleep(page, 100);
+
+    expect(
+      await container.evaluate((element) => element.scrollLeft),
+    ).toBeGreaterThan(0);
+  });
+
+  test("it moves a node after scrolling horizontally", async ({ page }) => {
+    await moveMouseToNode(page, "Coelophysoids");
+    await page.mouse.down();
+    await sleep(page, 200);
+
+    const container = page.locator("#container");
+    const containerBox = await container.boundingBox();
+
+    // eslint-disable-next-line playwright/no-conditional-in-test
+    if (!containerBox) {
+      throw new Error("Could not determine bounding box for container");
+    }
+
+    await page.mouse.move(
+      containerBox.x + containerBox.width,
+      containerBox.y + 10,
+    );
+
+    await page.waitForFunction(() => {
+      const container = document.querySelector("#container");
+
+      return container
+        ? container.scrollLeft >= container.scrollWidth - container.clientWidth
+        : false;
     });
 
-    test("it scrolls horizontally when the users drags an element to the right", async ({
-        page,
-    }) => {
-        const container = page.locator("#container");
+    await moveMouseToNode(page, "Tyrannosauroids");
+    await page.mouse.down();
+    await sleep(page, 200);
 
-        expect(
-            await container.evaluate((element) => element.scrollLeft),
-        ).toEqual(0);
-
-        await moveMouseToNode(page, "Saurischia");
-        await page.mouse.down();
-        await sleep(page, 200);
-
-        const containerBox = await container.boundingBox();
-
-        // eslint-disable-next-line playwright/no-conditional-in-test
-        if (!containerBox) {
-            throw new Error('Could not determine bounding box for container');
-        }
-
-        await page.mouse.move(
-            containerBox.x + containerBox.width,
-            containerBox.y + 10,
-        );
-        await sleep(page, 100);
-
-        expect(
-            await container.evaluate((element) => element.scrollLeft),
-        ).toBeGreaterThan(0);
-    });
-
-    test("it moves a node after scrolling horizontally", async ({ page }) => {
-        await moveMouseToNode(page, "Coelophysoids");
-        await page.mouse.down();
-        await sleep(page, 200);
-
-        const container = page.locator("#container");
-        const containerBox = await container.boundingBox();
-
-        // eslint-disable-next-line playwright/no-conditional-in-test
-        if (!containerBox) {
-            throw new Error('Could not determine bounding box for container');
-        }
-
-        await page.mouse.move(
-            containerBox.x + containerBox.width,
-            containerBox.y + 10,
-        );
-
-        await page.waitForFunction(() => {
-            const container = document.querySelector("#container");
-
-            return container ? (
-                container.scrollLeft >=
-                container.scrollWidth - container.clientWidth
-            ) : false;
-        });
-
-        await moveMouseToNode(page, "Tyrannosauroids");
-        await page.mouse.down();
-        await sleep(page, 200);
-
-        const childrenJson = await page.evaluate<string>(`
+    const childrenJson = await page.evaluate<string>(`
             const node = treeElement.getNodeByName("Tyrannosauroids");
             const children = node.children.map(child => child.name)
             JSON.stringify(children);
         `);
-        expect(JSON.parse(childrenJson)).toEqual(["Coelophysoids"]);
-    });
+    expect(JSON.parse(childrenJson)).toEqual(["Coelophysoids"]);
+  });
 });

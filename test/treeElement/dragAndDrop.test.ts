@@ -122,6 +122,7 @@ describe("drag and drop", () => {
   };
 
   // Drag a node and drop it at a vertical position in the tree.
+  // eslint-disable-next-line unicorn/no-unnecessary-parameters
   const dragAndDropNode = async (name: string, y: number) => {
     await startDragging(name, y);
     await drop();
