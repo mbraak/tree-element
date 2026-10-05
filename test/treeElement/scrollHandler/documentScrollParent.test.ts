@@ -2,130 +2,127 @@ import DocumentScrollParent from "treeElement/scrollHandler/documentScrollParent
 import { vi } from "vitest";
 
 describe("checkHorizontalScrolling", () => {
-    afterEach(() => {
-        vi.useRealTimers();
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("scrolls to the left when pageX is near the left edge", () => {
+    vi.useFakeTimers();
+    const scrollBy = vi.fn();
+    document.documentElement.scrollBy = scrollBy;
+
+    const refreshHitAreas = vi.fn();
+    const treeElement = document.createElement("div");
+
+    const documentScrollParent = new DocumentScrollParent({
+      refreshHitAreas,
+      treeElement,
     });
 
-    it("scrolls to the left when pageX is near the left edge", () => {
-        vi.useFakeTimers();
-        const scrollBy = vi.fn();
-        document.documentElement.scrollBy = scrollBy;
+    documentScrollParent.checkHorizontalScrolling(10);
 
-        const refreshHitAreas = vi.fn();
-        const treeElement = document.createElement("div");
+    expect(scrollBy).not.toHaveBeenCalled();
 
-        const documentScrollParent = new DocumentScrollParent({
-            refreshHitAreas,
-            treeElement,
-        });
+    vi.advanceTimersByTime(50);
 
-        documentScrollParent.checkHorizontalScrolling(10);
+    expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
+      behavior: "instant",
+      left: -20,
+      top: 0,
+    });
+  });
 
-        expect(scrollBy).not.toHaveBeenCalled();
+  it("stops scrolling when pageX is moved from the left edge", () => {
+    vi.useFakeTimers();
+    const scrollBy = vi.fn();
+    document.documentElement.scrollBy = scrollBy;
 
-        vi.advanceTimersByTime(50);
+    const refreshHitAreas = vi.fn();
+    const treeElement = document.createElement("div");
 
-        expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
-            behavior: "instant",
-            left: -20,
-            top: 0,
-        });
+    const documentScrollParent = new DocumentScrollParent({
+      refreshHitAreas,
+      treeElement,
     });
 
-    it("stops scrolling when pageX is moved from the left edge", () => {
-        vi.useFakeTimers();
-        const scrollBy = vi.fn();
-        document.documentElement.scrollBy = scrollBy;
+    documentScrollParent.checkHorizontalScrolling(10);
 
-        const refreshHitAreas = vi.fn();
-        const treeElement = document.createElement("div");
+    expect(scrollBy).not.toHaveBeenCalled();
 
-        const documentScrollParent = new DocumentScrollParent({
-            refreshHitAreas,
-            treeElement,
-        });
+    vi.advanceTimersByTime(50);
 
-        documentScrollParent.checkHorizontalScrolling(10);
-
-        expect(scrollBy).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
-            behavior: "instant",
-            left: -20,
-            top: 0,
-        });
-
-        documentScrollParent.checkHorizontalScrolling(100);
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledOnce(); // eslint-disable-line vitest/prefer-called-with
+    expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
+      behavior: "instant",
+      left: -20,
+      top: 0,
     });
+
+    documentScrollParent.checkHorizontalScrolling(100);
+    vi.advanceTimersByTime(50);
+
+    expect(scrollBy).toHaveBeenCalledOnce(); // eslint-disable-line vitest/prefer-called-with
+  });
 });
 
 describe("checkVerticalScrolling", () => {
-    afterEach(() => {
-        vi.useRealTimers();
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("scrolls to the top when pageY is near the top edge", () => {
+    vi.useFakeTimers();
+    const scrollBy = vi.fn();
+    document.documentElement.scrollBy = scrollBy;
+
+    const refreshHitAreas = vi.fn();
+    const treeElement = document.createElement("div");
+
+    const documentScrollParent = new DocumentScrollParent({
+      refreshHitAreas,
+      treeElement,
     });
 
-    it("scrolls to the top when pageY is near the top edge", () => {
-        vi.useFakeTimers();
-        const scrollBy = vi.fn();
-        document.documentElement.scrollBy = scrollBy;
+    documentScrollParent.checkVerticalScrolling(10);
 
-        const refreshHitAreas = vi.fn();
-        const treeElement = document.createElement("div");
+    expect(scrollBy).not.toHaveBeenCalled();
 
-        const documentScrollParent = new DocumentScrollParent({
-            refreshHitAreas,
-            treeElement,
-        });
+    vi.advanceTimersByTime(50);
 
-        documentScrollParent.checkVerticalScrolling(10);
+    expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
+      behavior: "instant",
+      left: 0,
+      top: -20,
+    });
+  });
 
-        expect(scrollBy).not.toHaveBeenCalled();
+  it("stops scrolling when pageX is moved from the top edge", () => {
+    vi.useFakeTimers();
+    const scrollBy = vi.fn();
+    document.documentElement.scrollBy = scrollBy;
 
-        vi.advanceTimersByTime(50);
+    const refreshHitAreas = vi.fn();
+    const treeElement = document.createElement("div");
 
-        expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
-            behavior: "instant",
-            left: 0,
-            top: -20,
-        });
+    const documentScrollParent = new DocumentScrollParent({
+      refreshHitAreas,
+      treeElement,
     });
 
-    it("stops scrolling when pageX is moved from the top edge", () => {
-        vi.useFakeTimers();
-        const scrollBy = vi.fn();
-        document.documentElement.scrollBy = scrollBy;
+    documentScrollParent.checkVerticalScrolling(10);
 
-        const refreshHitAreas = vi.fn();
-        const treeElement = document.createElement("div");
+    expect(scrollBy).not.toHaveBeenCalled();
 
-        const documentScrollParent = new DocumentScrollParent({
-            refreshHitAreas,
-            treeElement,
-        });
+    vi.advanceTimersByTime(50);
 
-        documentScrollParent.checkVerticalScrolling(10);
-
-        expect(scrollBy).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenNthCalledWith(
-            1,
-            {
-                behavior: "instant",
-                left: 0,
-                top: -20,
-            }
-        );
-
-        documentScrollParent.checkVerticalScrolling(100);
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledOnce(); // eslint-disable-line vitest/prefer-called-with
+    expect(scrollBy).toHaveBeenNthCalledWith(1, {
+      behavior: "instant",
+      left: 0,
+      top: -20,
     });
+
+    documentScrollParent.checkVerticalScrolling(100);
+    vi.advanceTimersByTime(50);
+
+    expect(scrollBy).toHaveBeenCalledOnce(); // eslint-disable-line vitest/prefer-called-with
+  });
 });
