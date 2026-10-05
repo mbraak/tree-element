@@ -1,5 +1,5 @@
 import type { ClassNames } from "./classNames";
-import type {   TreeEventName, TreeEvents } from "./events";
+import type { TreeEventName, TreeEvents } from "./events";
 import type { PositionInfo } from "./mouseUtils";
 import type { NodeData, NodeId, Position } from "./node";
 import type { TreeElementOptions } from "./options";
@@ -28,7 +28,6 @@ import __version__ from "./version";
 // the submodules directly, because those are not exposed in package.json.
 // Type only, so that the iife build keeps exposing the TreeElement class itself
 // as its global, instead of an object of named exports.
-
 
 export type TriggerEventProvider = (
   element: HTMLElement,
@@ -392,7 +391,7 @@ export default class TreeElement {
       `li.${this.classNames.common}`,
     );
 
-    return liElement ? this.nodeMap.get(liElement) ?? null : null;
+    return liElement ? (this.nodeMap.get(liElement) ?? null) : null;
   }
 
   /**
@@ -782,10 +781,7 @@ export default class TreeElement {
    * @param slide - Override the `slide` option for this call.
    * @group Opening and closing
    */
-  public async toggle(
-    node: Node,
-    slide: boolean | null = null,
-  ): Promise<void> {
+  public async toggle(node: Node, slide: boolean | null = null): Promise<void> {
     const mustSlide = slide ?? this.options.slide;
 
     if (node.is_open) {
@@ -986,7 +982,9 @@ export default class TreeElement {
   }
 
   private getNodeElementForNode(node: Node): NodeElement {
-    return node.isFolder() ? this.createFolderElement(node) : this.createNodeElement(node);
+    return node.isFolder()
+      ? this.createFolderElement(node)
+      : this.createNodeElement(node);
   }
 
   private getNodeIdToBeSelected(): NodeId | null {
@@ -1057,7 +1055,9 @@ export default class TreeElement {
   private isSelectedNodeInSubtree(subtree: Node): boolean {
     const selectedNode = this.getSelectedNode();
 
-    return selectedNode ? subtree === selectedNode || subtree.isParentOf(selectedNode) : false;
+    return selectedNode
+      ? subtree === selectedNode || subtree.isParentOf(selectedNode)
+      : false;
   }
 
   private async loadFolderOnDemand(node: Node, slide: boolean): Promise<void> {
@@ -1078,7 +1078,9 @@ export default class TreeElement {
   }
 
   private mouseCapture(positionInfo: PositionInfo): boolean | null {
-    return this.options.dragAndDrop ? this.dndHandler.mouseCapture(positionInfo) : false;
+    return this.options.dragAndDrop
+      ? this.dndHandler.mouseCapture(positionInfo)
+      : false;
   }
 
   private mouseDrag(positionInfo: PositionInfo): boolean {
@@ -1226,8 +1228,13 @@ export default class TreeElement {
   }
 }
 
-export {type MoveInfo, type TreeEvent, type TreeEventName, type TreeEvents} from "./events";
-export {type Node, type NodeData, type NodeId, type Position} from "./node";
-export {type TreeElementOptions} from "./options";
-export {type SavedState} from "./saveStateHandler";
-export {type SelectNodeOptions} from "./selectNodeHandler";
+export {
+  type MoveInfo,
+  type TreeEvent,
+  type TreeEventName,
+  type TreeEvents,
+} from "./events";
+export { type Node, type NodeData, type NodeId, type Position } from "./node";
+export { type TreeElementOptions } from "./options";
+export { type SavedState } from "./saveStateHandler";
+export { type SelectNodeOptions } from "./selectNodeHandler";
