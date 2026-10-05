@@ -2,7 +2,7 @@ import cspellESLintPluginRecommended from "@cspell/eslint-plugin/recommended";
 import compatPlugin from "eslint-plugin-compat";
 import css from "@eslint/css";
 import eslint from "@eslint/js";
-import { defineConfig } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 import importPlugin from "eslint-plugin-import-x";
 import jestDomPlugin from "eslint-plugin-jest-dom";
@@ -16,6 +16,7 @@ import unicornPlugin from "eslint-plugin-unicorn";
 import vitestPlugin from "@vitest/eslint-plugin";
 
 export default defineConfig([
+  globalIgnores(["config/"]),
   {
     files: ["**/*.{js,mjs,ts}"],
     extends: [
@@ -107,25 +108,6 @@ export default defineConfig([
     plugins: { tsdoc: tsdocPlugin },
     rules: {
       "tsdoc/syntax": "error",
-    },
-  },
-  {
-    // The javascript build configuration is not part of the typescript
-    // project, so the type aware rules have nothing to work with.
-    files: ["config/**/*.mjs"],
-    ...tseslint.configs.disableTypeChecked,
-    languageOptions: {
-      ...tseslint.configs.disableTypeChecked.languageOptions,
-      globals: {
-        console: "readonly",
-        process: "readonly",
-      },
-    },
-    rules: {
-      ...tseslint.configs.disableTypeChecked.rules,
-      "unicorn/no-process-exit": "off",
-      // Rollup plugin hooks are called with a plugin context as `this`
-      "unicorn/no-this-outside-of-class": "off",
     },
   },
   {
