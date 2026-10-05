@@ -150,6 +150,7 @@ export default class ElementsRenderer {
   private createButtonElement(value: IconElement): globalThis.Node | undefined {
     if (typeof value === "string") {
       const template = document.createElement("template");
+      // eslint-disable-next-line no-unsanitized/property -- icon options are documented to accept html
       template.innerHTML = value;
 
       return template.content;
@@ -394,6 +395,7 @@ export default class ElementsRenderer {
     if (this.autoEscape) {
       titleSpan.textContent = nodeName;
     } else {
+      // eslint-disable-next-line no-unsanitized/property -- the user opted out of escaping with autoEscape: false
       titleSpan.innerHTML = nodeName;
     }
   }

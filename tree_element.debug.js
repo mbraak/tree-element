@@ -181,6 +181,7 @@ var TreeElement = (function () {
       if (autoEscape) {
         element.textContent = nodeName;
       } else {
+        // eslint-disable-next-line no-unsanitized/property -- the user opted out of escaping with autoEscape: false
         element.innerHTML = nodeName;
       }
       element.style.position = "absolute";
@@ -732,6 +733,7 @@ var TreeElement = (function () {
     _createButtonElement(value) {
       if (typeof value === "string") {
         let template = document.createElement("template");
+        // eslint-disable-next-line no-unsanitized/property -- icon options are documented to accept html
         template.innerHTML = value;
         return template.content;
       }
@@ -901,6 +903,7 @@ var TreeElement = (function () {
       if (this._autoEscape) {
         titleSpan.textContent = nodeName;
       } else {
+        // eslint-disable-next-line no-unsanitized/property -- the user opted out of escaping with autoEscape: false
         titleSpan.innerHTML = nodeName;
       }
     }
