@@ -19,7 +19,6 @@ interface CreateSaveStateHandlerParams {
   addToSelection?: AddToSelection;
   getNodeById?: GetNodeById;
   getSelectedNodes?: GetSelectedNodes;
-  getTree?: GetTree;
   onGetStateFromStorage?: OnGetStateFromStorage;
   onSetStateFromStorage?: OnSetStateFromStorage;
   openNode?: OpenNode;
@@ -32,15 +31,16 @@ const createSaveStateHandler = ({
   addToSelection = vi.fn<AddToSelection>(),
   getNodeById = vi.fn<GetNodeById>(),
   getSelectedNodes = vi.fn<GetSelectedNodes>(() => []),
-  getTree = vi.fn<GetTree>(),
   onGetStateFromStorage,
   onSetStateFromStorage,
   openNode = vi.fn<OpenNode>(),
   refreshElements = vi.fn<RefreshElements>(),
   removeFromSelection = vi.fn<RemoveFromSelection>(),
   saveState = true,
-}: CreateSaveStateHandlerParams) =>
-  new SaveStateHandler({
+}: CreateSaveStateHandlerParams) => {
+  const getTree = vi.fn<GetTree>();
+
+  return new SaveStateHandler({
     addToSelection,
     getNodeById,
     getSelectedNodes,
@@ -52,6 +52,7 @@ const createSaveStateHandler = ({
     removeFromSelection,
     saveState,
   });
+};
 
 describe("getNodeIdToBeSelected", () => {
   afterEach(() => {

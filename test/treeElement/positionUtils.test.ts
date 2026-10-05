@@ -1,5 +1,6 @@
 import { getElementPosition, getOffsetTop } from "treeElement/positionUtils";
 
+// eslint-disable-next-line unicorn/no-unnecessary-parameters
 const mockHtmlElement = (x: number, y: number) =>
   ({
     getBoundingClientRect: () => ({ x, y }),

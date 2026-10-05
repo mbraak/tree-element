@@ -40,8 +40,8 @@
   "scripts": {
     "ci": "pnpm lint && pnpm tsc && pnpm docs-check && pnpm test",
     "build-debug": "DEBUG_BUILD=true rollup --config config/rollup.config.mjs",
-    "vitest": "pnpm build-debug && vitest run --coverage --config test/vitest.config.mjs",
-    "vitest-watch": "vitest --config test/vitest.config.mjs",
+    "vitest": "pnpm build-debug && vitest run --coverage --config config/vitest.config.mjs",
+    "vitest-watch": "vitest --config config/vitest.config.mjs",
     "lint": "eslint css src playwright test",
     "production": "./config/production",
     "devserver": "SERVE=true rollup --config config/rollup.config.mjs --watch",

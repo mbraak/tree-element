@@ -657,13 +657,13 @@ var TreeElement = (function () {
       _autoEscape: autoEscape,
       _buttonLeft: buttonLeft,
       _classNames: classNames,
-      _closedIcon: closedIcon,
+      _closedIcon: closedIcon = "-",
       _dragAndDrop: dragAndDrop,
       _getTree: getTree,
       _htmlElement: htmlElement,
       _isNodeSelected: isNodeSelected,
       _onCreateLi: onCreateLi,
-      _openedIcon: openedIcon,
+      _openedIcon: openedIcon = "+",
       _rtl: rtl,
       _setNodeElement: setNodeElement,
       _showEmptyFolder: showEmptyFolder,
@@ -681,8 +681,8 @@ var TreeElement = (function () {
       this._setNodeElement = setNodeElement;
       this._showEmptyFolder = showEmptyFolder;
       this._tabIndex = tabIndex;
-      this._openedIconElement = this._createButtonElement(openedIcon ?? "+");
-      this._closedIconElement = this._createButtonElement(closedIcon ?? "-");
+      this._openedIconElement = this._createButtonElement(openedIcon);
+      this._closedIconElement = this._createButtonElement(closedIcon);
       this._rootUlTemplate = this._createUlTemplate(true);
       this._groupUlTemplate = this._createUlTemplate(false);
       this._nodeTemplate = this._createNodeTemplate();
@@ -3240,10 +3240,10 @@ var TreeElement = (function () {
      * @param mustSetFocus - Move the focus to the node. Default `true`.
      * @group Selection
      */
-    addToSelection(node, mustSetFocus) {
+    addToSelection(node, mustSetFocus = true) {
       this._selectNodeHandler._addToSelection(node);
       this._openParents(node);
-      this._getNodeElementForNode(node)._select(mustSetFocus ?? true);
+      this._getNodeElementForNode(node)._select(mustSetFocus);
       this._saveState();
     }
 

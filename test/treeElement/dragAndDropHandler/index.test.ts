@@ -94,7 +94,7 @@ const createDragAndDropHandler = ({
     onDragMove,
     onDragStop,
     onIsMoveHandle,
-    openFolderDelay: openFolderDelay ?? false,
+    openFolderDelay: openFolderDelay,
     openNode: openNode ?? vi.fn(),
     refreshElements,
     slide: false,
