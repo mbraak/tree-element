@@ -3,159 +3,159 @@ import ContainerScrollParent from "treeElement/scrollHandler/containerScrollPare
 import { vi } from "vitest";
 
 describe("checkHorizontalScrolling", () => {
-    afterEach(() => {
-        vi.useRealTimers();
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("scrolls to the left when pageX is near the left edge", () => {
+    vi.useFakeTimers();
+
+    const refreshHitAreas = vi.fn();
+    const container = document.createElement("div");
+
+    const scrollBy = vi.fn();
+    container.scrollBy = scrollBy;
+
+    mockElementBoundingClientRect(container, {
+      height: 100,
+      width: 100,
+      x: 10,
+      y: 10,
     });
 
-    it("scrolls to the left when pageX is near the left edge", () => {
-        vi.useFakeTimers();
-
-        const refreshHitAreas = vi.fn();
-        const container = document.createElement("div");
-
-        const scrollBy = vi.fn();
-        container.scrollBy = scrollBy;
-
-        mockElementBoundingClientRect(container, {
-            height: 100,
-            width: 100,
-            x: 10,
-            y: 10,
-        });
-
-        const containerScrollParent = new ContainerScrollParent({
-            container,
-            refreshHitAreas,
-        });
-
-        containerScrollParent.checkHorizontalScrolling(20);
-
-        expect(scrollBy).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
-            behavior: "instant",
-            left: -20,
-            top: 0,
-        });
+    const containerScrollParent = new ContainerScrollParent({
+      container,
+      refreshHitAreas,
     });
 
-    it("stops scrolling when pageX is moved from the left edge", () => {
-        vi.useFakeTimers();
+    containerScrollParent.checkHorizontalScrolling(20);
 
-        const refreshHitAreas = vi.fn();
-        const container = document.createElement("div");
+    expect(scrollBy).not.toHaveBeenCalled();
 
-        const scrollBy = vi.fn();
-        container.scrollBy = scrollBy;
+    vi.advanceTimersByTime(50);
 
-        mockElementBoundingClientRect(container, {
-            height: 100,
-            width: 100,
-            x: 10,
-            y: 10,
-        });
-
-        const containerScrollParent = new ContainerScrollParent({
-            container,
-            refreshHitAreas,
-        });
-
-        containerScrollParent.checkHorizontalScrolling(20);
-
-        expect(scrollBy).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
-            behavior: "instant",
-            left: -20,
-            top: 0,
-        });
-
-        containerScrollParent.checkHorizontalScrolling(50);
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledOnce(); // eslint-disable-line vitest/prefer-called-with
+    expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
+      behavior: "instant",
+      left: -20,
+      top: 0,
     });
+  });
+
+  it("stops scrolling when pageX is moved from the left edge", () => {
+    vi.useFakeTimers();
+
+    const refreshHitAreas = vi.fn();
+    const container = document.createElement("div");
+
+    const scrollBy = vi.fn();
+    container.scrollBy = scrollBy;
+
+    mockElementBoundingClientRect(container, {
+      height: 100,
+      width: 100,
+      x: 10,
+      y: 10,
+    });
+
+    const containerScrollParent = new ContainerScrollParent({
+      container,
+      refreshHitAreas,
+    });
+
+    containerScrollParent.checkHorizontalScrolling(20);
+
+    expect(scrollBy).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(50);
+
+    expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
+      behavior: "instant",
+      left: -20,
+      top: 0,
+    });
+
+    containerScrollParent.checkHorizontalScrolling(50);
+    vi.advanceTimersByTime(50);
+
+    expect(scrollBy).toHaveBeenCalledOnce(); // eslint-disable-line vitest/prefer-called-with
+  });
 });
 
 describe("checkVerticalScrolling", () => {
-    afterEach(() => {
-        vi.useRealTimers();
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("scrolls to the top when pageY is near the top edge", () => {
+    vi.useFakeTimers();
+
+    const refreshHitAreas = vi.fn();
+    const container = document.createElement("div");
+
+    const scrollBy = vi.fn();
+    container.scrollBy = scrollBy;
+
+    mockElementBoundingClientRect(container, {
+      height: 100,
+      width: 100,
+      x: 10,
+      y: 10,
     });
 
-    it("scrolls to the top when pageY is near the top edge", () => {
-        vi.useFakeTimers();
-
-        const refreshHitAreas = vi.fn();
-        const container = document.createElement("div");
-
-        const scrollBy = vi.fn();
-        container.scrollBy = scrollBy;
-
-        mockElementBoundingClientRect(container, {
-            height: 100,
-            width: 100,
-            x: 10,
-            y: 10,
-        });
-
-        const containerScrollParent = new ContainerScrollParent({
-            container,
-            refreshHitAreas,
-        });
-
-        containerScrollParent.checkVerticalScrolling(9);
-
-        expect(scrollBy).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
-            behavior: "instant",
-            left: 0,
-            top: -20,
-        });
+    const containerScrollParent = new ContainerScrollParent({
+      container,
+      refreshHitAreas,
     });
 
-    it("stops scrolling when pageX is moved from the left edge", () => {
-        vi.useFakeTimers();
+    containerScrollParent.checkVerticalScrolling(9);
 
-        const refreshHitAreas = vi.fn();
-        const container = document.createElement("div");
+    expect(scrollBy).not.toHaveBeenCalled();
 
-        const scrollBy = vi.fn();
-        container.scrollBy = scrollBy;
+    vi.advanceTimersByTime(50);
 
-        mockElementBoundingClientRect(container, {
-            height: 100,
-            width: 100,
-            x: 10,
-            y: 10,
-        });
-
-        const containerScrollParent = new ContainerScrollParent({
-            container,
-            refreshHitAreas,
-        });
-
-        containerScrollParent.checkVerticalScrolling(9);
-
-        expect(scrollBy).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
-            behavior: "instant",
-            left: 0,
-            top: -20,
-        });
-
-        containerScrollParent.checkVerticalScrolling(50);
-        vi.advanceTimersByTime(50);
-
-        expect(scrollBy).toHaveBeenCalledOnce(); // eslint-disable-line vitest/prefer-called-with
+    expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
+      behavior: "instant",
+      left: 0,
+      top: -20,
     });
+  });
+
+  it("stops scrolling when pageX is moved from the left edge", () => {
+    vi.useFakeTimers();
+
+    const refreshHitAreas = vi.fn();
+    const container = document.createElement("div");
+
+    const scrollBy = vi.fn();
+    container.scrollBy = scrollBy;
+
+    mockElementBoundingClientRect(container, {
+      height: 100,
+      width: 100,
+      x: 10,
+      y: 10,
+    });
+
+    const containerScrollParent = new ContainerScrollParent({
+      container,
+      refreshHitAreas,
+    });
+
+    containerScrollParent.checkVerticalScrolling(9);
+
+    expect(scrollBy).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(50);
+
+    expect(scrollBy).toHaveBeenCalledExactlyOnceWith({
+      behavior: "instant",
+      left: 0,
+      top: -20,
+    });
+
+    containerScrollParent.checkVerticalScrolling(50);
+    vi.advanceTimersByTime(50);
+
+    expect(scrollBy).toHaveBeenCalledOnce(); // eslint-disable-line vitest/prefer-called-with
+  });
 });

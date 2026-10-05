@@ -1,4 +1,4 @@
-import type { MatcherState } from 'vitest';
+import type { MatcherState } from "vitest";
 
 import type { TreeStructure } from "../treeStructure";
 
@@ -14,10 +14,8 @@ export function toHaveTreeStructure(
   /* istanbul ignore next @preserve */
   return {
     message: () =>
-      this.utils.printDiffOrStringify(
-        expectedStructure,
-        receivedStructure,
-      ) ?? '',
+      this.utils.printDiffOrStringify(expectedStructure, receivedStructure) ??
+      "",
     pass: this.equals(receivedStructure, expectedStructure),
   };
 }
