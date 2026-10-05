@@ -56,7 +56,7 @@
     "version": "node config/generateVersion.mjs && git add src/version.ts",
     "prepublishOnly": "pnpm run production",
     "release": "node config/release.mjs",
-    "playwright": "pnpm build-with-coverage && playwright test --config playwright/playwright.config.js",
+    "playwright": "pnpm build-with-coverage && playwright test --config config/playwright.config.js",
     "test": "pnpm vitest && pnpm playwright",
     "docs-check": "kiira check"
   },
@@ -93,7 +93,7 @@
     "eslint-plugin-playwright": "^2.12.0",
     "eslint-plugin-testing-library": "^7.16.2",
     "eslint-plugin-tsdoc": "^0.5.4",
-    "eslint-plugin-unicorn": "^76.0.0",
+    "eslint-plugin-unicorn": "^77.0.0",
     "jest-extended": "^7.0.0",
     "jsdom": "^30.1.1",
     "jsdom-testing-mocks": "^1.16.0",

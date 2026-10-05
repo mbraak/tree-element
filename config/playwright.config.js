@@ -8,7 +8,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  testDir: "./",
+  testDir: "../playwright",
   webServer: {
     // Run rollup directly instead of `pnpm devserver-with-coverage`: pnpm
     // 12.6 leaves the rollup child running when Playwright stops the server,

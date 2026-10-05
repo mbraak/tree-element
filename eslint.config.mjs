@@ -74,6 +74,7 @@ export default defineConfig([
       "unicorn/no-null": "off",
       // toSorted is ES2023, the project targets ES2022
       "unicorn/no-array-sort": "off",
+      "unicorn/no-asterisk-prefix-in-documentation-comments": "off",
       "unicorn/prefer-await": "off",
       // Node.remove and Node.removeChild are tree methods, not DOM
       "unicorn/prefer-dom-node-remove": "off",

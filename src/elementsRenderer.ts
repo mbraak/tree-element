@@ -58,13 +58,13 @@ export default class ElementsRenderer {
     autoEscape,
     buttonLeft,
     classNames,
-    closedIcon,
+    closedIcon = "-",
     dragAndDrop,
     getTree,
     htmlElement,
     isNodeSelected,
     onCreateLi,
-    openedIcon,
+    openedIcon = "+",
     rtl,
     setNodeElement,
     showEmptyFolder,
@@ -82,8 +82,8 @@ export default class ElementsRenderer {
     this.setNodeElement = setNodeElement;
     this.showEmptyFolder = showEmptyFolder;
     this.tabIndex = tabIndex;
-    this.openedIconElement = this.createButtonElement(openedIcon ?? "+");
-    this.closedIconElement = this.createButtonElement(closedIcon ?? "-");
+    this.openedIconElement = this.createButtonElement(openedIcon);
+    this.closedIconElement = this.createButtonElement(closedIcon);
 
     this.rootUlTemplate = this.createUlTemplate(true);
     this.groupUlTemplate = this.createUlTemplate(false);

@@ -312,11 +312,11 @@ export default class TreeElement {
    * @param mustSetFocus - Move the focus to the node. Default `true`.
    * @group Selection
    */
-  public addToSelection(node: Node, mustSetFocus?: boolean) {
+  public addToSelection(node: Node, mustSetFocus = true: boolean) {
     this.selectNodeHandler.addToSelection(node);
     this.openParents(node);
 
-    this.getNodeElementForNode(node).select(mustSetFocus ?? true);
+    this.getNodeElementForNode(node).select(mustSetFocus);
 
     this.saveState();
   }
