@@ -218,8 +218,19 @@ describe("deselect", () => {
     expect(treeItem).toHaveAttribute("aria-selected", "false");
   });
 
-  it("removes the tabindex from the title span", () => {
+  it("sets the tabindex of the title span to -1", () => {
     const { nodeElement } = createNodeElement({ tabIndex: 0 });
+
+    nodeElement.select(false);
+    nodeElement.deselect();
+
+    const treeItem = screen.getByRole("treeitem", { name: "node1" });
+
+    expect(treeItem).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("doesn't set the tabindex of the title span when no tabIndex is given", () => {
+    const { nodeElement } = createNodeElement();
 
     nodeElement.select(false);
     nodeElement.deselect();

@@ -42,6 +42,7 @@ interface CreateSelectNodeHandlerParams {
   saveState?: () => void;
   selectable?: boolean;
   triggerEvent?: TriggerEvent;
+  updateTabStop?: () => void;
 }
 
 const createSelectNodeHandler = ({
@@ -52,6 +53,7 @@ const createSelectNodeHandler = ({
   saveState = vi.fn(),
   selectable = true,
   triggerEvent = vi.fn(),
+  updateTabStop = vi.fn(),
 }: CreateSelectNodeHandlerParams = {}) =>
   new SelectNodeHandler({
     getNodeById,
@@ -61,6 +63,7 @@ const createSelectNodeHandler = ({
     openParents,
     saveState,
     triggerEvent,
+    updateTabStop,
   });
 
 describe("getSelectedNodesUnder", () => {
@@ -111,6 +114,21 @@ describe("selectSingleNode", () => {
     expect(saveState).toHaveBeenCalledWith();
   });
 
+  it("updates the tab stop", () => {
+    const node = new Node({ id: 1 });
+
+    const updateTabStop = vi.fn();
+
+    const selectNodeHandler = createSelectNodeHandler({
+      getNodeById: createGetNodeById([node]),
+      updateTabStop,
+    });
+
+    selectNodeHandler.selectSingleNode(node);
+
+    expect(updateTabStop).toHaveBeenCalledWith();
+  });
+
   it("doesn't set the focus when mustSetFocus is false", () => {
     const node = new Node({ id: 1 });
 
@@ -131,11 +149,13 @@ describe("selectSingleNode", () => {
 
     const nodeElement = createMockNodeElement();
     const triggerEvent = vi.fn();
+    const updateTabStop = vi.fn();
 
     const selectNodeHandler = createSelectNodeHandler({
       getNodeById: createGetNodeById([node]),
       getNodeElementForNode: vi.fn(() => asNodeElement(nodeElement)),
       triggerEvent,
+      updateTabStop,
     });
     selectNodeHandler.addToSelection(node);
 
@@ -144,6 +164,7 @@ describe("selectSingleNode", () => {
     expect(selectNodeHandler.isNodeSelected(node)).toBeFalse();
     expect(nodeElement.deselect).toHaveBeenCalledWith();
     expect(triggerEvent).toHaveBeenCalledWith("tree.deselect", { node });
+    expect(updateTabStop).toHaveBeenCalledWith();
   });
 
   it("doesn't deselect the node when mustToggle is false", () => {
@@ -206,18 +227,21 @@ describe("selectSingleNode", () => {
 
     const saveState = vi.fn();
     const triggerEvent = vi.fn();
+    const updateTabStop = vi.fn();
 
     const selectNodeHandler = createSelectNodeHandler({
       getNodeById: createGetNodeById([node]),
       saveState,
       selectable: false,
       triggerEvent,
+      updateTabStop,
     });
 
     selectNodeHandler.selectSingleNode(node);
 
     expect(selectNodeHandler.isNodeSelected(node)).toBeFalse();
     expect(triggerEvent).not.toHaveBeenCalled();
+    expect(updateTabStop).not.toHaveBeenCalled();
     expect(saveState).not.toHaveBeenCalled();
   });
 

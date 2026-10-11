@@ -81,7 +81,9 @@ new TreeElement({
 
 | Option            | Default                 | Description                                                                       |
 | ----------------- | ----------------------- | --------------------------------------------------------------------------------- |
-| `animationSpeed`  | `"fast"`                | `"fast"`, `"slow"`, or a number of milliseconds                                   |
+| `animationSpeed`  | `"fast"`                | `"fast"`, `"slow"`, or a number of milliseconds. `0` for reduced motion           |
+| `ariaLabel`       |                         | The accessible name of the tree                                                   |
+| `ariaLabelledBy`  |                         | The id of the element that names the tree                                         |
 | `autoEscape`      | `true`                  | Escape node names. Set to `false` to render html in a name                        |
 | `autoOpen`        | `false`                 | `true` opens everything, a number opens that many levels (`0` is the first level) |
 | `buttonLeft`      | `true`                  | Put the open/close button left of the title                                       |
@@ -92,7 +94,7 @@ new TreeElement({
 | `dataFilter`      |                         | Transforms the response of `dataUrl` into node data                               |
 | `dataUrl`         | `data-url` attribute    | Url, or a function returning a url                                                |
 | `dragAndDrop`     | `false`                 | Enable drag and drop                                                              |
-| `keyboardSupport` | `true`                  | Navigate with the arrow keys                                                      |
+| `keyboardSupport` | `true`                  | Navigate with the keyboard                                                        |
 | `nodeClass`       | `Node`                  | Subclass of `Node` to use for nodes                                               |
 | `openFolderDelay` | `500`                   | Milliseconds before a folder opens while dragging over it. `false` disables it    |
 | `openedIcon`      | `▼`                     | Html string or element                                                            |
@@ -137,6 +139,7 @@ element.addEventListener("tree.select", (e) => {
 | `tree.click`        | `node`, `originalEvent`                                                                            |
 | `tree.dblclick`     | `node`, `originalEvent`                                                                            |
 | `tree.contextmenu`  | `node`, `originalEvent`                                                                            |
+| `tree.activate`     | `node`, `originalEvent`                                                                            |
 | `tree.select`       | `node`, `deselectedNode`                                                                           |
 | `tree.deselect`     | `node`                                                                                             |
 | `tree.open`         | `node`                                                                                             |
@@ -219,7 +222,11 @@ pnpm docs-check    # type-check the code snippets in the docs
 pnpm ci            # lint, typecheck, check the docs and test
 ```
 
-`pnpm test` runs the vitest unit tests and the playwright browser tests.
+`pnpm test` runs the vitest unit tests and the playwright browser tests. The
+browser tests include accessibility checks: axe scans the rendered tree
+(including color contrast) and keyboard-only tests cover tabbing into the tree,
+the arrow keys, `Home`, `End` and `Enter`. They are in
+`playwright/accessibility.test.ts`.
 
 ### Releasing
 

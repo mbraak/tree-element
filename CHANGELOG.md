@@ -6,8 +6,40 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+## 0.3.0 - 2026-10-11
+
+### Added
+
+- The keys `Home` and `End` select the first and the last visible node.
+- The key `Enter` dispatches the new event `tree.activate`, for example to open
+  the edit page of the node.
+- The options `ariaLabel` and `ariaLabelledBy` give the tree an accessible name.
+- The colors in `tree_element.css` are css custom properties, such as
+  `--tree-element-title-color`, so you can change them or add a dark theme. See
+  [Styling](https://mbraak.github.io/tree-element/guide/styling#colors).
+- A folder's treeitem has `aria-busy="true"` while its children load.
+
+### Fixed
+
+- The tree can be reached with the tab key when no node is selected.
+- Do not set `aria-label` for tree nodes. Rely on the node text instead.
+- Screen readers no longer read the open/close toggler. It has
+  `aria-hidden="true"`; `aria-expanded` on the node already has the state.
+- When loading the children of a folder fails, the tree no longer requests them
+  again and again. The folder stays closed; opening it again retries.
+
 ### Changed
 
+- The toggler and the rows are at least 24px high, and the toggler is at least
+  24px wide: the WCAG 2.5.8 minimum for click targets. This makes the tree a
+  bit taller. The toggler no longer has a margin; the space around its icon
+  separates it from the title.
+- The toggler is a `span` instead of an `a` without `href`. Update css that
+  selects `a.tree-element-toggler`.
+- When the user prefers reduced motion (`prefers-reduced-motion: reduce`),
+  folders open and close without animation, unless `animationSpeed` is set.
+- The method `selectNode` keeps an already selected node selected, as
+  documented.
 - The methods `closeNode` and `toggle` return a promise that is resolved when
   the folder is closed or opened, like `openNode`. Await it when you need to
   know the animation has finished.

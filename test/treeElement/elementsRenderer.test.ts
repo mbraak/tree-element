@@ -11,6 +11,8 @@ import exampleData from "../support/exampleData";
 import { getTreeButton, getTreeListElement } from "../support/queries";
 
 interface CreateRendererParams {
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
   autoEscape?: boolean;
   buttonLeft?: boolean;
   closedIcon?: IconElement;
@@ -27,6 +29,8 @@ interface CreateRendererParams {
 }
 
 const createRenderer = ({
+  ariaLabel,
+  ariaLabelledBy,
   autoEscape = true,
   buttonLeft = false,
   closedIcon,
@@ -56,6 +60,8 @@ const createRenderer = ({
   const setNodeElement = vi.fn();
 
   const renderer = new ElementsRenderer({
+    ariaLabel,
+    ariaLabelledBy,
     autoEscape,
     buttonLeft,
     classNames: defaultClassNames,
@@ -421,6 +427,54 @@ describe("renderFromRoot", () => {
     expect(screen.getByRole("tree")).not.toHaveClass("tree-element-rtl");
   });
 
+  it("sets aria-label on the root list when ariaLabel is set", () => {
+    const { renderer } = createRenderer({
+      ariaLabel: "Categories",
+      openFolders: true,
+    });
+
+    renderer.renderFromRoot();
+
+    expect(screen.getByRole("tree", { name: "Categories" })).toHaveAttribute(
+      "aria-label",
+      "Categories",
+    );
+    expect(screen.getAllByRole("group")[0]).not.toHaveAttribute("aria-label");
+  });
+
+  it("sets aria-labelledby on the root list when ariaLabelledBy is set", () => {
+    const heading = document.createElement("h2");
+    heading.id = "tree-heading";
+    heading.textContent = "Categories";
+    document.body.append(heading);
+
+    const { renderer } = createRenderer({
+      ariaLabelledBy: "tree-heading",
+      openFolders: true,
+    });
+
+    renderer.renderFromRoot();
+
+    expect(screen.getByRole("tree", { name: "Categories" })).toHaveAttribute(
+      "aria-labelledby",
+      "tree-heading",
+    );
+    expect(screen.getAllByRole("group")[0]).not.toHaveAttribute(
+      "aria-labelledby",
+    );
+  });
+
+  it("doesn't label the root list when no label option is set", () => {
+    const { renderer } = createRenderer();
+
+    renderer.renderFromRoot();
+
+    const tree = screen.getByRole("tree");
+
+    expect(tree).not.toHaveAttribute("aria-label");
+    expect(tree).not.toHaveAttribute("aria-labelledby");
+  });
+
   it("adds the dnd class to the lists when dragAndDrop is true", () => {
     const { renderer } = createRenderer({
       dragAndDrop: true,
@@ -480,6 +534,18 @@ describe("renderFromRoot", () => {
     expect(treeItem).toBeAriaExpanded();
   });
 
+  it("hides the toggler from screen readers", () => {
+    const { renderer } = createRenderer();
+
+    renderer.renderFromRoot();
+
+    const button = getTreeButton(getTreeItem("node1"));
+
+    expect(button.tagName).toBe("SPAN");
+    expect(button).toHaveAttribute("aria-hidden", "true");
+    expect(button).not.toHaveAttribute("href");
+  });
+
   it("renders a loading folder", () => {
     const { renderer, tree } = createRenderer();
     tree.getNodeByNameMustExist("node1").is_loading = true;
@@ -492,6 +558,8 @@ describe("renderFromRoot", () => {
     expect(getTreeListElement(getTreeItem("node2"))).not.toHaveClass(
       "tree-element-loading",
     );
+    expect(getTreeItem("node1")).toHaveAttribute("aria-busy", "true");
+    expect(getTreeItem("node2")).not.toHaveAttribute("aria-busy");
   });
 
   it("renders a selected folder", () => {
@@ -532,7 +600,7 @@ describe("renderFromRoot", () => {
     renderer.renderFromRoot();
 
     expect(getTreeItem("child1")).toHaveAttribute("tabindex", "11");
-    expect(getTreeItem("child2")).not.toHaveAttribute("tabindex");
+    expect(getTreeItem("child2")).toHaveAttribute("tabindex", "-1");
   });
 
   it("doesn't set a tab index when the tabIndex option is undefined", () => {
@@ -544,6 +612,7 @@ describe("renderFromRoot", () => {
     renderer.renderFromRoot();
 
     expect(getTreeItem("child1")).not.toHaveAttribute("tabindex");
+    expect(getTreeItem("child2")).not.toHaveAttribute("tabindex");
   });
 
   it("escapes the node name when autoEscape is true", () => {
@@ -567,7 +636,7 @@ describe("renderFromRoot", () => {
 
     renderer.renderFromRoot();
 
-    const treeItem = getTreeItem("<span>test</span>");
+    const treeItem = getTreeItem("test");
 
     // eslint-disable-next-line testing-library/no-node-access
     expect(treeItem.querySelector("span")).toHaveTextContent("test");

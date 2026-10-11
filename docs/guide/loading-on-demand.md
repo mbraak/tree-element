@@ -79,8 +79,9 @@ new TreeElement({
 ## Loading indicator
 
 While a request is in flight, the node gets the `tree-element-loading` class and its
-`is_loading` property is `true`. The default stylesheet does not draw a spinner, so add one
-yourself:
+`is_loading` property is `true`. Its treeitem gets `aria-busy="true"`, which tells screen readers
+that its children are loading. When the request fails, the node stays closed; opening it again
+retries. The default stylesheet does not draw a spinner, so add one yourself:
 
 ```css
 .tree-element-loading > .tree-element-element .tree-element-title {

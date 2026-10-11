@@ -36,10 +36,25 @@ export interface TreeElementOptions {
    * The duration of the slide animation: `"fast"` is 200ms, `"slow"` is
    * 600ms, a number is milliseconds.
    *
-   * @defaultValue `"fast"`
+   * @defaultValue `"fast"`, or `0` when the user prefers reduced motion
+   * (`prefers-reduced-motion: reduce`).
    * @group Appearance
    */
   animationSpeed: AnimationSpeed;
+  /**
+   * The accessible name of the tree, set as `aria-label` on the root `ul`.
+   * Use `ariaLabelledBy` instead when the name is visible on the page.
+   *
+   * @group Appearance
+   */
+  ariaLabel?: string;
+  /**
+   * The id of the element that names the tree, set as `aria-labelledby` on
+   * the root `ul`.
+   *
+   * @group Appearance
+   */
+  ariaLabelledBy?: string;
   /**
    * Escape node names. With `false`, names are inserted as html — only do
    * that for data you control.
@@ -129,7 +144,7 @@ export interface TreeElementOptions {
    */
   dragAndDrop: boolean;
   /**
-   * Handle the arrow keys when the focus is on the tree. See
+   * Handle the keyboard when the focus is on the tree. See
    * [Selection](/guide/selection#keyboard-navigation).
    *
    * @defaultValue `true`
@@ -302,7 +317,8 @@ export interface TreeElementOptions {
   startDndDelay?: number;
   /**
    * The `tabindex` of the selected node's title, which is what makes the
-   * tree focusable.
+   * tree focusable. When no node is selected, the first node gets it. The
+   * other nodes get `-1`.
    *
    * @defaultValue `0`
    * @group Selection

@@ -98,9 +98,14 @@ tree:
 | `ArrowUp`    | Select the previous visible node.                                   |
 | `ArrowRight` | Open a closed folder, or move to the first child of an open folder. |
 | `ArrowLeft`  | Close an open folder, or move to the parent.                        |
+| `Home`       | Select the first node.                                              |
+| `End`        | Select the last visible node.                                       |
+| `Enter`      | Dispatch [`tree.activate`](/reference/events#tree-activate).        |
 
-The tree element is focusable through `tabIndex`, which defaults to `0`. Set it to `-1` to keep
-the tree out of the tab order, or to another value to place it explicitly.
+The selected node is focusable through `tabIndex`, which defaults to `0`. When no node is selected,
+the first node is focusable instead, so keyboard users can always reach the tree. `ArrowDown`,
+`ArrowRight` or `Space` on that node selects it, and `Enter` activates it. The other nodes get `tabindex="-1"`. Set `tabIndex`
+to `-1` to keep the tree out of the tab order, or to another value to place it explicitly.
 
 `moveUp` and `moveDown` do the same as the arrow keys from code:
 

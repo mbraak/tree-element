@@ -78,12 +78,17 @@ var TreeElement = (function () {
     async _loadFromUrl(url, node) {
       let element = node?.element ?? this._treeElement;
       element.classList.add(this._classNames.loading);
+
+      // Tell screen readers that the children of the folder are loading
+      let titleSpan = node ? this._getTitleSpan(element) : null;
+      titleSpan?.setAttribute("aria-busy", "true");
       this._triggerEvent("tree.loading_data", {
         element,
         node
       });
       let stopLoading = () => {
         element.classList.remove(this._classNames.loading);
+        titleSpan?.removeAttribute("aria-busy");
         this._triggerEvent("tree.loaded_data", {
           element,
           node
@@ -118,6 +123,9 @@ var TreeElement = (function () {
           error
         });
       });
+    }
+    _getTitleSpan(element) {
+      return element.querySelector(`:scope > .${this._classNames.element} > .${this._classNames.title}`);
     }
   }
 
@@ -654,6 +662,8 @@ var TreeElement = (function () {
    */
   class ElementsRenderer {
     constructor({
+      _ariaLabel: ariaLabel,
+      _ariaLabelledBy: ariaLabelledBy,
       _autoEscape: autoEscape,
       _buttonLeft: buttonLeft,
       _classNames: classNames,
@@ -669,6 +679,8 @@ var TreeElement = (function () {
       _showEmptyFolder: showEmptyFolder,
       _tabIndex: tabIndex
     }) {
+      this._ariaLabel = ariaLabel;
+      this._ariaLabelledBy = ariaLabelledBy;
       this._autoEscape = autoEscape;
       this._buttonLeft = buttonLeft;
       this._classNames = classNames;
@@ -758,19 +770,20 @@ var TreeElement = (function () {
       if (isSelected) {
         li.classList.add(this._classNames.selected);
       }
-      if (node.is_loading) {
-        li.classList.add(this._classNames.loading);
-      }
 
-      // li > div > [button link], title span, [button link]
+      // li > div > [toggler], title span, [toggler]
       let div = li.firstChild;
       let titleSpan = div.childNodes[this._buttonLeft ? 1 : 0];
       this._fillTitleSpan(titleSpan, node.name, isSelected, level);
+      if (node.is_loading) {
+        li.classList.add(this._classNames.loading);
+        titleSpan.setAttribute("aria-busy", "true");
+      }
       return li;
     }
 
     /* Template for a folder <li>:
-     *   li > div > [button link], title span, [button link]
+     *   li > div > [toggler], title span, [toggler]
      * The toggler icon and the aria-expanded attribute depend on the open
      * state, so there is a template for each.
      */
@@ -782,15 +795,17 @@ var TreeElement = (function () {
       let li = this._createLiTemplate(liClasses.join(" "));
       let div = li.firstChild;
 
-      // button link
-      let buttonLink = document.createElement("a");
-      buttonLink.className = this._getButtonClasses(isOpen);
+      // The toggler is hidden from screen readers: the icon is decoration, and
+      // aria-expanded on the treeitem has the open state.
+      let toggler = document.createElement("span");
+      toggler.className = this._getButtonClasses(isOpen);
+      toggler.setAttribute("aria-hidden", "true");
       let iconElement = isOpen ? this._openedIconElement : this._closedIconElement;
       if (iconElement) {
-        buttonLink.append(iconElement.cloneNode(true));
+        toggler.append(iconElement.cloneNode(true));
       }
       if (this._buttonLeft) {
-        div.append(buttonLink);
+        div.append(toggler);
       }
 
       // title span
@@ -798,7 +813,7 @@ var TreeElement = (function () {
       titleSpan.setAttribute("aria-expanded", getBoolString(isOpen));
       div.append(titleSpan);
       if (!this._buttonLeft) {
-        div.append(buttonLink);
+        div.append(toggler);
       }
       return li;
     }
@@ -863,6 +878,11 @@ var TreeElement = (function () {
       titleSpan.className = classes;
       titleSpan.setAttribute("role", "treeitem");
       titleSpan.setAttribute("aria-selected", "false");
+
+      // Every node is focusable, but only the tab stop is in the tab order
+      if (this._tabIndex !== undefined) {
+        titleSpan.setAttribute("tabindex", "-1");
+      }
       return titleSpan;
     }
     _createUlTemplate(isRootNode) {
@@ -884,6 +904,14 @@ var TreeElement = (function () {
       let ul = document.createElement("ul");
       ul.className = `${this._classNames.common} ${classString}`;
       ul.setAttribute("role", role);
+      if (isRootNode) {
+        if (this._ariaLabel !== undefined) {
+          ul.setAttribute("aria-label", this._ariaLabel);
+        }
+        if (this._ariaLabelledBy !== undefined) {
+          ul.setAttribute("aria-labelledby", this._ariaLabelledBy);
+        }
+      }
       return ul;
     }
 
@@ -891,7 +919,6 @@ var TreeElement = (function () {
     Set the parts of a cloned title span that differ per node
     */
     _fillTitleSpan(titleSpan, nodeName, isSelected, level) {
-      titleSpan.setAttribute("aria-label", nodeName);
       titleSpan.setAttribute("aria-level", String(level));
       if (isSelected) {
         titleSpan.setAttribute("aria-selected", "true");
@@ -931,18 +958,22 @@ var TreeElement = (function () {
   class KeyHandler {
     constructor({
       _closeNode: closeNode,
+      _getFocusedNode: getFocusedNode,
       _getSelectedNode: getSelectedNode,
-      _isFocusOnTree: isFocusOnTree,
+      _getTree: getTree,
       _keyboardSupport: keyboardSupport,
       _openNode: openNode,
-      _selectNode: selectNode
+      _selectNode: selectNode,
+      _triggerEvent: triggerEvent
     }) {
       this._closeNode = closeNode;
+      this._getFocusedNode = getFocusedNode;
       this._getSelectedNode = getSelectedNode;
-      this._isFocusOnTree = isFocusOnTree;
+      this._getTree = getTree;
       this._keyboardSupport = keyboardSupport;
       this._openNode = openNode;
       this._originalSelectNode = selectNode;
+      this._triggerEvent = triggerEvent;
       if (keyboardSupport) {
         document.addEventListener("keydown", this._handleKeyDown);
       }
@@ -958,43 +989,89 @@ var TreeElement = (function () {
     _moveUp() {
       return this._selectNode(this._getSelectedNode()?.getPreviousVisibleNode());
     }
-    _canHandleKeyboard() {
-      return this._keyboardSupport && this._isFocusOnTree();
+
+    // Activate the node, for example to open its edit page.
+    _activate(node, originalEvent) {
+      this._triggerEvent("tree.activate", {
+        node,
+        originalEvent
+      });
+      return true;
+    }
+    _handleArrowKey(key) {
+      switch (key) {
+        case "ArrowDown":
+          {
+            return this._moveDown();
+          }
+        case "ArrowLeft":
+          {
+            return this._moveLeft();
+          }
+        case "ArrowRight":
+          {
+            return this._moveRight();
+          }
+        case "ArrowUp":
+          {
+            return this._moveUp();
+          }
+        default:
+          {
+            return false;
+          }
+      }
     }
     _handleKeyDown = e => {
-      if (!this._canHandleKeyboard()) {
+      let focusedNode = this._getFocusedNode();
+      if (!focusedNode) {
         return;
       }
-      let isKeyHandled = false;
+      let isKeyHandled;
       let selectedNode = this._getSelectedNode();
-      if (selectedNode) {
-        switch (e.key) {
-          case "ArrowDown":
-            {
-              isKeyHandled = this._moveDown();
-              break;
-            }
-          case "ArrowLeft":
-            {
-              isKeyHandled = this._moveLeft();
-              break;
-            }
-          case "ArrowRight":
-            {
-              isKeyHandled = this._moveRight();
-              break;
-            }
-          case "ArrowUp":
-            {
-              isKeyHandled = this._moveUp();
-              break;
-            }
-        }
+      switch (e.key) {
+        case "End":
+          {
+            isKeyHandled = this._selectNode(this._getTree()?.getLastChild());
+            break;
+          }
+        case "Enter":
+          {
+            // Without a selected node, activate the focused node
+            isKeyHandled = this._activate(selectedNode ?? focusedNode, e);
+            break;
+          }
+        case "Home":
+          {
+            isKeyHandled = this._selectNode(this._getTree()?.children[0]);
+            break;
+          }
+        default:
+          {
+            isKeyHandled = selectedNode ? this._handleArrowKey(e.key) : this._handleKeyWithoutSelection(e.key, focusedNode);
+          }
       }
       if (isKeyHandled) {
         e.preventDefault();
       }
     };
+
+    // No node is selected. These keys select the focused node, which is
+    // usually the first node, see TreeElement.updateTabStop.
+    _handleKeyWithoutSelection(key, focusedNode) {
+      switch (key) {
+        case " ":
+        case "ArrowDown":
+        case "ArrowRight":
+          {
+            return this._selectNode(focusedNode);
+          }
+        default:
+          {
+            return false;
+          }
+      }
+    }
     _moveLeft() {
       let selectedNode = this._getSelectedNode();
 
@@ -2162,7 +2239,11 @@ var TreeElement = (function () {
       }
       this._element.classList.remove(this._classNames.selected);
       let titleSpan = this._getTitleSpan();
-      titleSpan.removeAttribute("tabindex");
+
+      // Check for null or undefined
+      if (this._tabIndex != null) {
+        titleSpan.setAttribute("tabindex", "-1");
+      }
       titleSpan.setAttribute("aria-selected", "false");
       titleSpan.blur();
     }
@@ -2341,7 +2422,7 @@ var TreeElement = (function () {
       return !this._node.is_open && position === "inside";
     }
     _getButton() {
-      return this._element.querySelector(`:scope > .${this._classNames.element} > a.${this._classNames.toggler}`);
+      return this._element.querySelector(`:scope > .${this._classNames.element} > .${this._classNames.toggler}`);
     }
   }
 
@@ -2780,7 +2861,8 @@ var TreeElement = (function () {
       _getSelectable: getSelectable,
       _openParents: openParents,
       _saveState: saveState,
-      _triggerEvent: triggerEvent
+      _triggerEvent: triggerEvent,
+      _updateTabStop: updateTabStop
     }) {
       this._getNodeById = getNodeById;
       this._getNodeElementForNode = getNodeElementForNode;
@@ -2791,6 +2873,7 @@ var TreeElement = (function () {
       this._selectedNodes = new Set();
       this._selectedSingleNode = null;
       this._triggerEvent = triggerEvent;
+      this._updateTabStop = updateTabStop;
     }
     _addToSelection(node) {
       if (node.id == null) {
@@ -2910,6 +2993,7 @@ var TreeElement = (function () {
           node
         });
       }
+      this._updateTabStop();
       this._saveState();
     }
   }
@@ -2962,7 +3046,8 @@ var TreeElement = (function () {
   let setDefaultOptions = (htmlElement, inputOptions) => {
     let options = {
       ...defaults,
-      ...inputOptions
+      ...inputOptions,
+      animationSpeed: inputOptions.animationSpeed ?? getDefaultAnimationSpeed()
     };
     options.dataUrl ??= htmlElement.dataset.url;
     options.rtl ??= getRtlOptionFromHTMLElement(htmlElement);
@@ -2970,6 +3055,10 @@ var TreeElement = (function () {
     options.openedIcon ??= "&#x25bc;";
     return options;
   };
+
+  // No animation when the user asked the system for reduced motion
+  let getDefaultAnimationSpeed = () => prefersReducedMotion() ? 0 : defaults.animationSpeed;
+  let prefersReducedMotion = () => typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let getDefaultClosedIcon = options => {
     if (options.rtl) {
       // triangle to the left
@@ -3009,6 +3098,7 @@ var TreeElement = (function () {
     _classNames;
     _dataLoader;
     _dndHandler;
+    _fallbackTabStop;
     _htmlElement;
     _isInitialized;
     _keyHandler;
@@ -3037,7 +3127,10 @@ var TreeElement = (function () {
       this._isInitialized = false;
       this._tree = new Node({}, true);
       this._nodeMap = new WeakMap();
+      this._fallbackTabStop = null;
       let {
+        ariaLabel,
+        ariaLabelledBy,
         autoEscape,
         buttonLeft,
         closedIcon,
@@ -3064,10 +3157,10 @@ var TreeElement = (function () {
       let closeNode = this.closeNode.bind(this);
       let getNodeElement = this._getNodeElement.bind(this);
       let getNodeElementForNode = this._getNodeElementForNode.bind(this);
+      let getFocusedNode = this._getFocusedNode.bind(this);
       let getNodeById = this.getNodeById.bind(this);
       let getSelectedNode = this.getSelectedNode.bind(this);
       let getTree = this.getTree.bind(this);
-      let isFocusOnTree = this._isFocusOnTree.bind(this);
       let loadData = this.loadData.bind(this);
       let openNode = this.openNode.bind(this);
       let openParents = this._openParents.bind(this);
@@ -3076,6 +3169,7 @@ var TreeElement = (function () {
       let setNodeElement = this._setNodeElement.bind(this);
       let treeElement = this._htmlElement;
       let triggerEvent = this._triggerEvent.bind(this);
+      let updateTabStop = this._updateTabStop.bind(this);
       let saveState = () => {
         saveStateHandler._saveState();
       };
@@ -3086,7 +3180,8 @@ var TreeElement = (function () {
         _getSelectable: () => this._options.selectable,
         _openParents: openParents,
         _saveState: saveState,
-        _triggerEvent: triggerEvent
+        _triggerEvent: triggerEvent,
+        _updateTabStop: updateTabStop
       });
       let addToSelection = selectNodeHandler._addToSelection.bind(selectNodeHandler);
       let getSelectedNodes = selectNodeHandler._getSelectedNodes.bind(selectNodeHandler);
@@ -3139,13 +3234,17 @@ var TreeElement = (function () {
       });
       let keyHandler = new KeyHandler({
         _closeNode: closeNode,
+        _getFocusedNode: getFocusedNode,
         _getSelectedNode: getSelectedNode,
-        _isFocusOnTree: isFocusOnTree,
+        _getTree: getTree,
         _keyboardSupport: keyboardSupport,
         _openNode: openNode,
-        _selectNode: selectNode
+        _selectNode: selectNode,
+        _triggerEvent: triggerEvent
       });
       let renderer = new ElementsRenderer({
+        _ariaLabel: ariaLabel,
+        _ariaLabelledBy: ariaLabelledBy,
         _autoEscape: autoEscape,
         _buttonLeft: buttonLeft,
         _classNames: classNames,
@@ -3244,6 +3343,7 @@ var TreeElement = (function () {
       this._selectNodeHandler._addToSelection(node);
       this._openParents(node);
       this._getNodeElementForNode(node)._select(mustSetFocus);
+      this._updateTabStop();
       this._saveState();
     }
 
@@ -3597,6 +3697,7 @@ var TreeElement = (function () {
     removeFromSelection(node) {
       this._selectNodeHandler._removeFromSelection(node);
       this._getNodeElementForNode(node)._deselect();
+      this._updateTabStop();
       this._saveState();
     }
 
@@ -3642,7 +3743,12 @@ var TreeElement = (function () {
         this._saveStateHandler._saveState();
         return;
       }
-      this._selectNodeHandler._selectSingleNode(node, options);
+
+      // Unlike a click, selecting the selected node again keeps it selected
+      this._selectNodeHandler._selectSingleNode(node, {
+        mustToggle: false,
+        ...options
+      });
     }
 
     /**
@@ -3753,10 +3859,18 @@ var TreeElement = (function () {
       let closedIconElement = this._renderer._closedIconElement;
       let getScrollLeft = this._scrollHandler._getScrollLeft.bind(this._scrollHandler);
       let openedIconElement = this._renderer._openedIconElement;
-      let renderChildren = this._renderer._renderChildren.bind(this._renderer);
       let tabIndex = this._options.tabIndex;
       let treeElement = this._htmlElement;
       let triggerEvent = this._triggerEvent.bind(this);
+
+      // A selected node in a closed folder is rendered when the folder is
+      // opened, which can be after it was selected. It becomes the tab stop
+      // then, so the fallback tab stop must go.
+      let renderChildren = folder => {
+        let ul = this._renderer._renderChildren(folder);
+        this._updateTabStop();
+        return ul;
+      };
       return new FolderElement({
         _classNames: classNames,
         _closedIconElement: closedIconElement,
@@ -3836,6 +3950,30 @@ var TreeElement = (function () {
       /* istanbul ignore next @preserve */
       return 0;
     }
+
+    // The title span of the first node, or null when the tree is empty
+    _getFirstTitleSpan() {
+      let firstElement = this._tree.children[0]?.element;
+      return firstElement ? firstElement.querySelector(`:scope > .${this._classNames.element} > span.${this._classNames.title}`) : null;
+    }
+
+    // The node of the HTML element that has the focus, if it is in this tree
+    _getFocusedNode() {
+      let activeElement = document.activeElement;
+
+      /* istanbul ignore if */
+      if (!activeElement) {
+        return null;
+      }
+
+      // The keyboard must still work for input elements.
+      let tagName = activeElement.tagName;
+      if (tagName !== "A" && tagName !== "SPAN") {
+        return null;
+      }
+      let node = this.getNode(activeElement);
+      return node?.tree === this._tree ? node : null;
+    }
     _getNodeElement(element) {
       let node = this.getNode(element);
       return node ? this._getNodeElementForNode(node) : null;
@@ -3845,6 +3983,9 @@ var TreeElement = (function () {
     }
     _getNodeIdToBeSelected() {
       return this._saveStateHandler._getNodeIdToBeSelected();
+    }
+    _hasRenderedSelectedNode() {
+      return this.getSelectedNodes().some(node => Boolean(node.element));
     }
     _initData() {
       if (this._options.data) {
@@ -3881,20 +4022,7 @@ var TreeElement = (function () {
 
     // Does an HTML element of the tree have the focus?
     _isFocusOnTree() {
-      let activeElement = document.activeElement;
-
-      /* istanbul ignore if */
-      if (!activeElement) {
-        return false;
-      }
-
-      // The keyboard must still work for input elements.
-      let tagName = activeElement.tagName;
-      if (tagName !== "A" && tagName !== "SPAN") {
-        return false;
-      }
-      let node = this.getNode(activeElement);
-      return node?.tree === this._tree;
+      return this._getFocusedNode() !== null;
     }
     _isSelectedNodeInSubtree(subtree) {
       let selectedNode = this.getSelectedNode();
@@ -3903,6 +4031,13 @@ var TreeElement = (function () {
     async _loadFolderOnDemand(node, slide) {
       node.is_loading = true;
       await this.loadDataFromUrl(undefined, node);
+
+      // Loading failed, or there is no url. Opening the node now would load it
+      // again, without end. Leave it closed so the user can try again.
+      if (node.load_on_demand) {
+        node.is_loading = false;
+        return;
+      }
       await this.openNode(node, slide);
     }
     _loadSubtree(data, parentNode) {
@@ -3957,6 +4092,7 @@ var TreeElement = (function () {
       if (mustSelect) {
         this._selectCurrentNode(mustSetFocus);
       }
+      this._updateTabStop();
       this._triggerEvent("tree.refresh");
     }
     _saveState() {
@@ -4029,6 +4165,23 @@ var TreeElement = (function () {
     }
     _triggerEvent(eventName, values) {
       return this._triggerEventProvider(this._htmlElement, eventName, values);
+    }
+
+    /* Keyboard users reach the tree through the tab stop. The selected node is
+     * the tab stop, see NodeElement.select. Without a selected node, the first
+     * node is the tab stop, so the tree can always be reached.
+     */
+    _updateTabStop() {
+      let tabIndex = this._options.tabIndex;
+      let previousTabStop = this._fallbackTabStop;
+      let tabStop = tabIndex == null || this._hasRenderedSelectedNode() ? null : this._getFirstTitleSpan();
+      if (previousTabStop && previousTabStop !== tabStop && previousTabStop.getAttribute("aria-selected") !== "true") {
+        previousTabStop.setAttribute("tabindex", "-1");
+      }
+      if (tabStop && tabIndex != null) {
+        tabStop.setAttribute("tabindex", String(tabIndex));
+      }
+      this._fallbackTabStop = tabStop;
     }
   }
 

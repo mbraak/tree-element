@@ -95,6 +95,23 @@ export interface TreeEvents {
     originalEvent: MouseEvent;
   };
   /**
+   * Dispatched when `Enter` is pressed on the selected node, or on the
+   * focused node when no node is selected. Use it for what a click on a
+   * link would do, like opening the edit page of the node:
+   *
+   * ```js
+   * element.addEventListener("tree.activate", (e) => {
+   *   window.location.href = e.detail.node.url;
+   * });
+   * ```
+   *
+   * @group Keyboard
+   */
+  "tree.activate": {
+    node: Node;
+    originalEvent: KeyboardEvent;
+  };
+  /**
    * Dispatched when a folder is opened, after the animation.
    *
    * @group Opening and closing
@@ -135,8 +152,8 @@ export interface TreeEvents {
   };
   /**
    * Dispatched when the selected node is deselected, which happens when it
-   * is clicked again or passed to `selectNode` again. No `tree.select` is
-   * dispatched for it.
+   * is clicked again or passed to `selectNode` again with
+   * `mustToggle: true`. No `tree.select` is dispatched for it.
    *
    * ```js
    * element.addEventListener("tree.deselect", (e) => {
@@ -146,7 +163,7 @@ export interface TreeEvents {
    *
    * Selecting another node does not dispatch it — that is a `tree.select`
    * with the previous node in `deselectedNode`. It is also not dispatched
-   * with `mustToggle: false`, or by `selectNode(null)`,
+   * by `selectNode` without `mustToggle: true`, `selectNode(null)`,
    * `removeFromSelection`, `removeNode`, `loadData` and restoring a saved
    * state.
    *

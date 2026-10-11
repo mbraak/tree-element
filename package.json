@@ -1,6 +1,6 @@
 {
   "name": "tree-element",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Tree widget in plain javascript",
   "keywords": [
     "tree"
@@ -61,6 +61,7 @@
     "docs-check": "kiira check"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@babel/cli": "^8.0.6",
     "@babel/core": "^8.0.7",
     "@babel/preset-env": "^8.0.7",

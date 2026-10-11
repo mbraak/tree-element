@@ -50,6 +50,7 @@ export default class TreeElement {
   private classNames: ClassNames;
   private dataLoader: DataLoader;
   private dndHandler: DragAndDropHandler;
+  private fallbackTabStop: HTMLElement | null;
   private htmlElement: HTMLElement;
   private isInitialized: boolean;
   private keyHandler: KeyHandler;
@@ -80,8 +81,11 @@ export default class TreeElement {
     this.isInitialized = false;
     this.tree = new Node({}, true);
     this.nodeMap = new WeakMap();
+    this.fallbackTabStop = null;
 
     const {
+      ariaLabel,
+      ariaLabelledBy,
       autoEscape,
       buttonLeft,
       closedIcon,
@@ -109,10 +113,10 @@ export default class TreeElement {
     const closeNode = this.closeNode.bind(this);
     const getNodeElement = this.getNodeElement.bind(this);
     const getNodeElementForNode = this.getNodeElementForNode.bind(this);
+    const getFocusedNode = this.getFocusedNode.bind(this);
     const getNodeById = this.getNodeById.bind(this);
     const getSelectedNode = this.getSelectedNode.bind(this);
     const getTree = this.getTree.bind(this);
-    const isFocusOnTree = this.isFocusOnTree.bind(this);
     const loadData = this.loadData.bind(this);
     const openNode = this.openNode.bind(this);
     const openParents = this.openParents.bind(this);
@@ -121,6 +125,7 @@ export default class TreeElement {
     const setNodeElement = this.setNodeElement.bind(this);
     const treeElement = this.htmlElement;
     const triggerEvent = this.triggerEvent.bind(this);
+    const updateTabStop = this.updateTabStop.bind(this);
 
     const saveState = () => {
       saveStateHandler.saveState();
@@ -134,6 +139,7 @@ export default class TreeElement {
       openParents,
       saveState,
       triggerEvent,
+      updateTabStop,
     });
 
     const addToSelection =
@@ -199,14 +205,18 @@ export default class TreeElement {
 
     const keyHandler = new KeyHandler({
       closeNode,
+      getFocusedNode,
       getSelectedNode,
-      isFocusOnTree,
+      getTree,
       keyboardSupport,
       openNode,
       selectNode,
+      triggerEvent,
     });
 
     const renderer = new ElementsRenderer({
+      ariaLabel,
+      ariaLabelledBy,
       autoEscape,
       buttonLeft,
       classNames,
@@ -317,6 +327,7 @@ export default class TreeElement {
 
     this.getNodeElementForNode(node).select(mustSetFocus);
 
+    this.updateTabStop();
     this.saveState();
   }
 
@@ -700,6 +711,7 @@ export default class TreeElement {
     this.selectNodeHandler.removeFromSelection(node);
 
     this.getNodeElementForNode(node).deselect();
+    this.updateTabStop();
     this.saveState();
   }
 
@@ -748,7 +760,11 @@ export default class TreeElement {
       return;
     }
 
-    this.selectNodeHandler.selectSingleNode(node, options);
+    // Unlike a click, selecting the selected node again keeps it selected
+    this.selectNodeHandler.selectSingleNode(node, {
+      mustToggle: false,
+      ...options,
+    });
   }
 
   /**
@@ -880,10 +896,18 @@ export default class TreeElement {
       this.scrollHandler,
     );
     const openedIconElement = this.renderer.openedIconElement;
-    const renderChildren = this.renderer.renderChildren.bind(this.renderer);
     const tabIndex = this.options.tabIndex;
     const treeElement = this.htmlElement;
     const triggerEvent = this.triggerEvent.bind(this);
+
+    // A selected node in a closed folder is rendered when the folder is
+    // opened, which can be after it was selected. It becomes the tab stop
+    // then, so the fallback tab stop must go.
+    const renderChildren = (folder: Node) => {
+      const ul = this.renderer.renderChildren(folder);
+      this.updateTabStop();
+      return ul;
+    };
 
     return new FolderElement({
       classNames,
@@ -976,6 +1000,36 @@ export default class TreeElement {
     return 0;
   }
 
+  // The title span of the first node, or null when the tree is empty
+  private getFirstTitleSpan(): HTMLElement | null {
+    const firstElement = this.tree.children[0]?.element;
+
+    return firstElement
+      ? firstElement.querySelector<HTMLElement>(
+          `:scope > .${this.classNames.element} > span.${this.classNames.title}`,
+        )
+      : null;
+  }
+
+  // The node of the HTML element that has the focus, if it is in this tree
+  private getFocusedNode(): Node | null {
+    const activeElement = document.activeElement;
+
+    /* istanbul ignore if */
+    if (!activeElement) {
+      return null;
+    }
+
+    // The keyboard must still work for input elements.
+    const tagName = activeElement.tagName;
+    if (tagName !== "A" && tagName !== "SPAN") {
+      return null;
+    }
+
+    const node = this.getNode(activeElement as HTMLElement);
+    return node?.tree === this.tree ? node : null;
+  }
+
   private getNodeElement(element: HTMLElement): NodeElement | null {
     const node = this.getNode(element);
     return node ? this.getNodeElementForNode(node) : null;
@@ -989,6 +1043,10 @@ export default class TreeElement {
 
   private getNodeIdToBeSelected(): NodeId | null {
     return this.saveStateHandler.getNodeIdToBeSelected();
+  }
+
+  private hasRenderedSelectedNode(): boolean {
+    return this.getSelectedNodes().some((node) => Boolean(node.element));
   }
 
   private initData(): void {
@@ -1035,21 +1093,7 @@ export default class TreeElement {
 
   // Does an HTML element of the tree have the focus?
   private isFocusOnTree(): boolean {
-    const activeElement = document.activeElement;
-
-    /* istanbul ignore if */
-    if (!activeElement) {
-      return false;
-    }
-
-    // The keyboard must still work for input elements.
-    const tagName = activeElement.tagName;
-    if (tagName !== "A" && tagName !== "SPAN") {
-      return false;
-    }
-
-    const node = this.getNode(activeElement as HTMLElement);
-    return node?.tree === this.tree;
+    return this.getFocusedNode() !== null;
   }
 
   private isSelectedNodeInSubtree(subtree: Node): boolean {
@@ -1064,6 +1108,13 @@ export default class TreeElement {
     node.is_loading = true;
 
     await this.loadDataFromUrl(undefined, node);
+
+    // Loading failed, or there is no url. Opening the node now would load it
+    // again, without end. Leave it closed so the user can try again.
+    if (node.load_on_demand) {
+      node.is_loading = false;
+      return;
+    }
 
     await this.openNode(node, slide);
   }
@@ -1137,6 +1188,8 @@ export default class TreeElement {
     if (mustSelect) {
       this.selectCurrentNode(mustSetFocus);
     }
+
+    this.updateTabStop();
 
     this.triggerEvent("tree.refresh");
   }
@@ -1225,6 +1278,33 @@ export default class TreeElement {
     values?: TreeEvents[Name],
   ): boolean {
     return this.triggerEventProvider(this.htmlElement, eventName, values);
+  }
+
+  /* Keyboard users reach the tree through the tab stop. The selected node is
+   * the tab stop, see NodeElement.select. Without a selected node, the first
+   * node is the tab stop, so the tree can always be reached.
+   */
+  private updateTabStop(): void {
+    const tabIndex = this.options.tabIndex;
+    const previousTabStop = this.fallbackTabStop;
+    const tabStop =
+      tabIndex == null || this.hasRenderedSelectedNode()
+        ? null
+        : this.getFirstTitleSpan();
+
+    if (
+      previousTabStop &&
+      previousTabStop !== tabStop &&
+      previousTabStop.getAttribute("aria-selected") !== "true"
+    ) {
+      previousTabStop.setAttribute("tabindex", "-1");
+    }
+
+    if (tabStop && tabIndex != null) {
+      tabStop.setAttribute("tabindex", String(tabIndex));
+    }
+
+    this.fallbackTabStop = tabStop;
   }
 }
 

@@ -6,6 +6,8 @@ import type { IconElement, OnCreateLi } from "./options";
 import { getBoolString } from "./util";
 
 interface ElementsRendererParams {
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
   autoEscape: boolean;
   buttonLeft: boolean;
   classNames: ClassNames;
@@ -36,6 +38,8 @@ interface ElementsRendererParams {
 export default class ElementsRenderer {
   public closedIconElement?: globalThis.Node;
   public openedIconElement?: globalThis.Node;
+  private ariaLabel?: string;
+  private ariaLabelledBy?: string;
   private autoEscape: boolean;
   private buttonLeft: boolean;
   private classNames: ClassNames;
@@ -55,6 +59,8 @@ export default class ElementsRenderer {
   private tabIndex?: number;
 
   constructor({
+    ariaLabel,
+    ariaLabelledBy,
     autoEscape,
     buttonLeft,
     classNames,
@@ -70,6 +76,8 @@ export default class ElementsRenderer {
     showEmptyFolder,
     tabIndex,
   }: ElementsRendererParams) {
+    this.ariaLabel = ariaLabel;
+    this.ariaLabelledBy = ariaLabelledBy;
     this.autoEscape = autoEscape;
     this.buttonLeft = buttonLeft;
     this.classNames = classNames;
@@ -194,11 +202,7 @@ export default class ElementsRenderer {
       li.classList.add(this.classNames.selected);
     }
 
-    if (node.is_loading) {
-      li.classList.add(this.classNames.loading);
-    }
-
-    // li > div > [button link], title span, [button link]
+    // li > div > [toggler], title span, [toggler]
     const div = li.firstChild as HTMLDivElement;
     const titleSpan = div.childNodes[
       this.buttonLeft ? 1 : 0
@@ -206,11 +210,16 @@ export default class ElementsRenderer {
 
     this.fillTitleSpan(titleSpan, node.name, isSelected, level);
 
+    if (node.is_loading) {
+      li.classList.add(this.classNames.loading);
+      titleSpan.setAttribute("aria-busy", "true");
+    }
+
     return li;
   }
 
   /* Template for a folder <li>:
-   *   li > div > [button link], title span, [button link]
+   *   li > div > [toggler], title span, [toggler]
    * The toggler icon and the aria-expanded attribute depend on the open
    * state, so there is a template for each.
    */
@@ -224,20 +233,22 @@ export default class ElementsRenderer {
     const li = this.createLiTemplate(liClasses.join(" "));
     const div = li.firstChild as HTMLDivElement;
 
-    // button link
-    const buttonLink = document.createElement("a");
-    buttonLink.className = this.getButtonClasses(isOpen);
+    // The toggler is hidden from screen readers: the icon is decoration, and
+    // aria-expanded on the treeitem has the open state.
+    const toggler = document.createElement("span");
+    toggler.className = this.getButtonClasses(isOpen);
+    toggler.setAttribute("aria-hidden", "true");
 
     const iconElement = isOpen
       ? this.openedIconElement
       : this.closedIconElement;
 
     if (iconElement) {
-      buttonLink.append(iconElement.cloneNode(true));
+      toggler.append(iconElement.cloneNode(true));
     }
 
     if (this.buttonLeft) {
-      div.append(buttonLink);
+      div.append(toggler);
     }
 
     // title span
@@ -246,7 +257,7 @@ export default class ElementsRenderer {
     div.append(titleSpan);
 
     if (!this.buttonLeft) {
-      div.append(buttonLink);
+      div.append(toggler);
     }
 
     return li;
@@ -339,6 +350,11 @@ export default class ElementsRenderer {
     titleSpan.setAttribute("role", "treeitem");
     titleSpan.setAttribute("aria-selected", "false");
 
+    // Every node is focusable, but only the tab stop is in the tab order
+    if (this.tabIndex !== undefined) {
+      titleSpan.setAttribute("tabindex", "-1");
+    }
+
     return titleSpan;
   }
 
@@ -367,6 +383,16 @@ export default class ElementsRenderer {
 
     ul.setAttribute("role", role);
 
+    if (isRootNode) {
+      if (this.ariaLabel !== undefined) {
+        ul.setAttribute("aria-label", this.ariaLabel);
+      }
+
+      if (this.ariaLabelledBy !== undefined) {
+        ul.setAttribute("aria-labelledby", this.ariaLabelledBy);
+      }
+    }
+
     return ul;
   }
 
@@ -379,7 +405,6 @@ export default class ElementsRenderer {
     isSelected: boolean,
     level: number,
   ): void {
-    titleSpan.setAttribute("aria-label", nodeName);
     titleSpan.setAttribute("aria-level", String(level));
 
     if (isSelected) {
