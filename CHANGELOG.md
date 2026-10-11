@@ -6,6 +6,12 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Fixed
+
+- A relative `dataUrl`, such as `api/nodes.json`, is resolved against the page
+  instead of the root of the site. This makes it work when the page is in a
+  subdirectory, for example on GitHub Pages.
+
 ## 0.3.0 - 2026-10-11
 
 ### Added
