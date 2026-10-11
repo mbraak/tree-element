@@ -47,8 +47,8 @@ be too — or be specific enough to win.
 
 ## Class names
 
-| Class                     | Applied to                                                   |
-| ------------------------- | ------------------------------------------------------------ |
+| Class                        | Applied to                                                   |
+| ---------------------------- | ------------------------------------------------------------ |
 | `tree-element`               | The root `ul`.                                               |
 | `tree-element-common`        | Every element the widget creates.                            |
 | `tree-element-element`       | The `div` that wraps a node's toggler and title.             |
@@ -86,7 +86,9 @@ The markup from the top of this page then looks like this:
 <ul class="my-tree-common my-tree" role="tree">
   <li class="my-tree-common my-tree-folder" role="none">
     <div class="my-tree-element my-tree-common" role="none">
-      <span class="my-tree-toggler my-tree-common my-tree-toggler-left" aria-hidden="true"
+      <span
+        class="my-tree-toggler my-tree-common my-tree-toggler-left"
+        aria-hidden="true"
         >►</span
       >
       <span
@@ -125,20 +127,45 @@ Note that `tree_element.css` has the default prefix baked in: a tree with anothe
 until you provide your own css. Take `css/tree_element.postcss` as the starting point — replacing
 `tree-element` in it with your prefix gives you the same stylesheet for your class names.
 
-## Overriding styles
+## Colors
 
-Selection colors, for example:
+The colors are css custom properties. Set them on `:root`, or on an element around the tree to
+change one tree:
+
+| Property                              | Default                             | Used for                                    |
+| ------------------------------------- | ----------------------------------- | ------------------------------------------- |
+| `--tree-element-title-color`          | `#1c4257`                           | The node titles.                            |
+| `--tree-element-toggler-color`        | `#333`                              | The open/close toggler.                     |
+| `--tree-element-toggler-hover-color`  | `#000`                              | The toggler under the mouse.                |
+| `--tree-element-selected-background`  | `linear-gradient(#bee0f5, #89afca)` | The selected row.                           |
+| `--tree-element-selected-color`       | The title color                     | The title of the selected node.             |
+| `--tree-element-selected-text-shadow` | `0 1px 0 rgba(255, 255, 255, 0.7)`  | The title of the selected node.             |
+| `--tree-element-drop-hint-color`      | `#00f`                              | The drop hints while dragging.              |
+| `--tree-element-dragging-color`       | `#fff`                              | The text of the node that is dragged.       |
+| `--tree-element-dragging-background`  | `#000`                              | The background of the node that is dragged. |
+
+The defaults meet the WCAG AA contrast minimums on a white page: the title has at least 4.6:1,
+also on the darkest part of the selected row. Check the contrast when you change them.
+
+The stylesheet has no dark theme, because the tree can't know the background of your page. A dark
+theme for a page with a `#121212` background:
 
 ```css
-ul.tree-element li.tree-element-selected > .tree-element-element,
-ul.tree-element li.tree-element-selected > .tree-element-element:hover {
-  background: #1c4257;
-  color: #fff;
-  text-shadow: none;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tree-element-title-color: #cfe3f1;
+    --tree-element-toggler-color: #a8b3bd;
+    --tree-element-toggler-hover-color: #fff;
+    --tree-element-selected-background: #1f3a52;
+    --tree-element-selected-text-shadow: none;
+    --tree-element-drop-hint-color: #6ea8ff;
+  }
 }
 ```
 
-Indentation:
+## Overriding styles
+
+For anything that isn't a color, override the rules of the stylesheet. Indentation, for example:
 
 ```css
 ul.tree-element ul.tree-element-common {

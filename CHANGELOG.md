@@ -12,6 +12,9 @@ All notable changes to tree-element are documented here. The format is based on
 - The key `Enter` dispatches the new event `tree.activate`, for example to open
   the edit page of the node.
 - The options `ariaLabel` and `ariaLabelledBy` give the tree an accessible name.
+- The colors in `tree_element.css` are css custom properties, such as
+  `--tree-element-title-color`, so you can change them or add a dark theme. See
+  [Styling](https://mbraak.github.io/tree-element/guide/styling#colors).
 
 ### Fixed
 
