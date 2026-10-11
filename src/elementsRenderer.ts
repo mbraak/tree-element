@@ -218,7 +218,7 @@ export default class ElementsRenderer {
   }
 
   /* Template for a folder <li>:
-   *   li > div > [button link], title span, [button link]
+   *   li > div > [toggler], title span, [toggler]
    * The toggler icon and the aria-expanded attribute depend on the open
    * state, so there is a template for each.
    */
@@ -232,20 +232,22 @@ export default class ElementsRenderer {
     const li = this.createLiTemplate(liClasses.join(" "));
     const div = li.firstChild as HTMLDivElement;
 
-    // button link
-    const buttonLink = document.createElement("a");
-    buttonLink.className = this.getButtonClasses(isOpen);
+    // The toggler is hidden from screen readers: the icon is decoration, and
+    // aria-expanded on the treeitem has the open state.
+    const toggler = document.createElement("span");
+    toggler.className = this.getButtonClasses(isOpen);
+    toggler.setAttribute("aria-hidden", "true");
 
     const iconElement = isOpen
       ? this.openedIconElement
       : this.closedIconElement;
 
     if (iconElement) {
-      buttonLink.append(iconElement.cloneNode(true));
+      toggler.append(iconElement.cloneNode(true));
     }
 
     if (this.buttonLeft) {
-      div.append(buttonLink);
+      div.append(toggler);
     }
 
     // title span
@@ -254,7 +256,7 @@ export default class ElementsRenderer {
     div.append(titleSpan);
 
     if (!this.buttonLeft) {
-      div.append(buttonLink);
+      div.append(toggler);
     }
 
     return li;

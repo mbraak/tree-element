@@ -17,9 +17,13 @@ All notable changes to tree-element are documented here. The format is based on
 
 - The tree can be reached with the tab key when no node is selected.
 - Do not set `aria-label` for tree nodes. Rely on the node text instead.
+- Screen readers no longer read the open/close toggler. It has
+  `aria-hidden="true"`; `aria-expanded` on the node already has the state.
 
 ### Changed
 
+- The toggler is a `span` instead of an `a` without `href`. Update css that
+  selects `a.tree-element-toggler`.
 - When the user prefers reduced motion (`prefers-reduced-motion: reduce`),
   folders open and close without animation, unless `animationSpeed` is set.
 - The method `selectNode` keeps an already selected node selected, as

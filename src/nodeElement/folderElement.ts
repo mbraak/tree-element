@@ -144,10 +144,10 @@ class FolderElement extends NodeElement {
     return !this.node.is_open && position === "inside";
   }
 
-  private getButton(): HTMLLinkElement {
+  private getButton(): HTMLElement {
     return this.element.querySelector(
-      `:scope > .${this.classNames.element} > a.${this.classNames.toggler}`,
-    ) as HTMLLinkElement;
+      `:scope > .${this.classNames.element} > .${this.classNames.toggler}`,
+    ) as HTMLElement;
   }
 }
 

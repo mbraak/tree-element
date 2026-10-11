@@ -143,6 +143,7 @@ describe("close", () => {
 
     expect(button.children[0]).toHaveClass("closed-icon");
     expect(button.children[0]).not.toBe(closedIconElement);
+    expect(button).toHaveAttribute("aria-hidden", "true");
   });
 
   it("closes the node with animation", async () => {
@@ -286,6 +287,7 @@ describe("open", () => {
     expect(button.children).toHaveLength(1);
     expect(button.children[0]).toHaveClass("opened-icon");
     expect(button.children[0]).not.toBe(openedIconElement);
+    expect(button).toHaveAttribute("aria-hidden", "true");
   });
 
   it("opens the node with animation", async () => {
