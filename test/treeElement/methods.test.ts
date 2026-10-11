@@ -1262,7 +1262,7 @@ describe("methods", () => {
       expect(treeItem).toBeAriaSelected();
     });
 
-    it("deselects the node when the node is selected twice", () => {
+    it("keeps the node selected when the node is selected twice", () => {
       const tree = createTreeElement({
         data: exampleData,
         selectable: true,
@@ -1271,6 +1271,19 @@ describe("methods", () => {
       const node1 = tree.getNodeByNameMustExist("node1");
       tree.selectNode(node1);
       tree.selectNode(node1);
+
+      expect(tree.getSelectedNode()).toBe(node1);
+    });
+
+    it("deselects the node when the node is selected twice and mustToggle is true", () => {
+      const tree = createTreeElement({
+        data: exampleData,
+        selectable: true,
+      });
+
+      const node1 = tree.getNodeByNameMustExist("node1");
+      tree.selectNode(node1);
+      tree.selectNode(node1, { mustToggle: true });
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 

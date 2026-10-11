@@ -135,8 +135,8 @@ export interface TreeEvents {
   };
   /**
    * Dispatched when the selected node is deselected, which happens when it
-   * is clicked again or passed to `selectNode` again. No `tree.select` is
-   * dispatched for it.
+   * is clicked again or passed to `selectNode` again with
+   * `mustToggle: true`. No `tree.select` is dispatched for it.
    *
    * ```js
    * element.addEventListener("tree.deselect", (e) => {
@@ -146,7 +146,7 @@ export interface TreeEvents {
    *
    * Selecting another node does not dispatch it — that is a `tree.select`
    * with the previous node in `deselectedNode`. It is also not dispatched
-   * with `mustToggle: false`, or by `selectNode(null)`,
+   * by `selectNode` without `mustToggle: true`, `selectNode(null)`,
    * `removeFromSelection`, `removeNode`, `loadData` and restoring a saved
    * state.
    *

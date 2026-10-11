@@ -754,7 +754,11 @@ export default class TreeElement {
       return;
     }
 
-    this.selectNodeHandler.selectSingleNode(node, options);
+    // Unlike a click, selecting the selected node again keeps it selected
+    this.selectNodeHandler.selectSingleNode(node, {
+      mustToggle: false,
+      ...options,
+    });
   }
 
   /**
