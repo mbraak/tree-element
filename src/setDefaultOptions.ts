@@ -1,3 +1,4 @@
+import type { AnimationSpeed } from "./animation";
 import type { TreeElementOptions } from "./options";
 
 import { DEFAULT_CLASS_PREFIX } from "./classNames";
@@ -47,7 +48,11 @@ const setDefaultOptions = (
   htmlElement: HTMLElement,
   inputOptions: Partial<TreeElementOptions>,
 ): TreeElementOptions => {
-  const options = { ...defaults, ...inputOptions };
+  const options = {
+    ...defaults,
+    ...inputOptions,
+    animationSpeed: inputOptions.animationSpeed ?? getDefaultAnimationSpeed(),
+  };
 
   options.dataUrl ??= htmlElement.dataset.url;
   options.rtl ??= getRtlOptionFromHTMLElement(htmlElement);
@@ -56,6 +61,14 @@ const setDefaultOptions = (
 
   return options;
 };
+
+// No animation when the user asked the system for reduced motion
+const getDefaultAnimationSpeed = (): AnimationSpeed =>
+  prefersReducedMotion() ? 0 : defaults.animationSpeed;
+
+const prefersReducedMotion = (): boolean =>
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const getDefaultClosedIcon = (options: TreeElementOptions): string => {
   if (options.rtl) {

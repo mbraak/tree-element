@@ -61,6 +61,55 @@ describe("setDefaultOptions", () => {
     });
   });
 
+  describe("animationSpeed", () => {
+    const stubReducedMotion = (matches: boolean) => {
+      const matchMedia = vi.fn((query: string) => ({
+        matches: matches && query === "(prefers-reduced-motion: reduce)",
+      }));
+      vi.stubGlobal("matchMedia", matchMedia);
+    };
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("sets animationSpeed to fast by default", () => {
+      stubReducedMotion(false);
+      const element = document.createElement("div");
+
+      const options = setDefaultOptions(element, {});
+
+      expect(options.animationSpeed).toBe("fast");
+    });
+
+    it("sets animationSpeed to 0 when the user prefers reduced motion", () => {
+      stubReducedMotion(true);
+      const element = document.createElement("div");
+
+      const options = setDefaultOptions(element, {});
+
+      expect(options.animationSpeed).toBe(0);
+    });
+
+    it("keeps animationSpeed when it is set in the options", () => {
+      stubReducedMotion(true);
+      const element = document.createElement("div");
+
+      const options = setDefaultOptions(element, { animationSpeed: "slow" });
+
+      expect(options.animationSpeed).toBe("slow");
+    });
+
+    it("sets animationSpeed to fast when matchMedia is not available", () => {
+      vi.stubGlobal("matchMedia", undefined);
+      const element = document.createElement("div");
+
+      const options = setDefaultOptions(element, {});
+
+      expect(options.animationSpeed).toBe("fast");
+    });
+  });
+
   describe("closedIcon", () => {
     it("sets closedIcon to a triangle to the right when rtl is false", () => {
       const element = document.createElement("div");

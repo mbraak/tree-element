@@ -3035,7 +3035,8 @@ var TreeElement = (function () {
   let setDefaultOptions = (htmlElement, inputOptions) => {
     let options = {
       ...defaults,
-      ...inputOptions
+      ...inputOptions,
+      animationSpeed: inputOptions.animationSpeed ?? getDefaultAnimationSpeed()
     };
     options.dataUrl ??= htmlElement.dataset.url;
     options.rtl ??= getRtlOptionFromHTMLElement(htmlElement);
@@ -3043,6 +3044,10 @@ var TreeElement = (function () {
     options.openedIcon ??= "&#x25bc;";
     return options;
   };
+
+  // No animation when the user asked the system for reduced motion
+  let getDefaultAnimationSpeed = () => prefersReducedMotion() ? 0 : defaults.animationSpeed;
+  let prefersReducedMotion = () => typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let getDefaultClosedIcon = options => {
     if (options.rtl) {
       // triangle to the left

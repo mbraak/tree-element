@@ -36,7 +36,8 @@ export interface TreeElementOptions {
    * The duration of the slide animation: `"fast"` is 200ms, `"slow"` is
    * 600ms, a number is milliseconds.
    *
-   * @defaultValue `"fast"`
+   * @defaultValue `"fast"`, or `0` when the user prefers reduced motion
+   * (`prefers-reduced-motion: reduce`).
    * @group Appearance
    */
   animationSpeed: AnimationSpeed;
