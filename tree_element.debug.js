@@ -78,12 +78,17 @@ var TreeElement = (function () {
     async _loadFromUrl(url, node) {
       let element = node?.element ?? this._treeElement;
       element.classList.add(this._classNames.loading);
+
+      // Tell screen readers that the children of the folder are loading
+      let titleSpan = node ? this._getTitleSpan(element) : null;
+      titleSpan?.setAttribute("aria-busy", "true");
       this._triggerEvent("tree.loading_data", {
         element,
         node
       });
       let stopLoading = () => {
         element.classList.remove(this._classNames.loading);
+        titleSpan?.removeAttribute("aria-busy");
         this._triggerEvent("tree.loaded_data", {
           element,
           node
@@ -118,6 +123,9 @@ var TreeElement = (function () {
           error
         });
       });
+    }
+    _getTitleSpan(element) {
+      return element.querySelector(`:scope > .${this._classNames.element} > .${this._classNames.title}`);
     }
   }
 
@@ -762,14 +770,15 @@ var TreeElement = (function () {
       if (isSelected) {
         li.classList.add(this._classNames.selected);
       }
-      if (node.is_loading) {
-        li.classList.add(this._classNames.loading);
-      }
 
-      // li > div > [button link], title span, [button link]
+      // li > div > [toggler], title span, [toggler]
       let div = li.firstChild;
       let titleSpan = div.childNodes[this._buttonLeft ? 1 : 0];
       this._fillTitleSpan(titleSpan, node.name, isSelected, level);
+      if (node.is_loading) {
+        li.classList.add(this._classNames.loading);
+        titleSpan.setAttribute("aria-busy", "true");
+      }
       return li;
     }
 

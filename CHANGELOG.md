@@ -15,6 +15,7 @@ All notable changes to tree-element are documented here. The format is based on
 - The colors in `tree_element.css` are css custom properties, such as
   `--tree-element-title-color`, so you can change them or add a dark theme. See
   [Styling](https://mbraak.github.io/tree-element/guide/styling#colors).
+- A folder's treeitem has `aria-busy="true"` while its children load.
 
 ### Fixed
 

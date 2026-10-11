@@ -6,7 +6,7 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import TreeElement from "treeElement";
 
-import { getTreeButton } from "../support/queries";
+import { getTreeButton, getTreeListElement } from "../support/queries";
 
 describe("load on demand", () => {
   const server = setupServer();
@@ -107,6 +107,56 @@ describe("load on demand", () => {
       });
 
       await screen.findByRole("treeitem", { name: "loaded-on-demand" });
+    });
+
+    it("sets aria-busy on the node while the subtree loads", async () => {
+      // Hold the response back until the test sends "respond"
+      const responses = new EventTarget();
+
+      server.use(
+        http.get("/tree/", async () => {
+          await new Promise((resolve) => {
+            responses.addEventListener("respond", resolve, { once: true });
+          });
+          return HttpResponse.json([{ id: 2, name: "loaded-on-demand" }]);
+        }),
+      );
+
+      createTreeElement({ autoOpen: false });
+
+      const treeItem = screen.getByRole("treeitem", { name: "parent-node" });
+
+      expect(treeItem).not.toHaveAttribute("aria-busy");
+
+      await userEvent.click(getTreeButton(treeItem));
+
+      expect(treeItem).toHaveAttribute("aria-busy", "true");
+
+      responses.dispatchEvent(new Event("respond"));
+      await screen.findByRole("treeitem", { name: "loaded-on-demand" });
+
+      expect(
+        screen.getByRole("treeitem", { name: "parent-node" }),
+      ).not.toHaveAttribute("aria-busy");
+    });
+
+    it("removes aria-busy when loading the subtree fails", async () => {
+      server.use(
+        http.get("/tree/", () => new HttpResponse(null, { status: 500 })),
+      );
+
+      createTreeElement({ autoOpen: false });
+
+      const treeItem = screen.getByRole("treeitem", { name: "parent-node" });
+      await userEvent.click(getTreeButton(treeItem));
+
+      await waitFor(() => {
+        expect(getTreeListElement(treeItem)).not.toHaveClass(
+          "tree-element-loading",
+        );
+      });
+
+      expect(treeItem).not.toHaveAttribute("aria-busy");
     });
 
     it("doesn't load the subtree again when loading fails", async () => {
