@@ -1,3 +1,19 @@
+/*
+  Colors. Override them on :root or on an element around the tree, for example
+  for a dark theme. :where keeps the specificity at 0, so any rule wins.
+  --tree-element-selected-color defaults to --tree-element-title-color.
+*/
+:where(:root) {
+  --tree-element-title-color: #1c4257;
+  --tree-element-toggler-color: #333;
+  --tree-element-toggler-hover-color: #000;
+  --tree-element-selected-background: linear-gradient(#bee0f5, #89afca);
+  --tree-element-selected-text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  --tree-element-drop-hint-color: #00f;
+  --tree-element-dragging-color: #fff;
+  --tree-element-dragging-background: #000;
+}
+
 ul.tree-element {
   list-style: none outside;
   margin-left: 0;
@@ -28,12 +44,12 @@ ul.tree-element {
 
   .tree-element-toggler {
     border-bottom: none;
-    color: #333;
+    color: var(--tree-element-toggler-color);
     text-decoration: none;
     vertical-align: middle;
 
     &:hover {
-      color: #000;
+      color: var(--tree-element-toggler-hover-color);
       text-decoration: none;
     }
 
@@ -61,7 +77,7 @@ ul.tree-element {
   }
 
   .tree-element-title {
-    color: #1c4257;
+    color: var(--tree-element-title-color);
     vertical-align: middle;
   }
 
@@ -91,7 +107,7 @@ ul.tree-element {
     }
 
     span.tree-element-circle {
-      border: solid 2px #0000ff;
+      border: solid 2px var(--tree-element-drop-hint-color);
       border-radius: 100px;
       height: 8px;
       width: 8px;
@@ -102,7 +118,7 @@ ul.tree-element {
     }
 
     span.tree-element-line {
-      background-color: #0000ff;
+      background-color: var(--tree-element-drop-hint-color);
       height: 2px;
       padding: 0;
       position: absolute;
@@ -121,7 +137,7 @@ ul.tree-element {
     display: block;
     left: -2px;
     top: 0;
-    border: solid 2px #0000ff;
+    border: solid 2px var(--tree-element-drop-hint-color);
     border-radius: 6px;
     margin: 0;
     box-sizing: content-box;
@@ -129,13 +145,16 @@ ul.tree-element {
 
   li.tree-element-selected > .tree-element-element,
   li.tree-element-selected > .tree-element-element:hover {
-    background-color: #97bdd6;
-    background: linear-gradient(#bee0f5, #89afca);
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+    background: var(--tree-element-selected-background);
+    text-shadow: var(--tree-element-selected-text-shadow);
+  }
+
+  li.tree-element-selected > .tree-element-element .tree-element-title {
+    color: var(--tree-element-selected-color, var(--tree-element-title-color));
   }
 
   .tree-element-moving > .tree-element-element .tree-element-title {
-    outline: dashed 1px #0000ff;
+    outline: dashed 1px var(--tree-element-drop-hint-color);
   }
 }
 
@@ -185,8 +204,8 @@ ul.tree-element.tree-element-rtl {
 }
 
 span.tree-element-dragging {
-  color: #fff;
-  background: #000;
+  color: var(--tree-element-dragging-color);
+  background: var(--tree-element-dragging-background);
   opacity: 0.6;
   cursor: pointer;
   padding: 2px 8px;
