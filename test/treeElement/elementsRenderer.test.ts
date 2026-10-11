@@ -622,7 +622,7 @@ describe("renderFromRoot", () => {
 
     renderer.renderFromRoot();
 
-    const treeItem = getTreeItem("<span>test</span>");
+    const treeItem = getTreeItem("test");
 
     // eslint-disable-next-line testing-library/no-node-access
     expect(treeItem.querySelector("span")).toHaveTextContent("test");

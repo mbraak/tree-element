@@ -908,7 +908,6 @@ var TreeElement = (function () {
     Set the parts of a cloned title span that differ per node
     */
     _fillTitleSpan(titleSpan, nodeName, isSelected, level) {
-      titleSpan.setAttribute("aria-label", nodeName);
       titleSpan.setAttribute("aria-level", String(level));
       if (isSelected) {
         titleSpan.setAttribute("aria-selected", "true");
