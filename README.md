@@ -88,7 +88,7 @@ new TreeElement({
 | `autoOpen`        | `false`                 | `true` opens everything, a number opens that many levels (`0` is the first level) |
 | `buttonLeft`      | `true`                  | Put the open/close button left of the title                                       |
 | `classPrefix`     | `"tree-element"`        | The prefix of all css classes                                                     |
-| `closedIcon`      | `►` (`◄` in rtl)        | Html string or element                                                            |
+| `closedIcon`      | svg triangle ▶ (◀ rtl)  | Html string or element                                                            |
 | `commonClassName` | `"tree-element-common"` | The class that every element gets                                                 |
 | `data`            |                         | The nodes to display                                                              |
 | `dataFilter`      |                         | Transforms the response of `dataUrl` into node data                               |
@@ -97,7 +97,7 @@ new TreeElement({
 | `keyboardSupport` | `true`                  | Navigate with the keyboard                                                        |
 | `nodeClass`       | `Node`                  | Subclass of `Node` to use for nodes                                               |
 | `openFolderDelay` | `500`                   | Milliseconds before a folder opens while dragging over it. `false` disables it    |
-| `openedIcon`      | `▼`                     | Html string or element                                                            |
+| `openedIcon`      | svg triangle ▼          | Html string or element                                                            |
 | `rtl`             | `data-rtl` attribute    | Right-to-left rendering                                                           |
 | `saveState`       | `false`                 | `true`, or a string to use as the storage key                                     |
 | `selectable`      | `true`                  | Allow selecting nodes                                                             |
