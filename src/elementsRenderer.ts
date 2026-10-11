@@ -402,7 +402,6 @@ export default class ElementsRenderer {
     isSelected: boolean,
     level: number,
   ): void {
-    titleSpan.setAttribute("aria-label", nodeName);
     titleSpan.setAttribute("aria-level", String(level));
 
     if (isSelected) {

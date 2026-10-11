@@ -16,6 +16,7 @@ All notable changes to tree-element are documented here. The format is based on
 ### Fixed
 
 - The tree can be reached with the tab key when no node is selected.
+- Do not set `aria-label` for tree nodes. Rely on the node text instead.
 
 ### Changed
 
