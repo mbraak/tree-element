@@ -18,6 +18,10 @@ export default defineConfig({
       { link: "/guide/getting-started", text: "Guide" },
       { link: "/reference/options", text: "Reference" },
       { link: "/changelog", text: "Changelog" },
+      {
+        link: "https://github.com/mbraak/tree-element-example",
+        text: "Example",
+      },
       { link: "https://github.com/mbraak/tree-element", text: "GitHub" },
     ],
     search: {
