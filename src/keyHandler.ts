@@ -1,7 +1,7 @@
 import type {
   CloseNode,
+  GetFocusedNode,
   GetSelectedNode,
-  IsFocusOnTree,
   OpenNode,
   SelectNode,
 } from "./methodTypes";
@@ -9,8 +9,8 @@ import type { Node } from "./node";
 
 interface KeyHandlerParams {
   closeNode: CloseNode;
+  getFocusedNode: GetFocusedNode;
   getSelectedNode: GetSelectedNode;
-  isFocusOnTree: IsFocusOnTree;
   keyboardSupport: boolean;
   openNode: OpenNode;
   selectNode: SelectNode;
@@ -18,9 +18,8 @@ interface KeyHandlerParams {
 
 export default class KeyHandler {
   private closeNode: CloseNode;
+  private getFocusedNode: GetFocusedNode;
   private getSelectedNode: GetSelectedNode;
-
-  private isFocusOnTree: IsFocusOnTree;
 
   private keyboardSupport: boolean;
   private openNode: OpenNode;
@@ -28,15 +27,15 @@ export default class KeyHandler {
 
   constructor({
     closeNode,
+    getFocusedNode,
     getSelectedNode,
-    isFocusOnTree,
     keyboardSupport,
     openNode,
     selectNode,
   }: KeyHandlerParams) {
     this.closeNode = closeNode;
+    this.getFocusedNode = getFocusedNode;
     this.getSelectedNode = getSelectedNode;
-    this.isFocusOnTree = isFocusOnTree;
     this.keyboardSupport = keyboardSupport;
     this.openNode = openNode;
     this.originalSelectNode = selectNode;
@@ -60,12 +59,10 @@ export default class KeyHandler {
     return this.selectNode(this.getSelectedNode()?.getPreviousVisibleNode());
   }
 
-  private canHandleKeyboard(): boolean {
-    return this.keyboardSupport && this.isFocusOnTree();
-  }
-
   private handleKeyDown = (e: KeyboardEvent): void => {
-    if (!this.canHandleKeyboard()) {
+    const focusedNode = this.getFocusedNode();
+
+    if (!focusedNode) {
       return;
     }
 
@@ -91,6 +88,17 @@ export default class KeyHandler {
 
         case "ArrowUp": {
           isKeyHandled = this.moveUp();
+          break;
+        }
+      }
+    } else {
+      // No node is selected. These keys select the focused node, which is
+      // usually the first node, see TreeElement.updateTabStop.
+      switch (e.key) {
+        case " ":
+        case "ArrowDown":
+        case "ArrowRight": {
+          isKeyHandled = this.selectNode(focusedNode);
           break;
         }
       }

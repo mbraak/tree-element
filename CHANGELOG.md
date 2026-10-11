@@ -6,6 +6,10 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Fixed
+
+- The tree can be reached with the tab key when no node is selected.
+
 ### Changed
 
 - The methods `closeNode` and `toggle` return a promise that is resolved when

@@ -6,6 +6,8 @@ export type AddToSelection = (node: Node) => void;
 
 export type CloseNode = (node: Node) => Promise<void>;
 
+export type GetFocusedNode = () => Node | null;
+
 export type GetNodeById = (nodeId: NodeId) => Node | null;
 
 export type GetNodeElementForNode = (node: Node) => NodeElement;
@@ -17,8 +19,6 @@ export type GetSelectedNode = () => Node | null;
 export type GetSelectedNodes = () => Node[];
 
 export type GetTree = () => Node | null;
-
-export type IsFocusOnTree = () => boolean;
 
 export type IsNodeSelected = (node: Node) => boolean;
 

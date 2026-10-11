@@ -302,7 +302,8 @@ export interface TreeElementOptions {
   startDndDelay?: number;
   /**
    * The `tabindex` of the selected node's title, which is what makes the
-   * tree focusable.
+   * tree focusable. When no node is selected, the first node gets it. The
+   * other nodes get `-1`.
    *
    * @defaultValue `0`
    * @group Selection

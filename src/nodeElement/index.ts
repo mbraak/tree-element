@@ -53,7 +53,12 @@ class NodeElement {
     this.element.classList.remove(this.classNames.selected);
 
     const titleSpan = this.getTitleSpan();
-    titleSpan.removeAttribute("tabindex");
+
+    // Check for null or undefined
+    if (this.tabIndex != null) {
+      titleSpan.setAttribute("tabindex", "-1");
+    }
+
     titleSpan.setAttribute("aria-selected", "false");
 
     titleSpan.blur();

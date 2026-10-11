@@ -532,7 +532,7 @@ describe("renderFromRoot", () => {
     renderer.renderFromRoot();
 
     expect(getTreeItem("child1")).toHaveAttribute("tabindex", "11");
-    expect(getTreeItem("child2")).not.toHaveAttribute("tabindex");
+    expect(getTreeItem("child2")).toHaveAttribute("tabindex", "-1");
   });
 
   it("doesn't set a tab index when the tabIndex option is undefined", () => {
@@ -544,6 +544,7 @@ describe("renderFromRoot", () => {
     renderer.renderFromRoot();
 
     expect(getTreeItem("child1")).not.toHaveAttribute("tabindex");
+    expect(getTreeItem("child2")).not.toHaveAttribute("tabindex");
   });
 
   it("escapes the node name when autoEscape is true", () => {

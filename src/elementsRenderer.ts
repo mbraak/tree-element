@@ -339,6 +339,11 @@ export default class ElementsRenderer {
     titleSpan.setAttribute("role", "treeitem");
     titleSpan.setAttribute("aria-selected", "false");
 
+    // Every node is focusable, but only the tab stop is in the tab order
+    if (this.tabIndex !== undefined) {
+      titleSpan.setAttribute("tabindex", "-1");
+    }
+
     return titleSpan;
   }
 

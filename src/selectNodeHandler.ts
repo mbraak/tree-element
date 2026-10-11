@@ -20,6 +20,7 @@ interface SelectNodeHandlerParameters {
   openParents: OpenParents;
   saveState: () => void;
   triggerEvent: TriggerEvent;
+  updateTabStop: () => void;
 }
 
 export default class SelectNodeHandler {
@@ -32,6 +33,7 @@ export default class SelectNodeHandler {
   private selectedNodes: Set<NodeId>;
   private selectedSingleNode: Node | null;
   private triggerEvent: TriggerEvent;
+  private updateTabStop: () => void;
 
   constructor({
     getNodeById,
@@ -41,6 +43,7 @@ export default class SelectNodeHandler {
     openParents,
     saveState,
     triggerEvent,
+    updateTabStop,
   }: SelectNodeHandlerParameters) {
     this.getNodeById = getNodeById;
     this.getNodeElementForNode = getNodeElementForNode;
@@ -51,6 +54,7 @@ export default class SelectNodeHandler {
     this.selectedNodes = new Set<NodeId>();
     this.selectedSingleNode = null;
     this.triggerEvent = triggerEvent;
+    this.updateTabStop = updateTabStop;
   }
 
   public addToSelection(node: Node): void {
@@ -188,6 +192,7 @@ export default class SelectNodeHandler {
       });
     }
 
+    this.updateTabStop();
     this.saveState();
   }
 }
