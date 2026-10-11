@@ -12,6 +12,8 @@ All notable changes to tree-element are documented here. The format is based on
 
 ### Changed
 
+- The method `selectNode` keeps an already selected node selected, as
+  documented.
 - The methods `closeNode` and `toggle` return a promise that is resolved when
   the folder is closed or opened, like `openNode`. Await it when you need to
   know the animation has finished.

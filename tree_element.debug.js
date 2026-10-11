@@ -3670,7 +3670,12 @@ var TreeElement = (function () {
         this._saveStateHandler._saveState();
         return;
       }
-      this._selectNodeHandler._selectSingleNode(node, options);
+
+      // Unlike a click, selecting the selected node again keeps it selected
+      this._selectNodeHandler._selectSingleNode(node, {
+        mustToggle: false,
+        ...options
+      });
     }
 
     /**

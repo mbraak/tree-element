@@ -296,12 +296,12 @@ describe("events", () => {
 
       const onDeselect = listenToEvent("tree.deselect");
 
-      tree.selectNode(node1);
+      tree.selectNode(node1, { mustToggle: true });
 
       expect(onDeselect).toHaveBeenCalledExactlyOnceWith({ node: node1 });
     });
 
-    it("does not fire tree.deselect when mustToggle is false", () => {
+    it("does not fire tree.deselect when the selected node is passed to selectNode again", () => {
       const tree = createTreeElement({ data: exampleData });
 
       const node1 = tree.getNodeByNameMustExist("node1");
@@ -309,7 +309,7 @@ describe("events", () => {
 
       const onDeselect = listenToEvent("tree.deselect");
 
-      tree.selectNode(node1, { mustToggle: false });
+      tree.selectNode(node1);
 
       expect(onDeselect).not.toHaveBeenCalled();
     });
