@@ -202,17 +202,18 @@ export default class ElementsRenderer {
       li.classList.add(this.classNames.selected);
     }
 
-    if (node.is_loading) {
-      li.classList.add(this.classNames.loading);
-    }
-
-    // li > div > [button link], title span, [button link]
+    // li > div > [toggler], title span, [toggler]
     const div = li.firstChild as HTMLDivElement;
     const titleSpan = div.childNodes[
       this.buttonLeft ? 1 : 0
     ] as HTMLSpanElement;
 
     this.fillTitleSpan(titleSpan, node.name, isSelected, level);
+
+    if (node.is_loading) {
+      li.classList.add(this.classNames.loading);
+      titleSpan.setAttribute("aria-busy", "true");
+    }
 
     return li;
   }

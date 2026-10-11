@@ -558,6 +558,8 @@ describe("renderFromRoot", () => {
     expect(getTreeListElement(getTreeItem("node2"))).not.toHaveClass(
       "tree-element-loading",
     );
+    expect(getTreeItem("node1")).toHaveAttribute("aria-busy", "true");
+    expect(getTreeItem("node2")).not.toHaveAttribute("aria-busy");
   });
 
   it("renders a selected folder", () => {
