@@ -2,8 +2,10 @@ import type {
   CloseNode,
   GetFocusedNode,
   GetSelectedNode,
+  GetTree,
   OpenNode,
   SelectNode,
+  TriggerEvent,
 } from "./methodTypes";
 import type { Node } from "./node";
 
@@ -11,34 +13,42 @@ interface KeyHandlerParams {
   closeNode: CloseNode;
   getFocusedNode: GetFocusedNode;
   getSelectedNode: GetSelectedNode;
+  getTree: GetTree;
   keyboardSupport: boolean;
   openNode: OpenNode;
   selectNode: SelectNode;
+  triggerEvent: TriggerEvent;
 }
 
 export default class KeyHandler {
   private closeNode: CloseNode;
   private getFocusedNode: GetFocusedNode;
   private getSelectedNode: GetSelectedNode;
+  private getTree: GetTree;
 
   private keyboardSupport: boolean;
   private openNode: OpenNode;
   private originalSelectNode: SelectNode;
+  private triggerEvent: TriggerEvent;
 
   constructor({
     closeNode,
     getFocusedNode,
     getSelectedNode,
+    getTree,
     keyboardSupport,
     openNode,
     selectNode,
+    triggerEvent,
   }: KeyHandlerParams) {
     this.closeNode = closeNode;
     this.getFocusedNode = getFocusedNode;
     this.getSelectedNode = getSelectedNode;
+    this.getTree = getTree;
     this.keyboardSupport = keyboardSupport;
     this.openNode = openNode;
     this.originalSelectNode = selectNode;
+    this.triggerEvent = triggerEvent;
 
     if (keyboardSupport) {
       document.addEventListener("keydown", this.handleKeyDown);
@@ -59,6 +69,36 @@ export default class KeyHandler {
     return this.selectNode(this.getSelectedNode()?.getPreviousVisibleNode());
   }
 
+  // Activate the node, for example to open its edit page.
+  private activate(node: Node, originalEvent: KeyboardEvent): boolean {
+    this.triggerEvent("tree.activate", { node, originalEvent });
+    return true;
+  }
+
+  private handleArrowKey(key: string): boolean {
+    switch (key) {
+      case "ArrowDown": {
+        return this.moveDown();
+      }
+
+      case "ArrowLeft": {
+        return this.moveLeft();
+      }
+
+      case "ArrowRight": {
+        return this.moveRight();
+      }
+
+      case "ArrowUp": {
+        return this.moveUp();
+      }
+
+      default: {
+        return false;
+      }
+    }
+  }
+
   private handleKeyDown = (e: KeyboardEvent): void => {
     const focusedNode = this.getFocusedNode();
 
@@ -66,41 +106,31 @@ export default class KeyHandler {
       return;
     }
 
-    let isKeyHandled = false;
+    let isKeyHandled: boolean;
 
     const selectedNode = this.getSelectedNode();
-    if (selectedNode) {
-      switch (e.key) {
-        case "ArrowDown": {
-          isKeyHandled = this.moveDown();
-          break;
-        }
 
-        case "ArrowLeft": {
-          isKeyHandled = this.moveLeft();
-          break;
-        }
-
-        case "ArrowRight": {
-          isKeyHandled = this.moveRight();
-          break;
-        }
-
-        case "ArrowUp": {
-          isKeyHandled = this.moveUp();
-          break;
-        }
+    switch (e.key) {
+      case "End": {
+        isKeyHandled = this.selectNode(this.getTree()?.getLastChild());
+        break;
       }
-    } else {
-      // No node is selected. These keys select the focused node, which is
-      // usually the first node, see TreeElement.updateTabStop.
-      switch (e.key) {
-        case " ":
-        case "ArrowDown":
-        case "ArrowRight": {
-          isKeyHandled = this.selectNode(focusedNode);
-          break;
-        }
+
+      case "Enter": {
+        // Without a selected node, activate the focused node
+        isKeyHandled = this.activate(selectedNode ?? focusedNode, e);
+        break;
+      }
+
+      case "Home": {
+        isKeyHandled = this.selectNode(this.getTree()?.children[0]);
+        break;
+      }
+
+      default: {
+        isKeyHandled = selectedNode
+          ? this.handleArrowKey(e.key)
+          : this.handleKeyWithoutSelection(e.key, focusedNode);
       }
     }
 
@@ -108,6 +138,22 @@ export default class KeyHandler {
       e.preventDefault();
     }
   };
+
+  // No node is selected. These keys select the focused node, which is
+  // usually the first node, see TreeElement.updateTabStop.
+  private handleKeyWithoutSelection(key: string, focusedNode: Node): boolean {
+    switch (key) {
+      case " ":
+      case "ArrowDown":
+      case "ArrowRight": {
+        return this.selectNode(focusedNode);
+      }
+
+      default: {
+        return false;
+      }
+    }
+  }
 
   private moveLeft(): boolean {
     const selectedNode = this.getSelectedNode();

@@ -92,7 +92,7 @@ new TreeElement({
 | `dataFilter`      |                         | Transforms the response of `dataUrl` into node data                               |
 | `dataUrl`         | `data-url` attribute    | Url, or a function returning a url                                                |
 | `dragAndDrop`     | `false`                 | Enable drag and drop                                                              |
-| `keyboardSupport` | `true`                  | Navigate with the arrow keys                                                      |
+| `keyboardSupport` | `true`                  | Navigate with the keyboard                                                        |
 | `nodeClass`       | `Node`                  | Subclass of `Node` to use for nodes                                               |
 | `openFolderDelay` | `500`                   | Milliseconds before a folder opens while dragging over it. `false` disables it    |
 | `openedIcon`      | `▼`                     | Html string or element                                                            |
@@ -137,6 +137,7 @@ element.addEventListener("tree.select", (e) => {
 | `tree.click`        | `node`, `originalEvent`                                                                            |
 | `tree.dblclick`     | `node`, `originalEvent`                                                                            |
 | `tree.contextmenu`  | `node`, `originalEvent`                                                                            |
+| `tree.activate`     | `node`, `originalEvent`                                                                            |
 | `tree.select`       | `node`, `deselectedNode`                                                                           |
 | `tree.deselect`     | `node`                                                                                             |
 | `tree.open`         | `node`                                                                                             |

@@ -20,6 +20,7 @@ const EVENT_NAMES = [
   "tree.click",
   "tree.dblclick",
   "tree.contextmenu",
+  "tree.activate",
   "tree.select",
   "tree.deselect",
   "tree.open",

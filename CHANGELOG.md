@@ -6,6 +6,12 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Added
+
+- The keys `Home` and `End` select the first and the last visible node.
+- The key `Enter` dispatches the new event `tree.activate`, for example to open
+  the edit page of the node.
+
 ### Fixed
 
 - The tree can be reached with the tab key when no node is selected.
