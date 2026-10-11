@@ -129,7 +129,7 @@ export interface TreeElementOptions {
    */
   dragAndDrop: boolean;
   /**
-   * Handle the arrow keys when the focus is on the tree. See
+   * Handle the keyboard when the focus is on the tree. See
    * [Selection](/guide/selection#keyboard-navigation).
    *
    * @defaultValue `true`

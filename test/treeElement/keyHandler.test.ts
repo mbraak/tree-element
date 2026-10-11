@@ -2,8 +2,10 @@ import type {
   CloseNode,
   GetFocusedNode,
   GetSelectedNode,
+  GetTree,
   OpenNode,
   SelectNode,
+  TriggerEvent,
 } from "treeElement/methodTypes";
 
 import KeyHandler from "treeElement/keyHandler";
@@ -16,26 +18,32 @@ interface CreateKeyHandlerParams {
   closeNode?: CloseNode;
   getFocusedNode?: GetFocusedNode;
   getSelectedNode?: GetSelectedNode;
+  getTree?: GetTree;
   keyboardSupport?: boolean;
   openNode?: OpenNode;
   selectNode?: SelectNode;
+  triggerEvent?: TriggerEvent;
 }
 
 const createKeyHandler = ({
   closeNode = vi.fn(),
   getFocusedNode = vi.fn(() => new Node({ name: "focused" })),
   getSelectedNode = vi.fn(() => null),
+  getTree = vi.fn(() => null),
   keyboardSupport = true,
   openNode = vi.fn(() => Promise.resolve()),
   selectNode = vi.fn(),
+  triggerEvent = vi.fn(() => true),
 }: CreateKeyHandlerParams = {}) =>
   new KeyHandler({
     closeNode,
     getFocusedNode,
     getSelectedNode,
+    getTree,
     keyboardSupport,
     openNode,
     selectNode,
+    triggerEvent,
   });
 
 const pressKey = (key: string) => {
@@ -280,7 +288,7 @@ describe("KeyHandler", () => {
       },
     );
 
-    it.each(["ArrowLeft", "ArrowUp", "Enter"])(
+    it.each(["ArrowLeft", "ArrowUp"])(
       "ignores %j when no node is selected",
       (key) => {
         const selectNode = vi.fn();
@@ -296,7 +304,7 @@ describe("KeyHandler", () => {
       },
     );
 
-    it("ignores keys that are not arrow keys", () => {
+    it("ignores keys that it does not handle", () => {
       const node1 = tree.getNodeByNameMustExist("node1");
       const selectNode = vi.fn();
 
@@ -305,7 +313,7 @@ describe("KeyHandler", () => {
         selectNode,
       });
 
-      const event = pressKey("Enter");
+      const event = pressKey("Tab");
 
       expect(selectNode).not.toHaveBeenCalled();
       expect(event.defaultPrevented).toBeFalse();
@@ -501,6 +509,163 @@ describe("KeyHandler", () => {
         expect(openNode).not.toHaveBeenCalled();
         expect(selectNode).not.toHaveBeenCalled();
         expect(event.defaultPrevented).toBeFalse();
+
+        keyHandler.deinit();
+      });
+    });
+
+    describe("Home", () => {
+      it("selects the first node", () => {
+        const child1 = tree.getNodeByNameMustExist("child1");
+        const selectNode = vi.fn();
+
+        const keyHandler = createKeyHandler({
+          getSelectedNode: () => child1,
+          getTree: () => tree,
+          selectNode,
+        });
+
+        const event = pressKey("Home");
+
+        expect(selectNode).toHaveBeenCalledWith(
+          tree.getNodeByNameMustExist("node1"),
+        );
+        expect(event.defaultPrevented).toBeTrue();
+
+        keyHandler.deinit();
+      });
+
+      it("selects the first node when no node is selected", () => {
+        const selectNode = vi.fn();
+
+        const keyHandler = createKeyHandler({
+          getTree: () => tree,
+          selectNode,
+        });
+
+        pressKey("Home");
+
+        expect(selectNode).toHaveBeenCalledWith(
+          tree.getNodeByNameMustExist("node1"),
+        );
+
+        keyHandler.deinit();
+      });
+
+      it("does nothing for an empty tree", () => {
+        const selectNode = vi.fn();
+
+        const keyHandler = createKeyHandler({
+          getTree: () => new Node(),
+          selectNode,
+        });
+
+        const event = pressKey("Home");
+
+        expect(selectNode).not.toHaveBeenCalled();
+        expect(event.defaultPrevented).toBeFalse();
+
+        keyHandler.deinit();
+      });
+    });
+
+    describe("End", () => {
+      it("selects the last visible node", () => {
+        const node1 = tree.getNodeByNameMustExist("node1");
+        const selectNode = vi.fn();
+
+        const keyHandler = createKeyHandler({
+          getSelectedNode: () => node1,
+          getTree: () => tree,
+          selectNode,
+        });
+
+        const event = pressKey("End");
+
+        expect(selectNode).toHaveBeenCalledWith(
+          tree.getNodeByNameMustExist("node2"),
+        );
+        expect(event.defaultPrevented).toBeTrue();
+
+        keyHandler.deinit();
+      });
+
+      it("selects the last child of an open folder", () => {
+        const node1 = tree.getNodeByNameMustExist("node1");
+        tree.getNodeByNameMustExist("node2").is_open = true;
+        const selectNode = vi.fn();
+
+        const keyHandler = createKeyHandler({
+          getSelectedNode: () => node1,
+          getTree: () => tree,
+          selectNode,
+        });
+
+        pressKey("End");
+
+        expect(selectNode).toHaveBeenCalledWith(
+          tree.getNodeByNameMustExist("node3"),
+        );
+
+        keyHandler.deinit();
+      });
+
+      it("does nothing for an empty tree", () => {
+        const selectNode = vi.fn();
+
+        const keyHandler = createKeyHandler({
+          getTree: () => new Node(),
+          selectNode,
+        });
+
+        const event = pressKey("End");
+
+        expect(selectNode).not.toHaveBeenCalled();
+        expect(event.defaultPrevented).toBeFalse();
+
+        keyHandler.deinit();
+      });
+    });
+
+    describe("Enter", () => {
+      it("triggers tree.activate for the selected node", () => {
+        const node1 = tree.getNodeByNameMustExist("node1");
+        const triggerEvent = vi.fn(() => true);
+
+        const keyHandler = createKeyHandler({
+          getSelectedNode: () => node1,
+          triggerEvent,
+        });
+
+        const event = pressKey("Enter");
+
+        expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.activate", {
+          node: node1,
+          originalEvent: event,
+        });
+        expect(event.defaultPrevented).toBeTrue();
+
+        keyHandler.deinit();
+      });
+
+      it("triggers tree.activate for the focused node when no node is selected", () => {
+        const node2 = tree.getNodeByNameMustExist("node2");
+        const selectNode = vi.fn();
+        const triggerEvent = vi.fn(() => true);
+
+        const keyHandler = createKeyHandler({
+          getFocusedNode: () => node2,
+          selectNode,
+          triggerEvent,
+        });
+
+        const event = pressKey("Enter");
+
+        expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.activate", {
+          node: node2,
+          originalEvent: event,
+        });
+        expect(selectNode).not.toHaveBeenCalled();
 
         keyHandler.deinit();
       });

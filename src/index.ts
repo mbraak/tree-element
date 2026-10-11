@@ -205,9 +205,11 @@ export default class TreeElement {
       closeNode,
       getFocusedNode,
       getSelectedNode,
+      getTree,
       keyboardSupport,
       openNode,
       selectNode,
+      triggerEvent,
     });
 
     const renderer = new ElementsRenderer({

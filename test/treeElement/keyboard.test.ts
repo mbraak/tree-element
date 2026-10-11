@@ -3,6 +3,7 @@ import type { TreeElementOptions } from "treeElement/options";
 import { screen } from "@testing-library/dom";
 import { userEvent } from "@testing-library/user-event";
 import TreeElement from "treeElement";
+import { vi } from "vitest";
 
 import exampleData from "../support/exampleData";
 
@@ -228,6 +229,58 @@ describe("keyboard support", () => {
     });
   });
 
+  describe("with the home key", () => {
+    it("selects the first node", async () => {
+      const tree = createTreeElement({ autoOpen: true });
+
+      tree.selectNode(tree.getNodeByNameMustExist("child3"));
+
+      await userEvent.keyboard("{Home}");
+
+      expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
+    });
+  });
+
+  describe("with the end key", () => {
+    it("selects the last visible node", async () => {
+      const tree = createTreeElement({ autoOpen: true });
+
+      tree.selectNode(tree.getNodeByNameMustExist("node1"));
+
+      await userEvent.keyboard("{End}");
+
+      expect(tree.getSelectedNode()).toMatchObject({ name: "child3" });
+    });
+
+    it("skips the children of closed folders", async () => {
+      const tree = createTreeElement();
+
+      tree.selectNode(tree.getNodeByNameMustExist("node1"));
+
+      await userEvent.keyboard("{End}");
+
+      expect(tree.getSelectedNode()).toMatchObject({ name: "node2" });
+    });
+  });
+
+  describe("with the enter key", () => {
+    it("dispatches tree.activate for the selected node", async () => {
+      const tree = createTreeElement();
+      const onActivate = vi.fn();
+      htmlElement.addEventListener("tree.activate", (e) => {
+        onActivate(e.detail.node, e.detail.originalEvent.key);
+      });
+
+      const node2 = tree.getNodeByNameMustExist("node2");
+      tree.selectNode(node2);
+
+      await userEvent.keyboard("{Enter}");
+
+      expect(onActivate).toHaveBeenCalledExactlyOnceWith(node2, "Enter");
+      expect(tree.getSelectedNode()).toBe(node2);
+    });
+  });
+
   describe("with page up key", () => {
     it("does nothing", async () => {
       const tree = createTreeElement();
@@ -285,6 +338,41 @@ describe("keyboard support", () => {
         expect(getTreeItem("node1")).toHaveFocus();
       },
     );
+
+    it("selects the first node with the home key", async () => {
+      const tree = createTreeElement();
+
+      await userEvent.tab();
+      await userEvent.keyboard("{Home}");
+
+      expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
+    });
+
+    it("selects the last node with the end key", async () => {
+      const tree = createTreeElement();
+
+      await userEvent.tab();
+      await userEvent.keyboard("{End}");
+
+      expect(tree.getSelectedNode()).toMatchObject({ name: "node2" });
+      expect(getTreeItem("node2")).toHaveFocus();
+    });
+
+    it("activates the focused node with the enter key", async () => {
+      const tree = createTreeElement();
+      const onActivate = vi.fn();
+      htmlElement.addEventListener("tree.activate", (e) => {
+        onActivate(e.detail.node);
+      });
+
+      await userEvent.tab();
+      await userEvent.keyboard("{Enter}");
+
+      expect(onActivate).toHaveBeenCalledExactlyOnceWith(
+        tree.getNodeByNameMustExist("node1"),
+      );
+      expect(tree.getSelectedNode()).toBeNull();
+    });
 
     it("doesn't select the focused node with key up", async () => {
       const tree = createTreeElement();

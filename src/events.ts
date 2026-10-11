@@ -95,6 +95,23 @@ export interface TreeEvents {
     originalEvent: MouseEvent;
   };
   /**
+   * Dispatched when `Enter` is pressed on the selected node, or on the
+   * focused node when no node is selected. Use it for what a click on a
+   * link would do, like opening the edit page of the node:
+   *
+   * ```js
+   * element.addEventListener("tree.activate", (e) => {
+   *   window.location.href = e.detail.node.url;
+   * });
+   * ```
+   *
+   * @group Keyboard
+   */
+  "tree.activate": {
+    node: Node;
+    originalEvent: KeyboardEvent;
+  };
+  /**
    * Dispatched when a folder is opened, after the animation.
    *
    * @group Opening and closing
