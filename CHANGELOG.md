@@ -20,6 +20,8 @@ All notable changes to tree-element are documented here. The format is based on
 
 ### Changed
 
+- When the user prefers reduced motion (`prefers-reduced-motion: reduce`),
+  folders open and close without animation, unless `animationSpeed` is set.
 - The method `selectNode` keeps an already selected node selected, as
   documented.
 - The methods `closeNode` and `toggle` return a promise that is resolved when

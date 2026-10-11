@@ -81,7 +81,7 @@ new TreeElement({
 
 | Option            | Default                 | Description                                                                       |
 | ----------------- | ----------------------- | --------------------------------------------------------------------------------- |
-| `animationSpeed`  | `"fast"`                | `"fast"`, `"slow"`, or a number of milliseconds                                   |
+| `animationSpeed`  | `"fast"`                | `"fast"`, `"slow"`, or a number of milliseconds. `0` for reduced motion           |
 | `ariaLabel`       |                         | The accessible name of the tree                                                   |
 | `ariaLabelledBy`  |                         | The id of the element that names the tree                                         |
 | `autoEscape`      | `true`                  | Escape node names. Set to `false` to render html in a name                        |

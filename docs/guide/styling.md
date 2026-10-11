@@ -254,6 +254,10 @@ new TreeElement({
 });
 ```
 
+When the user prefers reduced motion — `prefers-reduced-motion: reduce`, set in the system settings —
+the default `animationSpeed` is `0`, so folders open and close instantly. Setting `animationSpeed`
+yourself overrides this.
+
 This tree has `slide: false`, so folders open and close instantly:
 
 <TreeDemo demo="withoutSlide" />
