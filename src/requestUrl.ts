@@ -1,23 +1,11 @@
-// Url class for absolute and relative urls.
-
-const isAbsoluteUrl = (inputUrl: string) => {
-  return URL.canParse(inputUrl);
-};
-
-const LOCALHOST = "http://localhost";
+// Url of a request. A relative url is resolved against the page, like a link
+// or `fetch` would, so it also works when the page is in a subdirectory.
 
 class RequestUrl {
-  private isAbsolute: boolean;
   private url: URL;
 
   constructor(inputUrl: string) {
-    if (isAbsoluteUrl(inputUrl)) {
-      this.url = new URL(inputUrl);
-      this.isAbsolute = true;
-    } else {
-      this.url = new URL(inputUrl, LOCALHOST);
-      this.isAbsolute = false;
-    }
+    this.url = new URL(inputUrl, document.baseURI);
   }
 
   setSearchParam(key: string, value: string) {
@@ -25,9 +13,7 @@ class RequestUrl {
   }
 
   value() {
-    return this.isAbsolute
-      ? this.url.href
-      : this.url.href.slice(LOCALHOST.length);
+    return this.url.href;
   }
 }
 
