@@ -3781,10 +3781,18 @@ var TreeElement = (function () {
       let closedIconElement = this._renderer._closedIconElement;
       let getScrollLeft = this._scrollHandler._getScrollLeft.bind(this._scrollHandler);
       let openedIconElement = this._renderer._openedIconElement;
-      let renderChildren = this._renderer._renderChildren.bind(this._renderer);
       let tabIndex = this._options.tabIndex;
       let treeElement = this._htmlElement;
       let triggerEvent = this._triggerEvent.bind(this);
+
+      // A selected node in a closed folder is rendered when the folder is
+      // opened, which can be after it was selected. It becomes the tab stop
+      // then, so the fallback tab stop must go.
+      let renderChildren = folder => {
+        let ul = this._renderer._renderChildren(folder);
+        this._updateTabStop();
+        return ul;
+      };
       return new FolderElement({
         _classNames: classNames,
         _closedIconElement: closedIconElement,

@@ -304,6 +304,19 @@ describe("keyboard support", () => {
       expect(getTreeItem("node2")).toHaveAttribute("tabindex", "0");
     });
 
+    it("moves the tab stop to a selected node in closed folders", async () => {
+      const tree = createTreeElement();
+
+      // child3 is in node3, which is in node2. Both folders are closed, so
+      // child3 is rendered after selectNode returns.
+      tree.selectNode(tree.getNodeByNameMustExist("child3"));
+
+      const child3 = await screen.findByRole("treeitem", { name: "child3" });
+
+      expect(child3).toHaveAttribute("tabindex", "0");
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "-1");
+    });
+
     it("moves the tab stop back to the first node when the node is deselected", () => {
       const tree = createTreeElement();
 
