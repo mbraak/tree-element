@@ -69,3 +69,57 @@ jobs:
         with:
           directory: .nyc_output
           verbose: true
+
+  # Font rendering differs per platform, so the screenshots are also compared
+  # on Windows. Missing win32 snapshots are written and uploaded; the job
+  # fails until they are committed.
+  windows-playwright:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v7
+      - name: Setup node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v6
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Install packages
+        run: |
+          pnpm install
+      - name: Playwright install
+        run: npx playwright install chromium
+      - name: Build
+        run: COVERAGE=true npx rollup --config config/rollup.config.mjs
+      - name: Run playwright tests
+        run: npx playwright test --config config/playwright.config.js --update-snapshots=missing
+      - name: Windows snapshots artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: ignore
+          name: windows-snapshots
+          path: playwright/playwright.test.ts-snapshots/*-win32.png
+      - name: Screenshots artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: ignore
+          name: windows-screenshots
+          path: test-results/
