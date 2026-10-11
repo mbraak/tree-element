@@ -97,8 +97,8 @@ export interface TreeElementOptions {
    *
    * Type: `HTMLElement | string`
    *
-   * @defaultValue `"&#x25ba;"` (`►`), or `"&#x25c0;"` (`◀`) when `rtl` is
-   * true.
+   * @defaultValue An svg triangle pointing right, or left when `rtl` is
+   * true. It is sized in em and filled with `currentColor`.
    * @group Appearance
    */
   closedIcon?: IconElement;
@@ -258,7 +258,8 @@ export interface TreeElementOptions {
    *
    * Type: `HTMLElement | string`
    *
-   * @defaultValue `"&#x25bc;"` (`▼`)
+   * @defaultValue An svg triangle pointing down, sized in em and filled with
+   * `currentColor`.
    * @group Appearance
    */
   openedIcon?: IconElement;

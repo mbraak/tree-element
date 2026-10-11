@@ -6,12 +6,21 @@ import { userEvent } from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import TreeElement from "treeElement";
+import { triangleLeft, triangleRight } from "treeElement/setDefaultOptions";
 import { vi } from "vitest";
 
 import exampleData from "../support/exampleData";
 import { getTreeButton, getTreeListElement } from "../support/queries";
 
 const server = setupServer();
+
+// The html of an icon after a round trip through the parser, to compare it
+// with the innerHTML of a toggler
+const parseIcon = (html: string): string => {
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  return template.innerHTML;
+};
 
 describe("options", () => {
   let htmlElement: HTMLElement;
@@ -284,14 +293,14 @@ describe("options", () => {
 
     it("renders a html entity", () => {
       createTreeElement({
-        closedIcon: "&#x25ba;",
+        closedIcon: "&#x25b6;",
         data: exampleData,
       });
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
       const button = getTreeButton(treeItem);
 
-      expect(button).toHaveTextContent("►");
+      expect(button).toHaveTextContent("▶");
     });
 
     it("renders a html element", () => {
@@ -320,7 +329,7 @@ describe("options", () => {
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
       const button = getTreeButton(treeItem);
 
-      expect(button).toHaveTextContent("►");
+      expect(button.innerHTML).toBe(parseIcon(triangleRight));
     });
   });
 
@@ -574,7 +583,7 @@ describe("options", () => {
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
       const button = getTreeButton(treeItem);
 
-      expect(button).toHaveTextContent("◀");
+      expect(button.innerHTML).toBe(parseIcon(triangleLeft));
     });
 
     it("has the default closed icon when the rtl option is false", () => {
@@ -583,7 +592,7 @@ describe("options", () => {
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
       const button = getTreeButton(treeItem);
 
-      expect(button).toHaveTextContent("►");
+      expect(button.innerHTML).toBe(parseIcon(triangleRight));
     });
 
     it("has a different closed icon when the rtl data option is true", () => {
@@ -593,7 +602,7 @@ describe("options", () => {
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
       const button = getTreeButton(treeItem);
 
-      expect(button).toHaveTextContent("◀");
+      expect(button.innerHTML).toBe(parseIcon(triangleLeft));
     });
 
     it("has the default closed icon when the rtl data option is false", () => {
@@ -603,7 +612,7 @@ describe("options", () => {
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
       const button = getTreeButton(treeItem);
 
-      expect(button).toHaveTextContent("►");
+      expect(button.innerHTML).toBe(parseIcon(triangleRight));
     });
 
     it("has a different closed icon when the rtl data option has no value", () => {
@@ -613,7 +622,7 @@ describe("options", () => {
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
       const button = getTreeButton(treeItem);
 
-      expect(button).toHaveTextContent("◀");
+      expect(button.innerHTML).toBe(parseIcon(triangleLeft));
     });
   });
 
