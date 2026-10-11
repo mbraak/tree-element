@@ -43,7 +43,17 @@ ul.tree-element li.tree-element-common {
     list-style-type: none;
   }
 
+/* The toggler and the row are at least 24px: the WCAG minimum for
+     something you click. The space around the icon separates the toggler
+     from the title, so it has no margin. */
+
 ul.tree-element .tree-element-toggler {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 24px;
+    min-height: 24px;
     border-bottom: none;
     color: var(--tree-element-toggler-color);
     text-decoration: none;
@@ -59,18 +69,12 @@ ul.tree-element .tree-element-toggler.tree-element-closed {
       background-position: 0 0;
     }
 
-ul.tree-element .tree-element-toggler.tree-element-toggler-left {
-      margin-right: 0.5em;
-    }
-
-ul.tree-element .tree-element-toggler.tree-element-toggler-right {
-      margin-left: 0.5em;
-    }
-
 ul.tree-element .tree-element-element {
     cursor: pointer;
     position: relative;
     display: flex;
+    align-items: center;
+    min-height: 24px;
   }
 
 ul.tree-element .tree-element-element:has(.tree-element-title-button-right) {
@@ -82,8 +86,10 @@ ul.tree-element .tree-element-title {
     vertical-align: middle;
   }
 
+/* Line up with the titles of folders, after the toggler */
+
 ul.tree-element .tree-element-title-button-left {
-    margin-left: 1.5em;
+    margin-left: 24px;
   }
 
 ul.tree-element .tree-element-title-button-left.tree-element-title-folder {
@@ -167,14 +173,9 @@ ul.tree-element.tree-element-rtl ul.tree-element-common {
     margin-right: 12px;
   }
 
-ul.tree-element.tree-element-rtl .tree-element-toggler {
-    margin-left: 0.5em;
-    margin-right: 0;
-  }
-
 ul.tree-element.tree-element-rtl .tree-element-title {
     margin-left: 0;
-    margin-right: 1.5em;
+    margin-right: 24px;
   }
 
 ul.tree-element.tree-element-rtl .tree-element-title.tree-element-title-folder {

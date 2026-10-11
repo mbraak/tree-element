@@ -25,6 +25,10 @@ All notable changes to tree-element are documented here. The format is based on
 
 ### Changed
 
+- The toggler and the rows are at least 24px high, and the toggler is at least
+  24px wide: the WCAG 2.5.8 minimum for click targets. This makes the tree a
+  bit taller. The toggler no longer has a margin; the space around its icon
+  separates it from the title.
 - The toggler is a `span` instead of an `a` without `href`. Update css that
   selects `a.tree-element-toggler`.
 - When the user prefers reduced motion (`prefers-reduced-motion: reduce`),
