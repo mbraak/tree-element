@@ -41,6 +41,20 @@ export interface TreeElementOptions {
    */
   animationSpeed: AnimationSpeed;
   /**
+   * The accessible name of the tree, set as `aria-label` on the root `ul`.
+   * Use `ariaLabelledBy` instead when the name is visible on the page.
+   *
+   * @group Appearance
+   */
+  ariaLabel?: string;
+  /**
+   * The id of the element that names the tree, set as `aria-labelledby` on
+   * the root `ul`.
+   *
+   * @group Appearance
+   */
+  ariaLabelledBy?: string;
+  /**
    * Escape node names. With `false`, names are inserted as html — only do
    * that for data you control.
    *

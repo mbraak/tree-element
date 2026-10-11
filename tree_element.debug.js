@@ -654,6 +654,8 @@ var TreeElement = (function () {
    */
   class ElementsRenderer {
     constructor({
+      _ariaLabel: ariaLabel,
+      _ariaLabelledBy: ariaLabelledBy,
       _autoEscape: autoEscape,
       _buttonLeft: buttonLeft,
       _classNames: classNames,
@@ -669,6 +671,8 @@ var TreeElement = (function () {
       _showEmptyFolder: showEmptyFolder,
       _tabIndex: tabIndex
     }) {
+      this._ariaLabel = ariaLabel;
+      this._ariaLabelledBy = ariaLabelledBy;
       this._autoEscape = autoEscape;
       this._buttonLeft = buttonLeft;
       this._classNames = classNames;
@@ -889,6 +893,14 @@ var TreeElement = (function () {
       let ul = document.createElement("ul");
       ul.className = `${this._classNames.common} ${classString}`;
       ul.setAttribute("role", role);
+      if (isRootNode) {
+        if (this._ariaLabel !== undefined) {
+          ul.setAttribute("aria-label", this._ariaLabel);
+        }
+        if (this._ariaLabelledBy !== undefined) {
+          ul.setAttribute("aria-labelledby", this._ariaLabelledBy);
+        }
+      }
       return ul;
     }
 
@@ -938,16 +950,20 @@ var TreeElement = (function () {
       _closeNode: closeNode,
       _getFocusedNode: getFocusedNode,
       _getSelectedNode: getSelectedNode,
+      _getTree: getTree,
       _keyboardSupport: keyboardSupport,
       _openNode: openNode,
-      _selectNode: selectNode
+      _selectNode: selectNode,
+      _triggerEvent: triggerEvent
     }) {
       this._closeNode = closeNode;
       this._getFocusedNode = getFocusedNode;
       this._getSelectedNode = getSelectedNode;
+      this._getTree = getTree;
       this._keyboardSupport = keyboardSupport;
       this._openNode = openNode;
       this._originalSelectNode = selectNode;
+      this._triggerEvent = triggerEvent;
       if (keyboardSupport) {
         document.addEventListener("keydown", this._handleKeyDown);
       }
@@ -963,53 +979,89 @@ var TreeElement = (function () {
     _moveUp() {
       return this._selectNode(this._getSelectedNode()?.getPreviousVisibleNode());
     }
+
+    // Activate the node, for example to open its edit page.
+    _activate(node, originalEvent) {
+      this._triggerEvent("tree.activate", {
+        node,
+        originalEvent
+      });
+      return true;
+    }
+    _handleArrowKey(key) {
+      switch (key) {
+        case "ArrowDown":
+          {
+            return this._moveDown();
+          }
+        case "ArrowLeft":
+          {
+            return this._moveLeft();
+          }
+        case "ArrowRight":
+          {
+            return this._moveRight();
+          }
+        case "ArrowUp":
+          {
+            return this._moveUp();
+          }
+        default:
+          {
+            return false;
+          }
+      }
+    }
     _handleKeyDown = e => {
       let focusedNode = this._getFocusedNode();
       if (!focusedNode) {
         return;
       }
-      let isKeyHandled = false;
+      let isKeyHandled;
       let selectedNode = this._getSelectedNode();
-      if (selectedNode) {
-        switch (e.key) {
-          case "ArrowDown":
-            {
-              isKeyHandled = this._moveDown();
-              break;
-            }
-          case "ArrowLeft":
-            {
-              isKeyHandled = this._moveLeft();
-              break;
-            }
-          case "ArrowRight":
-            {
-              isKeyHandled = this._moveRight();
-              break;
-            }
-          case "ArrowUp":
-            {
-              isKeyHandled = this._moveUp();
-              break;
-            }
-        }
-      } else {
-        // No node is selected. These keys select the focused node, which is
-        // usually the first node, see TreeElement.updateTabStop.
-        switch (e.key) {
-          case " ":
-          case "ArrowDown":
-          case "ArrowRight":
-            {
-              isKeyHandled = this._selectNode(focusedNode);
-              break;
-            }
-        }
+      switch (e.key) {
+        case "End":
+          {
+            isKeyHandled = this._selectNode(this._getTree()?.getLastChild());
+            break;
+          }
+        case "Enter":
+          {
+            // Without a selected node, activate the focused node
+            isKeyHandled = this._activate(selectedNode ?? focusedNode, e);
+            break;
+          }
+        case "Home":
+          {
+            isKeyHandled = this._selectNode(this._getTree()?.children[0]);
+            break;
+          }
+        default:
+          {
+            isKeyHandled = selectedNode ? this._handleArrowKey(e.key) : this._handleKeyWithoutSelection(e.key, focusedNode);
+          }
       }
       if (isKeyHandled) {
         e.preventDefault();
       }
     };
+
+    // No node is selected. These keys select the focused node, which is
+    // usually the first node, see TreeElement.updateTabStop.
+    _handleKeyWithoutSelection(key, focusedNode) {
+      switch (key) {
+        case " ":
+        case "ArrowDown":
+        case "ArrowRight":
+          {
+            return this._selectNode(focusedNode);
+          }
+        default:
+          {
+            return false;
+          }
+      }
+    }
     _moveLeft() {
       let selectedNode = this._getSelectedNode();
 
@@ -3062,6 +3114,8 @@ var TreeElement = (function () {
       this._nodeMap = new WeakMap();
       this._fallbackTabStop = null;
       let {
+        ariaLabel,
+        ariaLabelledBy,
         autoEscape,
         buttonLeft,
         closedIcon,
@@ -3167,11 +3221,15 @@ var TreeElement = (function () {
         _closeNode: closeNode,
         _getFocusedNode: getFocusedNode,
         _getSelectedNode: getSelectedNode,
+        _getTree: getTree,
         _keyboardSupport: keyboardSupport,
         _openNode: openNode,
-        _selectNode: selectNode
+        _selectNode: selectNode,
+        _triggerEvent: triggerEvent
       });
       let renderer = new ElementsRenderer({
+        _ariaLabel: ariaLabel,
+        _ariaLabelledBy: ariaLabelledBy,
         _autoEscape: autoEscape,
         _buttonLeft: buttonLeft,
         _classNames: classNames,

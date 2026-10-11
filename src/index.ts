@@ -84,6 +84,8 @@ export default class TreeElement {
     this.fallbackTabStop = null;
 
     const {
+      ariaLabel,
+      ariaLabelledBy,
       autoEscape,
       buttonLeft,
       closedIcon,
@@ -213,6 +215,8 @@ export default class TreeElement {
     });
 
     const renderer = new ElementsRenderer({
+      ariaLabel,
+      ariaLabelledBy,
       autoEscape,
       buttonLeft,
       classNames,

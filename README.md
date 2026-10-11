@@ -82,6 +82,8 @@ new TreeElement({
 | Option            | Default                 | Description                                                                       |
 | ----------------- | ----------------------- | --------------------------------------------------------------------------------- |
 | `animationSpeed`  | `"fast"`                | `"fast"`, `"slow"`, or a number of milliseconds                                   |
+| `ariaLabel`       |                         | The accessible name of the tree                                                   |
+| `ariaLabelledBy`  |                         | The id of the element that names the tree                                         |
 | `autoEscape`      | `true`                  | Escape node names. Set to `false` to render html in a name                        |
 | `autoOpen`        | `false`                 | `true` opens everything, a number opens that many levels (`0` is the first level) |
 | `buttonLeft`      | `true`                  | Put the open/close button left of the title                                       |
