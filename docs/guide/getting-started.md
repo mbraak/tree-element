@@ -95,6 +95,13 @@ The stylesheet can be imported the same way:
 import "tree-element/tree_element.css";
 ```
 
+## Example project
+
+[tree-element-example](https://github.com/mbraak/tree-element-example) is a small Vite project that
+uses the package from npm, with a page for each topic: the basics and events, drag and drop,
+loading on demand, saving state, styling and accessibility. Clone it to see a complete setup, or to
+start your own project from it.
+
 ## Try it in this repository
 
 The repository contains a dev server with a working example
