@@ -109,6 +109,26 @@ describe("load on demand", () => {
       await screen.findByRole("treeitem", { name: "loaded-on-demand" });
     });
 
+    it("doesn't load the subtree again when loading fails", async () => {
+      const requested = vi.fn();
+
+      server.use(
+        http.get("/tree/", () => {
+          requested();
+          return new HttpResponse(null, { status: 500 });
+        }),
+      );
+
+      const tree = createTreeElement({ autoOpen: false });
+      const node = tree.getNodeByNameMustExist("parent-node");
+
+      await tree.openNode(node);
+
+      expect(requested).toHaveBeenCalledExactlyOnceWith();
+      expect(node.is_open).toBeFalsy();
+      expect(node.is_loading).toBeFalse();
+    });
+
     it("keeps the node selected when the node is selected", async () => {
       const tree = createTreeElement({ autoOpen: false });
 

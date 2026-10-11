@@ -1109,6 +1109,13 @@ export default class TreeElement {
 
     await this.loadDataFromUrl(undefined, node);
 
+    // Loading failed, or there is no url. Opening the node now would load it
+    // again, without end. Leave it closed so the user can try again.
+    if (node.load_on_demand) {
+      node.is_loading = false;
+      return;
+    }
+
     await this.openNode(node, slide);
   }
 
