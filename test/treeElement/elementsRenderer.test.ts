@@ -11,6 +11,8 @@ import exampleData from "../support/exampleData";
 import { getTreeButton, getTreeListElement } from "../support/queries";
 
 interface CreateRendererParams {
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
   autoEscape?: boolean;
   buttonLeft?: boolean;
   closedIcon?: IconElement;
@@ -27,6 +29,8 @@ interface CreateRendererParams {
 }
 
 const createRenderer = ({
+  ariaLabel,
+  ariaLabelledBy,
   autoEscape = true,
   buttonLeft = false,
   closedIcon,
@@ -56,6 +60,8 @@ const createRenderer = ({
   const setNodeElement = vi.fn();
 
   const renderer = new ElementsRenderer({
+    ariaLabel,
+    ariaLabelledBy,
     autoEscape,
     buttonLeft,
     classNames: defaultClassNames,
@@ -419,6 +425,54 @@ describe("renderFromRoot", () => {
     renderer.renderFromRoot();
 
     expect(screen.getByRole("tree")).not.toHaveClass("tree-element-rtl");
+  });
+
+  it("sets aria-label on the root list when ariaLabel is set", () => {
+    const { renderer } = createRenderer({
+      ariaLabel: "Categories",
+      openFolders: true,
+    });
+
+    renderer.renderFromRoot();
+
+    expect(screen.getByRole("tree", { name: "Categories" })).toHaveAttribute(
+      "aria-label",
+      "Categories",
+    );
+    expect(screen.getAllByRole("group")[0]).not.toHaveAttribute("aria-label");
+  });
+
+  it("sets aria-labelledby on the root list when ariaLabelledBy is set", () => {
+    const heading = document.createElement("h2");
+    heading.id = "tree-heading";
+    heading.textContent = "Categories";
+    document.body.append(heading);
+
+    const { renderer } = createRenderer({
+      ariaLabelledBy: "tree-heading",
+      openFolders: true,
+    });
+
+    renderer.renderFromRoot();
+
+    expect(screen.getByRole("tree", { name: "Categories" })).toHaveAttribute(
+      "aria-labelledby",
+      "tree-heading",
+    );
+    expect(screen.getAllByRole("group")[0]).not.toHaveAttribute(
+      "aria-labelledby",
+    );
+  });
+
+  it("doesn't label the root list when no label option is set", () => {
+    const { renderer } = createRenderer();
+
+    renderer.renderFromRoot();
+
+    const tree = screen.getByRole("tree");
+
+    expect(tree).not.toHaveAttribute("aria-label");
+    expect(tree).not.toHaveAttribute("aria-labelledby");
   });
 
   it("adds the dnd class to the lists when dragAndDrop is true", () => {

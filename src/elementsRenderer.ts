@@ -6,6 +6,8 @@ import type { IconElement, OnCreateLi } from "./options";
 import { getBoolString } from "./util";
 
 interface ElementsRendererParams {
+  ariaLabel?: string;
+  ariaLabelledBy?: string;
   autoEscape: boolean;
   buttonLeft: boolean;
   classNames: ClassNames;
@@ -36,6 +38,8 @@ interface ElementsRendererParams {
 export default class ElementsRenderer {
   public closedIconElement?: globalThis.Node;
   public openedIconElement?: globalThis.Node;
+  private ariaLabel?: string;
+  private ariaLabelledBy?: string;
   private autoEscape: boolean;
   private buttonLeft: boolean;
   private classNames: ClassNames;
@@ -55,6 +59,8 @@ export default class ElementsRenderer {
   private tabIndex?: number;
 
   constructor({
+    ariaLabel,
+    ariaLabelledBy,
     autoEscape,
     buttonLeft,
     classNames,
@@ -70,6 +76,8 @@ export default class ElementsRenderer {
     showEmptyFolder,
     tabIndex,
   }: ElementsRendererParams) {
+    this.ariaLabel = ariaLabel;
+    this.ariaLabelledBy = ariaLabelledBy;
     this.autoEscape = autoEscape;
     this.buttonLeft = buttonLeft;
     this.classNames = classNames;
@@ -371,6 +379,16 @@ export default class ElementsRenderer {
     ul.className = `${this.classNames.common} ${classString}`;
 
     ul.setAttribute("role", role);
+
+    if (isRootNode) {
+      if (this.ariaLabel !== undefined) {
+        ul.setAttribute("aria-label", this.ariaLabel);
+      }
+
+      if (this.ariaLabelledBy !== undefined) {
+        ul.setAttribute("aria-labelledby", this.ariaLabelledBy);
+      }
+    }
 
     return ul;
   }
