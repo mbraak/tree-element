@@ -534,6 +534,18 @@ describe("renderFromRoot", () => {
     expect(treeItem).toBeAriaExpanded();
   });
 
+  it("hides the toggler from screen readers", () => {
+    const { renderer } = createRenderer();
+
+    renderer.renderFromRoot();
+
+    const button = getTreeButton(getTreeItem("node1"));
+
+    expect(button.tagName).toBe("SPAN");
+    expect(button).toHaveAttribute("aria-hidden", "true");
+    expect(button).not.toHaveAttribute("href");
+  });
+
   it("renders a loading folder", () => {
     const { renderer, tree } = createRenderer();
     tree.getNodeByNameMustExist("node1").is_loading = true;

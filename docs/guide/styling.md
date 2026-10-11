@@ -14,7 +14,11 @@ A tree renders as nested lists:
 <ul class="tree-element-common tree-element" role="tree">
   <li class="tree-element-common tree-element-folder" role="none">
     <div class="tree-element-element tree-element-common" role="none">
-      <a class="tree-element-toggler tree-element-common tree-element-toggler-left">►</a>
+      <span
+        class="tree-element-toggler tree-element-common tree-element-toggler-left"
+        aria-hidden="true"
+        >►</span
+      >
       <span
         class="tree-element-title tree-element-common tree-element-title-folder tree-element-title-button-left"
         role="treeitem"
@@ -82,7 +86,9 @@ The markup from the top of this page then looks like this:
 <ul class="my-tree-common my-tree" role="tree">
   <li class="my-tree-common my-tree-folder" role="none">
     <div class="my-tree-element my-tree-common" role="none">
-      <a class="my-tree-toggler my-tree-common my-tree-toggler-left">►</a>
+      <span class="my-tree-toggler my-tree-common my-tree-toggler-left" aria-hidden="true"
+        >►</span
+      >
       <span
         class="my-tree-title my-tree-common my-tree-title-folder my-tree-title-button-left"
         role="treeitem"

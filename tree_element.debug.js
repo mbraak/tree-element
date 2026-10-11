@@ -774,7 +774,7 @@ var TreeElement = (function () {
     }
 
     /* Template for a folder <li>:
-     *   li > div > [button link], title span, [button link]
+     *   li > div > [toggler], title span, [toggler]
      * The toggler icon and the aria-expanded attribute depend on the open
      * state, so there is a template for each.
      */
@@ -786,15 +786,17 @@ var TreeElement = (function () {
       let li = this._createLiTemplate(liClasses.join(" "));
       let div = li.firstChild;
 
-      // button link
-      let buttonLink = document.createElement("a");
-      buttonLink.className = this._getButtonClasses(isOpen);
+      // The toggler is hidden from screen readers: the icon is decoration, and
+      // aria-expanded on the treeitem has the open state.
+      let toggler = document.createElement("span");
+      toggler.className = this._getButtonClasses(isOpen);
+      toggler.setAttribute("aria-hidden", "true");
       let iconElement = isOpen ? this._openedIconElement : this._closedIconElement;
       if (iconElement) {
-        buttonLink.append(iconElement.cloneNode(true));
+        toggler.append(iconElement.cloneNode(true));
       }
       if (this._buttonLeft) {
-        div.append(buttonLink);
+        div.append(toggler);
       }
 
       // title span
@@ -802,7 +804,7 @@ var TreeElement = (function () {
       titleSpan.setAttribute("aria-expanded", getBoolString(isOpen));
       div.append(titleSpan);
       if (!this._buttonLeft) {
-        div.append(buttonLink);
+        div.append(toggler);
       }
       return li;
     }
@@ -2411,7 +2413,7 @@ var TreeElement = (function () {
       return !this._node.is_open && position === "inside";
     }
     _getButton() {
-      return this._element.querySelector(`:scope > .${this._classNames.element} > a.${this._classNames.toggler}`);
+      return this._element.querySelector(`:scope > .${this._classNames.element} > .${this._classNames.toggler}`);
     }
   }
 
