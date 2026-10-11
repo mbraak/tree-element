@@ -22,6 +22,8 @@ All notable changes to tree-element are documented here. The format is based on
 - Do not set `aria-label` for tree nodes. Rely on the node text instead.
 - Screen readers no longer read the open/close toggler. It has
   `aria-hidden="true"`; `aria-expanded` on the node already has the state.
+- When loading the children of a folder fails, the tree no longer requests them
+  again and again. The folder stays closed; opening it again retries.
 
 ### Changed
 
