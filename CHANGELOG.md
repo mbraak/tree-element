@@ -6,6 +6,8 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+## 0.3.0 - 2026-10-11
+
 ### Added
 
 - The keys `Home` and `End` select the first and the last visible node.
