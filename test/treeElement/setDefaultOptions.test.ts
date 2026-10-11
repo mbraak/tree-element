@@ -1,5 +1,9 @@
 import { Node } from "treeElement/node";
-import setDefaultOptions from "treeElement/setDefaultOptions";
+import setDefaultOptions, {
+  triangleDown,
+  triangleLeft,
+  triangleRight,
+} from "treeElement/setDefaultOptions";
 
 describe("setDefaultOptions", () => {
   describe("defaults", () => {
@@ -12,7 +16,7 @@ describe("setDefaultOptions", () => {
         autoEscape: true,
         dragAndDrop: false,
         nodeClass: Node,
-        openedIcon: "&#x25bc;",
+        openedIcon: triangleDown,
         saveState: false,
         selectable: true,
       });
@@ -116,7 +120,7 @@ describe("setDefaultOptions", () => {
 
       const options = setDefaultOptions(element, {});
 
-      expect(options.closedIcon).toBe("&#x25ba;");
+      expect(options.closedIcon).toBe(triangleRight);
     });
 
     it("sets closedIcon to a triangle to the left when rtl is true", () => {
@@ -124,7 +128,7 @@ describe("setDefaultOptions", () => {
 
       const options = setDefaultOptions(element, { rtl: true });
 
-      expect(options.closedIcon).toBe("&#x25c0;");
+      expect(options.closedIcon).toBe(triangleLeft);
     });
 
     it("keeps closedIcon when it is set in the options", () => {

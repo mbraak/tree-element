@@ -71,8 +71,9 @@ jobs:
           verbose: true
 
   # Font rendering differs per platform, so the screenshots are also compared
-  # on Windows. Missing win32 snapshots are written and uploaded; the job
-  # fails until they are committed.
+  # on Windows. A missing or different screenshot fails the job; the
+  # windows-screenshots artifact has what Windows rendered. Copy it over the
+  # snapshots with `node config/copyScreenshots.mjs <zip> windows`.
   windows-playwright:
     runs-on: windows-latest
 
@@ -109,13 +110,6 @@ jobs:
         run: COVERAGE=true npx rollup --config config/rollup.config.mjs
       - name: Run playwright tests
         run: npx playwright test --config config/playwright.config.js --update-snapshots=missing
-      - name: Windows snapshots artifact
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          if-no-files-found: ignore
-          name: windows-snapshots
-          path: playwright/playwright.test.ts-snapshots/*-win32.png
       - name: Screenshots artifact
         if: always()
         uses: actions/upload-artifact@v7

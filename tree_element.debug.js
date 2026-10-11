@@ -2989,6 +2989,15 @@ var TreeElement = (function () {
     }
   }
 
+  /* The default icons are svg instead of text: the triangle characters come
+   * from different fonts on each platform, so they differ in shape and size.
+   * They are sized in em to follow the font size, and use currentColor to follow
+   * --tree-element-toggler-color.
+   */
+  let triangle = points => `<svg width="0.7em" height="0.7em" viewBox="0 0 10 10" focusable="false"><polygon points="${points}" fill="currentColor"/></svg>`;
+  let triangleDown = triangle("0.5,1.5 9.5,1.5 5,9");
+  let triangleLeft = triangle("9,0.5 9,9.5 1.5,5");
+  let triangleRight = triangle("1,0.5 1,9.5 8.5,5");
   let defaults = {
     animationSpeed: "fast",
     autoEscape: true,
@@ -2997,9 +3006,7 @@ var TreeElement = (function () {
     buttonLeft: true,
     classPrefix: DEFAULT_CLASS_PREFIX,
     // the prefix of all css classes
-    // The symbol to use for a closed node - ► BLACK RIGHT-POINTING POINTER
-    // https://www.fileformat.info/info/unicode/char/25ba/index.htm
-    // closedIcon: undefined,
+    // closedIcon: undefined, // the default is a triangle; see getDefaultClosedIcon
     // commonClassName: undefined, // the class of every element; the default is "<classPrefix>-common"
     // data: undefined,
     // dataFilter: undefined,
@@ -3016,11 +3023,9 @@ var TreeElement = (function () {
     // onGetStateFromStorage: undefined,
     // onIsMoveHandle: undefined,
     // onSetStateFromStorage: undefined,
-    // openedIcon: undefined,
+    // openedIcon: undefined, // the default is a triangle pointing down
     openFolderDelay: 500,
     // The delay for opening a folder during drag and drop; the value is in milliseconds
-    // The symbol to use for an open node - ▼ BLACK DOWN-POINTING TRIANGLE
-    // https://www.fileformat.info/info/unicode/char/25bc/index.htm
     // rtl: undefined, // right-to-left support; true / false (default)
     saveState: false,
     // true / false / string (local storage key; the default key is "tree")
@@ -3043,7 +3048,7 @@ var TreeElement = (function () {
     options.dataUrl ??= htmlElement.dataset.url;
     options.rtl ??= getRtlOptionFromHTMLElement(htmlElement);
     options.closedIcon ??= getDefaultClosedIcon(options);
-    options.openedIcon ??= "&#x25bc;";
+    options.openedIcon ??= triangleDown;
     return options;
   };
 
@@ -3051,12 +3056,7 @@ var TreeElement = (function () {
   let getDefaultAnimationSpeed = () => prefersReducedMotion() ? 0 : defaults.animationSpeed;
   let prefersReducedMotion = () => typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let getDefaultClosedIcon = options => {
-    if (options.rtl) {
-      // triangle to the left
-      return "&#x25c0;";
-    }
-    // triangle to the right
-    return "&#x25ba;";
+    return options.rtl ? triangleLeft : triangleRight;
   };
   let getRtlOptionFromHTMLElement = htmlElement => {
     let dataRtl = htmlElement.dataset.rtl;

@@ -17,7 +17,7 @@ A tree renders as nested lists:
       <span
         class="tree-element-toggler tree-element-common tree-element-toggler-left"
         aria-hidden="true"
-        >►</span
+        ><svg …>…</svg></span
       >
       <span
         class="tree-element-title tree-element-common tree-element-title-folder tree-element-title-button-left"
@@ -89,7 +89,7 @@ The markup from the top of this page then looks like this:
       <span
         class="my-tree-toggler my-tree-common my-tree-toggler-left"
         aria-hidden="true"
-        >►</span
+        ><svg …>…</svg></span
       >
       <span
         class="my-tree-title my-tree-common my-tree-title-folder my-tree-title-button-left"
@@ -175,7 +175,9 @@ ul.tree-element ul.tree-element-common {
 
 ## Folder icons
 
-The togglers are text by default: `►` for a closed folder and `▼` for an open one. Replace them with
+The togglers are small svg triangles by default, pointing right for a closed folder and down for an open
+one. They are sized in em, so they follow the font size, and take the color of
+`--tree-element-toggler-color`. Replace them with
 `closedIcon` and `openedIcon`, which take an html string or an element:
 
 ```js
@@ -209,7 +211,7 @@ Put the toggler after the title instead of before it with `buttonLeft: false`:
 ## Right to left
 
 `rtl: true` mirrors the tree — the indentation, the togglers and the drag-and-drop hints all move to
-the other side — and flips the default closed icon to `◀`:
+the other side — and flips the default closed icon to point left:
 
 ```js
 new TreeElement({
