@@ -1,5 +1,6 @@
 import type { TreeElementOptions } from "treeElement/options";
 
+import { screen } from "@testing-library/dom";
 import { userEvent } from "@testing-library/user-event";
 import TreeElement from "treeElement";
 
@@ -250,6 +251,146 @@ describe("keyboard support", () => {
       await userEvent.keyboard("{ArrowDown}");
 
       expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
+    });
+  });
+
+  describe("without a selected node", () => {
+    const getTreeItem = (name: string) =>
+      screen.getByRole("treeitem", { name });
+
+    it("makes the first node the tab stop", () => {
+      createTreeElement();
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "0");
+      expect(getTreeItem("node2")).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("focuses the first node with the tab key", async () => {
+      createTreeElement();
+
+      await userEvent.tab();
+
+      expect(getTreeItem("node1")).toHaveFocus();
+    });
+
+    it.each(["{ArrowDown}", "{ArrowRight}", " "])(
+      "selects the focused node with %s",
+      async (key) => {
+        const tree = createTreeElement();
+
+        await userEvent.tab();
+        await userEvent.keyboard(key);
+
+        expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
+        expect(getTreeItem("node1")).toHaveFocus();
+      },
+    );
+
+    it("doesn't select the focused node with key up", async () => {
+      const tree = createTreeElement();
+
+      await userEvent.tab();
+      await userEvent.keyboard("{ArrowUp}");
+
+      expect(tree.getSelectedNode()).toBeNull();
+    });
+
+    it("moves the tab stop to the selected node", () => {
+      const tree = createTreeElement();
+
+      tree.selectNode(tree.getNodeByNameMustExist("node2"));
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "-1");
+      expect(getTreeItem("node2")).toHaveAttribute("tabindex", "0");
+    });
+
+    it("moves the tab stop to a selected node in closed folders", async () => {
+      const tree = createTreeElement();
+
+      // child3 is in node3, which is in node2. Both folders are closed, so
+      // child3 is rendered after selectNode returns.
+      tree.selectNode(tree.getNodeByNameMustExist("child3"));
+
+      const child3 = await screen.findByRole("treeitem", { name: "child3" });
+
+      expect(child3).toHaveAttribute("tabindex", "0");
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("moves the tab stop back to the first node when the node is deselected", () => {
+      const tree = createTreeElement();
+
+      tree.selectNode(tree.getNodeByNameMustExist("node2"));
+      tree.selectNode(null);
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "0");
+      expect(getTreeItem("node2")).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("keeps the tab stop when the first node is selected and deselected by clicking", async () => {
+      const tree = createTreeElement();
+
+      await userEvent.click(getTreeItem("node1"));
+
+      expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
+
+      await userEvent.click(getTreeItem("node1"));
+
+      expect(tree.getSelectedNode()).toBeNull();
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "0");
+    });
+
+    it("restores the tab stop when removeFromSelection is called for the first node", () => {
+      const tree = createTreeElement();
+
+      tree.removeFromSelection(tree.getNodeByNameMustExist("node1"));
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "0");
+    });
+
+    it("moves the tab stop when the first node is removed", () => {
+      const tree = createTreeElement();
+
+      tree.removeNode(tree.getNodeByNameMustExist("node1"));
+
+      expect(getTreeItem("node2")).toHaveAttribute("tabindex", "0");
+    });
+
+    it("moves the tab stop when the selected node is removed", () => {
+      const tree = createTreeElement();
+
+      tree.selectNode(tree.getNodeByNameMustExist("node2"));
+      tree.removeNode(tree.getNodeByNameMustExist("node2"));
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "0");
+    });
+
+    it("makes the first node the tab stop after loading new data", () => {
+      const tree = createTreeElement();
+
+      tree.loadData([{ name: "new1" }, { name: "new2" }]);
+
+      expect(getTreeItem("new1")).toHaveAttribute("tabindex", "0");
+      expect(getTreeItem("new2")).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("uses the tabIndex option", () => {
+      createTreeElement({ tabIndex: 3 });
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "3");
+    });
+
+    it("doesn't make a tab stop when the tabIndex option is undefined", () => {
+      createTreeElement({ tabIndex: undefined });
+
+      expect(getTreeItem("node1")).not.toHaveAttribute("tabindex");
+    });
+
+    it("doesn't make a tab stop when the tree is empty", () => {
+      createTreeElement({ data: [] });
+
+      expect(screen.queryByRole("treeitem")).not.toBeInTheDocument();
     });
   });
 });

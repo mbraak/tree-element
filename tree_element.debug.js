@@ -863,6 +863,11 @@ var TreeElement = (function () {
       titleSpan.className = classes;
       titleSpan.setAttribute("role", "treeitem");
       titleSpan.setAttribute("aria-selected", "false");
+
+      // Every node is focusable, but only the tab stop is in the tab order
+      if (this._tabIndex !== undefined) {
+        titleSpan.setAttribute("tabindex", "-1");
+      }
       return titleSpan;
     }
     _createUlTemplate(isRootNode) {
@@ -931,15 +936,15 @@ var TreeElement = (function () {
   class KeyHandler {
     constructor({
       _closeNode: closeNode,
+      _getFocusedNode: getFocusedNode,
       _getSelectedNode: getSelectedNode,
-      _isFocusOnTree: isFocusOnTree,
       _keyboardSupport: keyboardSupport,
       _openNode: openNode,
       _selectNode: selectNode
     }) {
       this._closeNode = closeNode;
+      this._getFocusedNode = getFocusedNode;
       this._getSelectedNode = getSelectedNode;
-      this._isFocusOnTree = isFocusOnTree;
       this._keyboardSupport = keyboardSupport;
       this._openNode = openNode;
       this._originalSelectNode = selectNode;
@@ -958,11 +963,9 @@ var TreeElement = (function () {
     _moveUp() {
       return this._selectNode(this._getSelectedNode()?.getPreviousVisibleNode());
     }
-    _canHandleKeyboard() {
-      return this._keyboardSupport && this._isFocusOnTree();
-    }
     _handleKeyDown = e => {
-      if (!this._canHandleKeyboard()) {
+      let focusedNode = this._getFocusedNode();
+      if (!focusedNode) {
         return;
       }
       let isKeyHandled = false;
@@ -987,6 +990,18 @@ var TreeElement = (function () {
           case "ArrowUp":
             {
               isKeyHandled = this._moveUp();
+              break;
+            }
+        }
+      } else {
+        // No node is selected. These keys select the focused node, which is
+        // usually the first node, see TreeElement.updateTabStop.
+        switch (e.key) {
+          case " ":
+          case "ArrowDown":
+          case "ArrowRight":
+            {
+              isKeyHandled = this._selectNode(focusedNode);
               break;
             }
         }
@@ -2162,7 +2177,11 @@ var TreeElement = (function () {
       }
       this._element.classList.remove(this._classNames.selected);
       let titleSpan = this._getTitleSpan();
-      titleSpan.removeAttribute("tabindex");
+
+      // Check for null or undefined
+      if (this._tabIndex != null) {
+        titleSpan.setAttribute("tabindex", "-1");
+      }
       titleSpan.setAttribute("aria-selected", "false");
       titleSpan.blur();
     }
@@ -2780,7 +2799,8 @@ var TreeElement = (function () {
       _getSelectable: getSelectable,
       _openParents: openParents,
       _saveState: saveState,
-      _triggerEvent: triggerEvent
+      _triggerEvent: triggerEvent,
+      _updateTabStop: updateTabStop
     }) {
       this._getNodeById = getNodeById;
       this._getNodeElementForNode = getNodeElementForNode;
@@ -2791,6 +2811,7 @@ var TreeElement = (function () {
       this._selectedNodes = new Set();
       this._selectedSingleNode = null;
       this._triggerEvent = triggerEvent;
+      this._updateTabStop = updateTabStop;
     }
     _addToSelection(node) {
       if (node.id == null) {
@@ -2910,6 +2931,7 @@ var TreeElement = (function () {
           node
         });
       }
+      this._updateTabStop();
       this._saveState();
     }
   }
@@ -3009,6 +3031,7 @@ var TreeElement = (function () {
     _classNames;
     _dataLoader;
     _dndHandler;
+    _fallbackTabStop;
     _htmlElement;
     _isInitialized;
     _keyHandler;
@@ -3037,6 +3060,7 @@ var TreeElement = (function () {
       this._isInitialized = false;
       this._tree = new Node({}, true);
       this._nodeMap = new WeakMap();
+      this._fallbackTabStop = null;
       let {
         autoEscape,
         buttonLeft,
@@ -3064,10 +3088,10 @@ var TreeElement = (function () {
       let closeNode = this.closeNode.bind(this);
       let getNodeElement = this._getNodeElement.bind(this);
       let getNodeElementForNode = this._getNodeElementForNode.bind(this);
+      let getFocusedNode = this._getFocusedNode.bind(this);
       let getNodeById = this.getNodeById.bind(this);
       let getSelectedNode = this.getSelectedNode.bind(this);
       let getTree = this.getTree.bind(this);
-      let isFocusOnTree = this._isFocusOnTree.bind(this);
       let loadData = this.loadData.bind(this);
       let openNode = this.openNode.bind(this);
       let openParents = this._openParents.bind(this);
@@ -3076,6 +3100,7 @@ var TreeElement = (function () {
       let setNodeElement = this._setNodeElement.bind(this);
       let treeElement = this._htmlElement;
       let triggerEvent = this._triggerEvent.bind(this);
+      let updateTabStop = this._updateTabStop.bind(this);
       let saveState = () => {
         saveStateHandler._saveState();
       };
@@ -3086,7 +3111,8 @@ var TreeElement = (function () {
         _getSelectable: () => this._options.selectable,
         _openParents: openParents,
         _saveState: saveState,
-        _triggerEvent: triggerEvent
+        _triggerEvent: triggerEvent,
+        _updateTabStop: updateTabStop
       });
       let addToSelection = selectNodeHandler._addToSelection.bind(selectNodeHandler);
       let getSelectedNodes = selectNodeHandler._getSelectedNodes.bind(selectNodeHandler);
@@ -3139,8 +3165,8 @@ var TreeElement = (function () {
       });
       let keyHandler = new KeyHandler({
         _closeNode: closeNode,
+        _getFocusedNode: getFocusedNode,
         _getSelectedNode: getSelectedNode,
-        _isFocusOnTree: isFocusOnTree,
         _keyboardSupport: keyboardSupport,
         _openNode: openNode,
         _selectNode: selectNode
@@ -3244,6 +3270,7 @@ var TreeElement = (function () {
       this._selectNodeHandler._addToSelection(node);
       this._openParents(node);
       this._getNodeElementForNode(node)._select(mustSetFocus);
+      this._updateTabStop();
       this._saveState();
     }
 
@@ -3597,6 +3624,7 @@ var TreeElement = (function () {
     removeFromSelection(node) {
       this._selectNodeHandler._removeFromSelection(node);
       this._getNodeElementForNode(node)._deselect();
+      this._updateTabStop();
       this._saveState();
     }
 
@@ -3753,10 +3781,18 @@ var TreeElement = (function () {
       let closedIconElement = this._renderer._closedIconElement;
       let getScrollLeft = this._scrollHandler._getScrollLeft.bind(this._scrollHandler);
       let openedIconElement = this._renderer._openedIconElement;
-      let renderChildren = this._renderer._renderChildren.bind(this._renderer);
       let tabIndex = this._options.tabIndex;
       let treeElement = this._htmlElement;
       let triggerEvent = this._triggerEvent.bind(this);
+
+      // A selected node in a closed folder is rendered when the folder is
+      // opened, which can be after it was selected. It becomes the tab stop
+      // then, so the fallback tab stop must go.
+      let renderChildren = folder => {
+        let ul = this._renderer._renderChildren(folder);
+        this._updateTabStop();
+        return ul;
+      };
       return new FolderElement({
         _classNames: classNames,
         _closedIconElement: closedIconElement,
@@ -3836,6 +3872,30 @@ var TreeElement = (function () {
       /* istanbul ignore next @preserve */
       return 0;
     }
+
+    // The title span of the first node, or null when the tree is empty
+    _getFirstTitleSpan() {
+      let firstElement = this._tree.children[0]?.element;
+      return firstElement ? firstElement.querySelector(`:scope > .${this._classNames.element} > span.${this._classNames.title}`) : null;
+    }
+
+    // The node of the HTML element that has the focus, if it is in this tree
+    _getFocusedNode() {
+      let activeElement = document.activeElement;
+
+      /* istanbul ignore if */
+      if (!activeElement) {
+        return null;
+      }
+
+      // The keyboard must still work for input elements.
+      let tagName = activeElement.tagName;
+      if (tagName !== "A" && tagName !== "SPAN") {
+        return null;
+      }
+      let node = this.getNode(activeElement);
+      return node?.tree === this._tree ? node : null;
+    }
     _getNodeElement(element) {
       let node = this.getNode(element);
       return node ? this._getNodeElementForNode(node) : null;
@@ -3845,6 +3905,9 @@ var TreeElement = (function () {
     }
     _getNodeIdToBeSelected() {
       return this._saveStateHandler._getNodeIdToBeSelected();
+    }
+    _hasRenderedSelectedNode() {
+      return this.getSelectedNodes().some(node => Boolean(node.element));
     }
     _initData() {
       if (this._options.data) {
@@ -3881,20 +3944,7 @@ var TreeElement = (function () {
 
     // Does an HTML element of the tree have the focus?
     _isFocusOnTree() {
-      let activeElement = document.activeElement;
-
-      /* istanbul ignore if */
-      if (!activeElement) {
-        return false;
-      }
-
-      // The keyboard must still work for input elements.
-      let tagName = activeElement.tagName;
-      if (tagName !== "A" && tagName !== "SPAN") {
-        return false;
-      }
-      let node = this.getNode(activeElement);
-      return node?.tree === this._tree;
+      return this._getFocusedNode() !== null;
     }
     _isSelectedNodeInSubtree(subtree) {
       let selectedNode = this.getSelectedNode();
@@ -3957,6 +4007,7 @@ var TreeElement = (function () {
       if (mustSelect) {
         this._selectCurrentNode(mustSetFocus);
       }
+      this._updateTabStop();
       this._triggerEvent("tree.refresh");
     }
     _saveState() {
@@ -4029,6 +4080,23 @@ var TreeElement = (function () {
     }
     _triggerEvent(eventName, values) {
       return this._triggerEventProvider(this._htmlElement, eventName, values);
+    }
+
+    /* Keyboard users reach the tree through the tab stop. The selected node is
+     * the tab stop, see NodeElement.select. Without a selected node, the first
+     * node is the tab stop, so the tree can always be reached.
+     */
+    _updateTabStop() {
+      let tabIndex = this._options.tabIndex;
+      let previousTabStop = this._fallbackTabStop;
+      let tabStop = tabIndex == null || this._hasRenderedSelectedNode() ? null : this._getFirstTitleSpan();
+      if (previousTabStop && previousTabStop !== tabStop && previousTabStop.getAttribute("aria-selected") !== "true") {
+        previousTabStop.setAttribute("tabindex", "-1");
+      }
+      if (tabStop && tabIndex != null) {
+        tabStop.setAttribute("tabindex", String(tabIndex));
+      }
+      this._fallbackTabStop = tabStop;
     }
   }
 

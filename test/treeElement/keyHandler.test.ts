@@ -1,7 +1,7 @@
 import type {
   CloseNode,
+  GetFocusedNode,
   GetSelectedNode,
-  IsFocusOnTree,
   OpenNode,
   SelectNode,
 } from "treeElement/methodTypes";
@@ -14,8 +14,8 @@ import exampleData from "../support/exampleData";
 
 interface CreateKeyHandlerParams {
   closeNode?: CloseNode;
+  getFocusedNode?: GetFocusedNode;
   getSelectedNode?: GetSelectedNode;
-  isFocusOnTree?: IsFocusOnTree;
   keyboardSupport?: boolean;
   openNode?: OpenNode;
   selectNode?: SelectNode;
@@ -23,16 +23,16 @@ interface CreateKeyHandlerParams {
 
 const createKeyHandler = ({
   closeNode = vi.fn(),
+  getFocusedNode = vi.fn(() => new Node({ name: "focused" })),
   getSelectedNode = vi.fn(() => null),
-  isFocusOnTree = vi.fn(() => true),
   keyboardSupport = true,
   openNode = vi.fn(() => Promise.resolve()),
   selectNode = vi.fn(),
 }: CreateKeyHandlerParams = {}) =>
   new KeyHandler({
     closeNode,
+    getFocusedNode,
     getSelectedNode,
-    isFocusOnTree,
     keyboardSupport,
     openNode,
     selectNode,
@@ -247,8 +247,8 @@ describe("KeyHandler", () => {
       const selectNode = vi.fn();
 
       const keyHandler = createKeyHandler({
+        getFocusedNode: () => null,
         getSelectedNode: () => node1,
-        isFocusOnTree: () => false,
         selectNode,
       });
 
@@ -260,18 +260,41 @@ describe("KeyHandler", () => {
       keyHandler.deinit();
     });
 
-    it("does nothing when no node is selected", () => {
-      const selectNode = vi.fn();
+    it.each([" ", "ArrowDown", "ArrowRight"])(
+      "selects the focused node with %j when no node is selected",
+      (key) => {
+        const node1 = tree.getNodeByNameMustExist("node1");
+        const selectNode = vi.fn();
 
-      const keyHandler = createKeyHandler({ selectNode });
+        const keyHandler = createKeyHandler({
+          getFocusedNode: () => node1,
+          selectNode,
+        });
 
-      const event = pressKey("ArrowDown");
+        const event = pressKey(key);
 
-      expect(selectNode).not.toHaveBeenCalled();
-      expect(event.defaultPrevented).toBeFalse();
+        expect(selectNode).toHaveBeenCalledWith(node1);
+        expect(event.defaultPrevented).toBeTrue();
 
-      keyHandler.deinit();
-    });
+        keyHandler.deinit();
+      },
+    );
+
+    it.each(["ArrowLeft", "ArrowUp", "Enter"])(
+      "ignores %j when no node is selected",
+      (key) => {
+        const selectNode = vi.fn();
+
+        const keyHandler = createKeyHandler({ selectNode });
+
+        const event = pressKey(key);
+
+        expect(selectNode).not.toHaveBeenCalled();
+        expect(event.defaultPrevented).toBeFalse();
+
+        keyHandler.deinit();
+      },
+    );
 
     it("ignores keys that are not arrow keys", () => {
       const node1 = tree.getNodeByNameMustExist("node1");
