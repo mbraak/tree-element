@@ -1,5 +1,3 @@
-import type { Page } from "@playwright/test";
-
 import { expect, test } from "@playwright/test";
 
 import type { TreeStructure } from "../test/support/treeStructure";
@@ -12,6 +10,7 @@ import {
   moveMouseToNode,
   sleep,
 } from "./testUtils";
+import { initPage, initTree } from "./treePage";
 
 const expectDefaultStructure = (structure: TreeStructure) => {
   expect(structure).toEqual([
@@ -46,59 +45,6 @@ const expectDefaultStructure = (structure: TreeStructure) => {
       open: true,
     }),
   ]);
-};
-
-const initPage = async (page: Page, baseURL: string | undefined) => {
-  if (!baseURL) {
-    throw new Error("Missing baseURL");
-  }
-
-  await page.goto(`${baseURL}/test_index.html`);
-  await page.waitForLoadState("domcontentloaded");
-
-  page.on("console", (msg) => {
-    console.log(`console: ${msg.text()}`);
-  });
-};
-
-interface InitTreeOptions {
-  autoOpen?: number;
-  dragAndDrop?: boolean;
-  onCanMove?: boolean;
-  onCanMoveTo?: boolean;
-  rtl?: boolean;
-}
-
-const initTree = async (
-  page: Page,
-  {
-    autoOpen = 0,
-    dragAndDrop = false,
-    onCanMove,
-    onCanMoveTo,
-    rtl = false,
-  }: InitTreeOptions,
-) => {
-  await page.evaluate(`
-        const onCanMove = (node) => node.name !== "Herrerasaurians";
-
-        const onCanMoveTo = (node, targetNode) => targetNode.name !== "Ornithischians";
-
-        const htmlElement = document.getElementById("tree1");
-
-        window.treeElement = new TreeElement({
-            animationSpeed: 0,
-            autoOpen: ${autoOpen},
-            data: ExampleData.exampleData,
-            dragAndDrop: ${dragAndDrop},
-            htmlElement,
-            onCanMove: ${onCanMove ? "onCanMove" : "null"},
-            onCanMoveTo: ${onCanMoveTo ? "onCanMoveTo" : "null"},
-            openFolderDelay: 100,
-            rtl: ${rtl},
-            startDndDelay: 100
-        });
-    `);
 };
 
 test.beforeEach(async ({ context }) => {
