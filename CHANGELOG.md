@@ -6,6 +6,8 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+## 0.3.1 - 2026-10-11
+
 ### Fixed
 
 - A relative `dataUrl`, such as `api/nodes.json`, is resolved against the page
