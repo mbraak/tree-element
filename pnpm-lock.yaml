@@ -123,11 +123,11 @@ importers:
         specifier: ^6.2.1
         version: 6.2.1
       kiira:
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0
       kiira-core:
-        specifier: ^0.6.0
-        version: 0.6.0
+        specifier: ^0.7.0
+        version: 0.7.0(jiti@2.7.0)(typescript@6.0.3)
       lodash:
         specifier: ^4.18.1
         version: 4.18.1
@@ -3138,11 +3138,19 @@ packages:
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
 
-  kiira-core@0.6.0:
-    resolution: {integrity: sha512-jq/vHDOgZJW2Qtosy7CXMWma9xwSt3etexxs9yos0cwQCNBWny+erZxY5jH/WgUg7Y9iszbHM82lsoWTcMYQQQ==}
+  kiira-core@0.7.0:
+    resolution: {integrity: sha512-Mj1WL14rdtFRP6cOS8q/xA75px1DJIejxeoX2HWaniQzbTNxz6lJ4GfoRKuN3zZF3WgT/2drl8Fp4j8WDzprzw==}
+    peerDependencies:
+      jiti: ^2.4.2
+      typescript: ^5.4.0 || ^6.0.0
+    peerDependenciesMeta:
+      jiti:
+        optional: true
+      typescript:
+        optional: true
 
-  kiira@0.6.0:
-    resolution: {integrity: sha512-f+dm2VCiRk09zcCZbLwmvyEDrW6wgGCLfg0noPPQ4ZCYNI8WXgKgvv1Tvv/jR7hblOtdr6VaKoreW0rHuCkL5w==}
+  kiira@0.7.0:
+    resolution: {integrity: sha512-wlk7ox/3nWc09FLGpuDYTjGmdCM8bjSAqW39Os4OACLEV+D6VJkA4Gj2adHW/UoetaWgDaod6zitdNZuc93Y1w==}
     hasBin: true
 
   levn@0.4.1:
@@ -7177,15 +7185,26 @@ snapshots:
     dependencies:
       '@keyv/serialize': 1.1.1
 
-  kiira-core@0.6.0:
+  kiira-core@0.7.0(jiti@2.7.0)(typescript@5.9.3):
     dependencies:
+      '@types/mdast': 4.0.4
+    optionalDependencies:
       jiti: 2.7.0
       typescript: 5.9.3
 
-  kiira@0.6.0:
+  kiira-core@0.7.0(jiti@2.7.0)(typescript@6.0.3):
+    dependencies:
+      '@types/mdast': 4.0.4
+    optionalDependencies:
+      jiti: 2.7.0
+      typescript: 6.0.3
+
+  kiira@0.7.0:
     dependencies:
       chalk: 5.6.2
-      kiira-core: 0.6.0
+      jiti: 2.7.0
+      kiira-core: 0.7.0(jiti@2.7.0)(typescript@5.9.3)
+      typescript: 5.9.3
 
   levn@0.4.1:
     dependencies:
