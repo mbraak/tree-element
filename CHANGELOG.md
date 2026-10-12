@@ -6,6 +6,8 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+## 0.3.2 - 2026-10-12
+
 ### Changed
 
 - The default `closedIcon` and `openedIcon` triangles are larger and have the
