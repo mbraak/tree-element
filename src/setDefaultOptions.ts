@@ -10,11 +10,11 @@ import { Node } from "./node";
  * --tree-element-toggler-color.
  */
 const triangle = (points: string): string =>
-  `<svg width="0.7em" height="0.7em" viewBox="0 0 10 10" focusable="false"><polygon points="${points}" fill="currentColor"/></svg>`;
+  `<svg width="0.8em" height="0.8em" viewBox="0 0 10 10" focusable="false"><polygon points="${points}" fill="currentColor"/></svg>`;
 
-export const triangleDown = triangle("0.5,1.5 9.5,1.5 5,9");
-export const triangleLeft = triangle("9,0.5 9,9.5 1.5,5");
-export const triangleRight = triangle("1,0.5 1,9.5 8.5,5");
+export const triangleDown = triangle("0.5,0.5 9.5,0.5 5,9.5");
+export const triangleLeft = triangle("9.5,0.5 9.5,9.5 0.5,5");
+export const triangleRight = triangle("0.5,0.5 0.5,9.5 9.5,5");
 
 const defaults: TreeElementOptions = {
   animationSpeed: "fast",

@@ -97,7 +97,7 @@ import "tree-element/tree_element.css";
 
 ## Example project
 
-[tree-element-example](https://github.com/mbraak/tree-element-example) is a small Vite project that
+[tree-element-example](https://mbraak.github.io/tree-element-example/) is a small Vite project that
 uses the package from npm, with a page for each topic: the basics and events, drag and drop,
 loading on demand, saving state, styling and accessibility. Clone it to see a complete setup, or to
 start your own project from it.
