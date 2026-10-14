@@ -112,14 +112,14 @@ export default class ElementsRenderer {
    * null when the folder is not rendered or has no children.
    */
   public renderChildren(node: Node): HTMLUListElement | null {
-    return !node.element || !node.hasChildren()
-      ? null
-      : this.createDomElements(
+    return node.element && node.hasChildren()
+      ? this.createDomElements(
           node.element,
           node.children,
           false,
           node.getLevel() + 1,
-        );
+        )
+      : null;
   }
 
   public renderFromNode(node: Node): void {
