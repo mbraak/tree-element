@@ -12,3 +12,4 @@ overrides:
   "@istanbuljs/load-nyc-config>js-yaml": ^4.1.0
   "vitepress>vite": ^6.4.3
   "@vitejs/plugin-vue>vite": ^6.4.3
+  "babel-plugin-istanbul>test-exclude": ^8.0.0
