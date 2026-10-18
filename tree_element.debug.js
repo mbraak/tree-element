@@ -80,15 +80,18 @@ var TreeElement = (function () {
       element.classList.add(this._classNames.loading);
 
       // Tell screen readers that the children of the folder are loading
-      let titleSpan = node ? this._getTitleSpan(element) : null;
-      titleSpan?.setAttribute("aria-busy", "true");
+      if (node) {
+        element.setAttribute("aria-busy", "true");
+      }
       this._triggerEvent("tree.loading_data", {
         element,
         node
       });
       let stopLoading = () => {
         element.classList.remove(this._classNames.loading);
-        titleSpan?.removeAttribute("aria-busy");
+        if (node) {
+          element.removeAttribute("aria-busy");
+        }
         this._triggerEvent("tree.loaded_data", {
           element,
           node
@@ -123,9 +126,6 @@ var TreeElement = (function () {
           error
         });
       });
-    }
-    _getTitleSpan(element) {
-      return element.querySelector(`:scope > .${this._classNames.element} > .${this._classNames.title}`);
     }
   }
 
@@ -774,10 +774,10 @@ var TreeElement = (function () {
       // li > div > [toggler], title span, [toggler]
       let div = li.firstChild;
       let titleSpan = div.childNodes[this._buttonLeft ? 1 : 0];
-      this._fillTitleSpan(titleSpan, node.name, isSelected, level);
+      this._fillNode(li, titleSpan, node.name, isSelected, level);
       if (node.is_loading) {
         li.classList.add(this._classNames.loading);
-        titleSpan.setAttribute("aria-busy", "true");
+        li.setAttribute("aria-busy", "true");
       }
       return li;
     }
@@ -807,11 +807,10 @@ var TreeElement = (function () {
       if (this._buttonLeft) {
         div.append(toggler);
       }
+      li.setAttribute("aria-expanded", getBoolString(isOpen));
 
       // title span
-      let titleSpan = this._createTitleSpanTemplate(true);
-      titleSpan.setAttribute("aria-expanded", getBoolString(isOpen));
-      div.append(titleSpan);
+      div.append(this._createTitleSpanTemplate(true));
       if (!this._buttonLeft) {
         div.append(toggler);
       }
@@ -835,11 +834,18 @@ var TreeElement = (function () {
 
     /*
     Create the outer part of a <li> template: li > div
+    The li is the treeitem, so the ul of its children is inside the treeitem.
     */
     _createLiTemplate(liClasses) {
       let li = document.createElement("li");
       li.className = liClasses;
-      li.setAttribute("role", "none");
+      li.setAttribute("role", "treeitem");
+      li.setAttribute("aria-selected", "false");
+
+      // Every node is focusable, but only the tab stop is in the tab order
+      if (this._tabIndex !== undefined) {
+        li.setAttribute("tabindex", "-1");
+      }
       let div = document.createElement("div");
       div.className = `${this._classNames.element} ${this._classNames.common}`;
       div.setAttribute("role", "none");
@@ -855,7 +861,7 @@ var TreeElement = (function () {
       // li > div > title span
       let div = li.firstChild;
       let titleSpan = div.firstChild;
-      this._fillTitleSpan(titleSpan, node.name, isSelected, level);
+      this._fillNode(li, titleSpan, node.name, isSelected, level);
       return li;
     }
 
@@ -876,13 +882,6 @@ var TreeElement = (function () {
       }
       classes += ` ${this._buttonLeft ? this._classNames.titleButtonLeft : this._classNames.titleButtonRight}`;
       titleSpan.className = classes;
-      titleSpan.setAttribute("role", "treeitem");
-      titleSpan.setAttribute("aria-selected", "false");
-
-      // Every node is focusable, but only the tab stop is in the tab order
-      if (this._tabIndex !== undefined) {
-        titleSpan.setAttribute("tabindex", "-1");
-      }
       return titleSpan;
     }
     _createUlTemplate(isRootNode) {
@@ -916,15 +915,15 @@ var TreeElement = (function () {
     }
 
     /*
-    Set the parts of a cloned title span that differ per node
+    Set the parts of a cloned li and title span that differ per node
     */
-    _fillTitleSpan(titleSpan, nodeName, isSelected, level) {
-      titleSpan.setAttribute("aria-level", String(level));
+    _fillNode(li, titleSpan, nodeName, isSelected, level) {
+      li.setAttribute("aria-level", String(level));
       if (isSelected) {
-        titleSpan.setAttribute("aria-selected", "true");
+        li.setAttribute("aria-selected", "true");
         let tabIndex = this._tabIndex;
         if (tabIndex !== undefined) {
-          titleSpan.setAttribute("tabindex", String(tabIndex));
+          li.setAttribute("tabindex", String(tabIndex));
         }
       }
       if (this._autoEscape) {
@@ -933,6 +932,10 @@ var TreeElement = (function () {
         // eslint-disable-next-line no-unsanitized/property -- the user opted out of escaping with autoEscape: false
         titleSpan.innerHTML = nodeName;
       }
+
+      // The treeitem is named by its title, without the html when autoEscape
+      // is false. Otherwise the name would contain everything in the row.
+      li.setAttribute("aria-label", titleSpan.textContent);
     }
     _getButtonClasses(isOpen) {
       let classes = [this._classNames.toggler, this._classNames.common];
@@ -2238,34 +2241,29 @@ var TreeElement = (function () {
         return;
       }
       this._element.classList.remove(this._classNames.selected);
-      let titleSpan = this._getTitleSpan();
 
       // Check for null or undefined
       if (this._tabIndex != null) {
-        titleSpan.setAttribute("tabindex", "-1");
+        this._element.setAttribute("tabindex", "-1");
       }
-      titleSpan.setAttribute("aria-selected", "false");
-      titleSpan.blur();
+      this._element.setAttribute("aria-selected", "false");
+      this._element.blur();
     }
     _select(mustSetFocus) {
       if (!this._isRendered()) {
         return;
       }
       this._element.classList.add(this._classNames.selected);
-      let titleSpan = this._getTitleSpan();
       let tabIndex = this._tabIndex;
 
       // Check for null or undefined
       if (tabIndex != null) {
-        titleSpan.setAttribute("tabindex", tabIndex.toString());
+        this._element.setAttribute("tabindex", tabIndex.toString());
       }
-      titleSpan.setAttribute("aria-selected", "true");
+      this._element.setAttribute("aria-selected", "true");
       if (mustSetFocus) {
-        titleSpan.focus();
+        this._element.focus();
       }
-    }
-    _getTitleSpan() {
-      return this._element.querySelector(`:scope > .${this._classNames.element} > span.${this._classNames.title}`);
     }
     _getUl() {
       return this._element.querySelector(":scope > ul");
@@ -2375,8 +2373,7 @@ var TreeElement = (function () {
         }
       }
       this._element.classList.add(this._classNames.closed);
-      let titleSpan = this._getTitleSpan();
-      titleSpan.setAttribute("aria-expanded", "false");
+      this._element.setAttribute("aria-expanded", "false");
       this._triggerEvent("tree.close", {
         node: this._node
       });
@@ -2412,8 +2409,7 @@ var TreeElement = (function () {
         }
       }
       this._element.classList.remove(this._classNames.closed);
-      let titleSpan = this._getTitleSpan();
-      titleSpan.setAttribute("aria-expanded", "true");
+      this._element.setAttribute("aria-expanded", "true");
       this._triggerEvent("tree.open", {
         node: this._node
       });
@@ -3942,10 +3938,9 @@ var TreeElement = (function () {
       return 0;
     }
 
-    // The title span of the first node, or null when the tree is empty
-    _getFirstTitleSpan() {
-      let firstElement = this._tree.children[0]?.element;
-      return firstElement ? firstElement.querySelector(`:scope > .${this._classNames.element} > span.${this._classNames.title}`) : null;
+    // The treeitem of the first node, or null when the tree is empty
+    _getFirstTreeItem() {
+      return this._tree.children[0]?.element ?? null;
     }
 
     // The node of the HTML element that has the focus, if it is in this tree
@@ -3959,7 +3954,7 @@ var TreeElement = (function () {
 
       // The keyboard must still work for input elements.
       let tagName = activeElement.tagName;
-      if (tagName !== "A" && tagName !== "SPAN") {
+      if (tagName !== "A" && tagName !== "LI" && tagName !== "SPAN") {
         return null;
       }
       let node = this.getNode(activeElement);
@@ -4164,7 +4159,7 @@ var TreeElement = (function () {
     _updateTabStop() {
       let tabIndex = this._options.tabIndex;
       let previousTabStop = this._fallbackTabStop;
-      let tabStop = tabIndex == null || this._hasRenderedSelectedNode() ? null : this._getFirstTitleSpan();
+      let tabStop = tabIndex == null || this._hasRenderedSelectedNode() ? null : this._getFirstTreeItem();
       if (previousTabStop && previousTabStop !== tabStop && previousTabStop.getAttribute("aria-selected") !== "true") {
         previousTabStop.setAttribute("tabindex", "-1");
       }

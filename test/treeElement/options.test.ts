@@ -10,7 +10,11 @@ import { triangleLeft, triangleRight } from "treeElement/setDefaultOptions";
 import { vi } from "vitest";
 
 import exampleData from "../support/exampleData";
-import { getTreeButton, getTreeListElement } from "../support/queries";
+import {
+  getTreeButton,
+  getTreeListElement,
+  getTreeTitle,
+} from "../support/queries";
 
 const server = setupServer();
 
@@ -82,6 +86,18 @@ describe("options", () => {
           name: "<span>test</span>",
         }),
       ]);
+    });
+
+    it("names the treeitem without the html when autoEscape is false", () => {
+      createTreeElement({
+        autoEscape: false,
+        data: ["<b>bold</b> test"],
+      });
+
+      expect(screen.getByRole("treeitem")).toHaveAttribute(
+        "aria-label",
+        "bold test",
+      );
     });
   });
 
@@ -193,7 +209,7 @@ describe("options", () => {
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
       // eslint-disable-next-line testing-library/no-node-access
-      const nextSibling = treeItem.nextSibling as HTMLElement;
+      const nextSibling = getTreeTitle(treeItem).nextSibling as HTMLElement;
 
       expect(nextSibling).toHaveClass("tree-element-toggler");
     });
@@ -206,8 +222,8 @@ describe("options", () => {
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
-      // eslint-disable-next-line testing-library/no-node-access
-      const previousSibling = treeItem.previousSibling as HTMLElement;
+      const title = getTreeTitle(treeItem);
+      const previousSibling = title.previousSibling as HTMLElement; // eslint-disable-line testing-library/no-node-access
 
       expect(previousSibling).toHaveClass("tree-element-toggler");
     });
@@ -230,7 +246,7 @@ describe("options", () => {
         "my-tree-common",
         "my-tree-folder",
       );
-      expect(treeItem).toHaveClass(
+      expect(screen.getByText("node1")).toHaveClass(
         "my-tree-common",
         "my-tree-title",
         "my-tree-title-button-left",
@@ -249,7 +265,7 @@ describe("options", () => {
       });
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
-      const toggler = treeItem.previousSibling as HTMLElement; // eslint-disable-line testing-library/no-node-access
+      const toggler = screen.getByText("node1").previousSibling as HTMLElement; // eslint-disable-line testing-library/no-node-access
 
       expect(toggler).toHaveClass(
         "my-tree-common",
@@ -342,8 +358,10 @@ describe("options", () => {
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
-      expect(treeItem).toHaveClass("tree-element-title", "my-common");
-      expect(treeItem).not.toHaveClass("tree-element-common");
+      const title = getTreeTitle(treeItem);
+
+      expect(title).toHaveClass("tree-element-title", "my-common");
+      expect(title).not.toHaveClass("tree-element-common");
     });
 
     it("selects a node when it is clicked", async () => {
@@ -354,7 +372,7 @@ describe("options", () => {
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
-      await userEvent.click(treeItem);
+      await userEvent.click(getTreeTitle(treeItem));
 
       expect(treeItem).toBeAriaSelected();
     });

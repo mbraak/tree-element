@@ -71,8 +71,9 @@ export const getNodeRect = async (
     page: Page,
     title: string,
 ): Promise<BoundingBox> => {
-    const treeItem = page.getByRole("treeitem", { name: title });
-    const boundingBox = await treeItem.boundingBox();
+    // The title, because the treeitem contains the children of the node
+    const titleElement = page.getByText(title, { exact: true });
+    const boundingBox = await titleElement.boundingBox();
 
     if (!boundingBox) {
         throw new Error(`Could not determine bounding box for tree element ${title}`)

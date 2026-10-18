@@ -5,7 +5,7 @@ import { userEvent } from "@testing-library/user-event";
 import TreeElement from "treeElement";
 
 import exampleData from "../support/exampleData";
-import { getTreeButton } from "../support/queries";
+import { getTreeButton, getTreeTitle } from "../support/queries";
 
 describe("mouse", () => {
   let htmlElement: HTMLElement;
@@ -39,7 +39,7 @@ describe("mouse", () => {
     expect(treeItem).not.toBeAriaSelected();
     expect(treeItem).not.toHaveFocus();
 
-    await userEvent.click(treeItem);
+    await userEvent.click(getTreeTitle(treeItem));
 
     expect(treeItem).toBeAriaSelected();
     expect(treeItem).toHaveFocus();
@@ -55,7 +55,7 @@ describe("mouse", () => {
 
     expect(treeItem).toBeAriaSelected();
 
-    await userEvent.click(treeItem);
+    await userEvent.click(getTreeTitle(treeItem));
 
     expect(treeItem).not.toBeAriaSelected();
   });
@@ -128,7 +128,9 @@ describe("mouse", () => {
   it("doesn't select a node when the selectable option is false", async () => {
     const tree = createTreeElement({ data: exampleData, selectable: false });
 
-    await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
+    await userEvent.click(
+      getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+    );
 
     expect(tree.getSelectedNode()).toBeNull();
   });

@@ -52,16 +52,14 @@ class NodeElement {
 
     this.element.classList.remove(this.classNames.selected);
 
-    const titleSpan = this.getTitleSpan();
-
     // Check for null or undefined
     if (this.tabIndex != null) {
-      titleSpan.setAttribute("tabindex", "-1");
+      this.element.setAttribute("tabindex", "-1");
     }
 
-    titleSpan.setAttribute("aria-selected", "false");
+    this.element.setAttribute("aria-selected", "false");
 
-    titleSpan.blur();
+    this.element.blur();
   }
 
   public select(mustSetFocus: boolean): void {
@@ -71,25 +69,18 @@ class NodeElement {
 
     this.element.classList.add(this.classNames.selected);
 
-    const titleSpan = this.getTitleSpan();
     const tabIndex = this.tabIndex;
 
     // Check for null or undefined
     if (tabIndex != null) {
-      titleSpan.setAttribute("tabindex", tabIndex.toString());
+      this.element.setAttribute("tabindex", tabIndex.toString());
     }
 
-    titleSpan.setAttribute("aria-selected", "true");
+    this.element.setAttribute("aria-selected", "true");
 
     if (mustSetFocus) {
-      titleSpan.focus();
+      this.element.focus();
     }
-  }
-
-  protected getTitleSpan(): HTMLSpanElement {
-    return this.element.querySelector(
-      `:scope > .${this.classNames.element} > span.${this.classNames.title}`,
-    ) as HTMLSpanElement;
   }
 
   protected getUl(): HTMLUListElement | null {

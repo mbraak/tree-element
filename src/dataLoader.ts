@@ -44,8 +44,9 @@ export default class DataLoader {
     element.classList.add(this.classNames.loading);
 
     // Tell screen readers that the children of the folder are loading
-    const titleSpan = node ? this.getTitleSpan(element) : null;
-    titleSpan?.setAttribute("aria-busy", "true");
+    if (node) {
+      element.setAttribute("aria-busy", "true");
+    }
 
     this.triggerEvent("tree.loading_data", {
       element,
@@ -54,7 +55,9 @@ export default class DataLoader {
 
     const stopLoading = (): void => {
       element.classList.remove(this.classNames.loading);
-      titleSpan?.removeAttribute("aria-busy");
+      if (node) {
+        element.removeAttribute("aria-busy");
+      }
       this.triggerEvent("tree.loaded_data", {
         element,
         node,
@@ -91,11 +94,5 @@ export default class DataLoader {
         stopLoading();
         this.triggerEvent("tree.load_failed", { error });
       });
-  }
-
-  private getTitleSpan(element: HTMLElement): HTMLElement | null {
-    return element.querySelector<HTMLElement>(
-      `:scope > .${this.classNames.element} > .${this.classNames.title}`,
-    );
   }
 }

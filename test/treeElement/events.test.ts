@@ -9,6 +9,7 @@ import TreeElement from "treeElement";
 import { vi } from "vitest";
 
 import exampleData from "../support/exampleData";
+import { getTreeTitle } from "../support/queries";
 
 describe("events", () => {
   let htmlElement: HTMLElement;
@@ -52,7 +53,9 @@ describe("events", () => {
 
       const onClick = listenToEvent("tree.click");
 
-      await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
 
       const node1 = tree.getNodeByNameMustExist("node1");
 
@@ -72,7 +75,7 @@ describe("events", () => {
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
-      await userEvent.click(treeItem);
+      await userEvent.click(getTreeTitle(treeItem));
 
       expect(originalEvent).toBeInstanceOf(MouseEvent);
       expect(originalEvent?.type).toBe("click");
@@ -86,7 +89,9 @@ describe("events", () => {
         e.preventDefault();
       });
 
-      await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
 
       expect(tree.getSelectedNode()).toBeNull();
     });
@@ -100,7 +105,7 @@ describe("events", () => {
 
       await userEvent.pointer({
         keys: "[MouseRight]",
-        target: screen.getByRole("treeitem", { name: "node1" }),
+        target: getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
       });
 
       const node1 = tree.getNodeByNameMustExist("node1");
@@ -121,7 +126,10 @@ describe("events", () => {
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
-      await userEvent.pointer({ keys: "[MouseRight]", target: treeItem });
+      await userEvent.pointer({
+        keys: "[MouseRight]",
+        target: getTreeTitle(treeItem),
+      });
 
       expect(originalEvent).toBeInstanceOf(MouseEvent);
       expect(originalEvent?.type).toBe("contextmenu");
@@ -135,7 +143,9 @@ describe("events", () => {
 
       const onDoubleClick = listenToEvent("tree.dblclick");
 
-      await userEvent.dblClick(screen.getByRole("treeitem", { name: "node1" }));
+      await userEvent.dblClick(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
 
       const node1 = tree.getNodeByNameMustExist("node1");
 
@@ -155,7 +165,7 @@ describe("events", () => {
 
       const treeItem = screen.getByRole("treeitem", { name: "node1" });
 
-      await userEvent.dblClick(treeItem);
+      await userEvent.dblClick(getTreeTitle(treeItem));
 
       expect(originalEvent).toBeInstanceOf(MouseEvent);
       expect(originalEvent?.type).toBe("dblclick");
@@ -230,7 +240,9 @@ describe("events", () => {
 
       const onSelect = listenToEvent("tree.select");
 
-      await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
 
       const node1 = tree.getNodeByNameMustExist("node1");
 
@@ -249,7 +261,9 @@ describe("events", () => {
 
       const onSelect = listenToEvent("tree.select");
 
-      await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
 
       expect(onSelect).not.toHaveBeenCalled();
     });
@@ -268,7 +282,9 @@ describe("events", () => {
         );
       });
 
-      await userEvent.click(screen.getByRole("treeitem", { name: "node2" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node2" })),
+      );
 
       expect(selections).toStrictEqual(["node2 instead of node1"]);
     });
@@ -283,7 +299,9 @@ describe("events", () => {
 
       const onDeselect = listenToEvent("tree.deselect");
 
-      await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
 
       expect(onDeselect).toHaveBeenCalledExactlyOnceWith({ node: node1 });
     });
@@ -321,7 +339,9 @@ describe("events", () => {
 
       const onDeselect = listenToEvent("tree.deselect");
 
-      await userEvent.click(screen.getByRole("treeitem", { name: "node2" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node2" })),
+      );
 
       expect(onDeselect).not.toHaveBeenCalled();
     });
@@ -338,7 +358,9 @@ describe("events", () => {
         });
       }
 
-      await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
 
       expect(names).toStrictEqual(["tree.deselect"]);
     });

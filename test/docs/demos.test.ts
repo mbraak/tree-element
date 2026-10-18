@@ -10,7 +10,7 @@ import type { DemoNodeData } from "../../docs/.vitepress/theme/exampleData";
 
 import { demos, getDemoOptions } from "../../docs/.vitepress/theme/demos";
 import defaultClassNames from "../support/classNames";
-import { getTreeButton } from "../support/queries";
+import { getTreeButton, getTreeTitle } from "../support/queries";
 
 // The demos run inside vitepress; here they run in a plain test, so withBase
 // becomes the identity.
@@ -156,14 +156,14 @@ describe("docs demos", () => {
     createTree("onlyFoldersSelectable");
 
     const leaf = screen.getByRole("treeitem", { name: "Ceratopsians" });
-    await userEvent.click(leaf);
+    await userEvent.click(getTreeTitle(leaf));
 
     expect(leaf).not.toBeAriaSelected();
 
     const folder = screen.getByRole("treeitem", {
       name: "Thyreophorans",
     });
-    await userEvent.click(folder);
+    await userEvent.click(getTreeTitle(folder));
 
     expect(folder).toBeAriaSelected();
   });

@@ -1000,15 +1000,9 @@ export default class TreeElement {
     return 0;
   }
 
-  // The title span of the first node, or null when the tree is empty
-  private getFirstTitleSpan(): HTMLElement | null {
-    const firstElement = this.tree.children[0]?.element;
-
-    return firstElement
-      ? firstElement.querySelector<HTMLElement>(
-          `:scope > .${this.classNames.element} > span.${this.classNames.title}`,
-        )
-      : null;
+  // The treeitem of the first node, or null when the tree is empty
+  private getFirstTreeItem(): HTMLElement | null {
+    return this.tree.children[0]?.element ?? null;
   }
 
   // The node of the HTML element that has the focus, if it is in this tree
@@ -1022,7 +1016,7 @@ export default class TreeElement {
 
     // The keyboard must still work for input elements.
     const tagName = activeElement.tagName;
-    if (tagName !== "A" && tagName !== "SPAN") {
+    if (tagName !== "A" && tagName !== "LI" && tagName !== "SPAN") {
       return null;
     }
 
@@ -1289,7 +1283,7 @@ export default class TreeElement {
     const tabStop =
       tabIndex == null || this.hasRenderedSelectedNode()
         ? null
-        : this.getFirstTitleSpan();
+        : this.getFirstTreeItem();
 
     if (
       previousTabStop &&

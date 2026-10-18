@@ -2,13 +2,17 @@ import type { GetTree, IsNodeSelected } from "treeElement/methodTypes";
 import type { NodeData } from "treeElement/node";
 import type { IconElement, OnCreateLi } from "treeElement/options";
 
-import { screen } from "@testing-library/dom";
+import { screen, within } from "@testing-library/dom";
 import ElementsRenderer from "treeElement/elementsRenderer";
 import { Node } from "treeElement/node";
 
 import defaultClassNames from "../support/classNames";
 import exampleData from "../support/exampleData";
-import { getTreeButton, getTreeListElement } from "../support/queries";
+import {
+  getTreeButton,
+  getTreeListElement,
+  getTreeTitle,
+} from "../support/queries";
 
 interface CreateRendererParams {
   ariaLabel?: string;
@@ -546,6 +550,33 @@ describe("renderFromRoot", () => {
     expect(button).not.toHaveAttribute("href");
   });
 
+  it("puts the children of a treeitem inside the treeitem", () => {
+    const { renderer, tree } = createRenderer();
+    tree.getNodeByNameMustExist("node1").is_open = true;
+
+    renderer.renderFromRoot();
+
+    const node1 = getTreeItem("node1");
+    const group = within(node1).getByRole("group");
+
+    expect(node1.tagName).toBe("LI");
+    expect(
+      within(group).getByRole("treeitem", { name: "child1" }),
+    ).toBeInTheDocument();
+  });
+
+  it("names a treeitem by its title only", () => {
+    const { renderer, tree } = createRenderer();
+    tree.getNodeByNameMustExist("node1").is_open = true;
+
+    renderer.renderFromRoot();
+
+    const node1 = getTreeItem("node1");
+
+    expect(node1).toHaveAccessibleName("node1");
+    expect(node1).toHaveAttribute("aria-label", "node1");
+  });
+
   it("renders a loading folder", () => {
     const { renderer, tree } = createRenderer();
     tree.getNodeByNameMustExist("node1").is_loading = true;
@@ -649,10 +680,12 @@ describe("renderFromRoot", () => {
 
     const treeItem = getTreeItem("node1");
 
-    expect(treeItem).toHaveClass("tree-element-title-button-right");
+    const title = getTreeTitle(treeItem);
+
+    expect(title).toHaveClass("tree-element-title-button-right");
     expect(getTreeButton(treeItem)).toHaveClass("tree-element-toggler-right");
     // eslint-disable-next-line testing-library/no-node-access
-    expect(treeItem.nextSibling).toHaveClass("tree-element-toggler");
+    expect(title.nextSibling).toHaveClass("tree-element-toggler");
   });
 
   it("renders the button on the left when buttonLeft is true", () => {
@@ -662,10 +695,12 @@ describe("renderFromRoot", () => {
 
     const treeItem = getTreeItem("node1");
 
-    expect(treeItem).toHaveClass("tree-element-title-button-left");
+    const title = getTreeTitle(treeItem);
+
+    expect(title).toHaveClass("tree-element-title-button-left");
     expect(getTreeButton(treeItem)).toHaveClass("tree-element-toggler-left");
     // eslint-disable-next-line testing-library/no-node-access
-    expect(treeItem.previousSibling).toHaveClass("tree-element-toggler");
+    expect(title.previousSibling).toHaveClass("tree-element-toggler");
   });
 
   it("renders the closed icon of a closed folder", () => {

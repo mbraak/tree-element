@@ -19,34 +19,40 @@ const assertSingleElement = (
   }
 };
 
-export const getTreeButton = (treeElement: HTMLElement) => {
+const assertTreeItem = (treeElement: HTMLElement) => {
   if (treeElement.role != "treeitem") {
     throw new Error("Element must have role treeitem");
   }
 
-  const parent = treeElement.parentElement; // eslint-disable-line testing-library/no-node-access
-  if (!parent) {
-    throw new Error("Tree element must have a parent");
+  if (treeElement.tagName != "LI") {
+    throw new Error("Must be a list element");
   }
+};
 
-  const elements = parent.querySelectorAll(":scope > .tree-element-toggler"); // eslint-disable-line testing-library/no-node-access
-  assertSingleElement(parent, elements, "tree button");
+const getSingleChildOfElement = (
+  treeElement: HTMLElement,
+  className: string,
+  name: string,
+) => {
+  assertTreeItem(treeElement);
+
+  // eslint-disable-next-line testing-library/no-node-access
+  const elements = treeElement.querySelectorAll(
+    `:scope > .tree-element-element > .${className}`,
+  );
+  assertSingleElement(treeElement, elements, name);
   return elements[0] as HTMLElement;
 };
 
+export const getTreeButton = (treeElement: HTMLElement) =>
+  getSingleChildOfElement(treeElement, "tree-element-toggler", "tree button");
+
+// The title of a treeitem; click it to select the node
+export const getTreeTitle = (treeElement: HTMLElement) =>
+  getSingleChildOfElement(treeElement, "tree-element-title", "tree title");
+
+// The treeitem is the li
 export const getTreeListElement = (treeElement: HTMLElement) => {
-  if (treeElement.role != "treeitem") {
-    throw new Error("Element must have role treeitem");
-  }
-
-  const parentOfParent = treeElement.parentElement?.parentElement; // eslint-disable-line testing-library/no-node-access
-  if (!parentOfParent) {
-    throw new Error("Tree element must have a parent");
-  }
-
-  if (parentOfParent.tagName != "LI") {
-    throw new Error("Must be a list element");
-  }
-
-  return parentOfParent;
+  assertTreeItem(treeElement);
+  return treeElement;
 };
