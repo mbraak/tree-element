@@ -9,6 +9,8 @@
         // The examples are mostly plain JavaScript, which has no way to tell the
         // compiler that getElementById or getNodeByName does not return null.
         "strictNullChecks": false,
-        "types": []
+        "types": [],
+        // The snippets import the stylesheet, which has no type declarations.
+        "noUncheckedSideEffectImports": false
     }
 }

@@ -87,6 +87,7 @@ export default defineConfig([
       "unicorn/prefer-global-this": "off",
       "unicorn/prefer-number-is-safe-integer": "off",
       "unicorn/prefer-simple-condition-first": "off",
+      "unicorn/prefer-ternary": "off",
       "unicorn/max-nested-calls": "off",
       "@cspell/spellchecker": [
         "error",

@@ -39,13 +39,13 @@ export const DEFAULT_CLASS_PREFIX = "tree-element";
  */
 const createClassNames = ({
   classPrefix,
-  commonClassName,
-  treeClassName,
+  commonClassName = `${classPrefix}-common`,
+  treeClassName = classPrefix,
 }: ClassNamesOptions): ClassNames => ({
   border: `${classPrefix}-border`,
   circle: `${classPrefix}-circle`,
   closed: `${classPrefix}-closed`,
-  common: commonClassName ?? `${classPrefix}-common`,
+  common: commonClassName,
   dnd: `${classPrefix}-dnd`,
   dragging: `${classPrefix}-dragging`,
   element: `${classPrefix}-element`,
@@ -64,7 +64,7 @@ const createClassNames = ({
   toggler: `${classPrefix}-toggler`,
   togglerLeft: `${classPrefix}-toggler-left`,
   togglerRight: `${classPrefix}-toggler-right`,
-  tree: treeClassName ?? classPrefix,
+  tree: treeClassName,
 });
 
 export default createClassNames;

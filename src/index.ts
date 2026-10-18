@@ -1147,7 +1147,6 @@ export default class TreeElement {
 
   private mouseStart(positionInfo: PositionInfo): boolean {
     /* istanbul ignore if */
-    // eslint-disable-next-line unicorn/prefer-ternary
     if (!this.options.dragAndDrop) {
       return false;
     }
