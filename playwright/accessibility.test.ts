@@ -131,12 +131,19 @@ test.describe("accessibility tree", () => {
     await page.getByText("Saurischia", { exact: true }).click();
     await page.keyboard.press("ArrowLeft");
 
+    // Wait until the group has slid up. During the animation the group is
+    // still in the accessibility tree.
+    await expect(
+      getTreeItem(page, "Saurischia").getByRole("group", {
+        includeHidden: true,
+      }),
+    ).toBeHidden();
+
     await expect(page.getByRole("tree", { name: "Dinosaurs" }))
       .toMatchAriaSnapshot(`
       - tree "Dinosaurs":
         - /children: equal
-        - treeitem "Saurischia" [level=1] [selected]:
-          - text: Saurischia
+        - treeitem "Saurischia" [level=1] [selected]
         - treeitem "Ornithischians" [expanded] [level=1]:
           - text: Ornithischians
           - group:
