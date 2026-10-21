@@ -84,8 +84,7 @@ class FolderElement extends NodeElement {
 
     this.element.classList.add(this.classNames.closed);
 
-    const titleSpan = this.getTitleSpan();
-    titleSpan.setAttribute("aria-expanded", "false");
+    this.element.setAttribute("aria-expanded", "false");
 
     this.triggerEvent("tree.close", {
       node: this.node,
@@ -132,8 +131,7 @@ class FolderElement extends NodeElement {
 
     this.element.classList.remove(this.classNames.closed);
 
-    const titleSpan = this.getTitleSpan();
-    titleSpan.setAttribute("aria-expanded", "true");
+    this.element.setAttribute("aria-expanded", "true");
 
     this.triggerEvent("tree.open", {
       node: this.node,

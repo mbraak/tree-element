@@ -9,7 +9,7 @@ import TreeElement from "treeElement";
 import __version__ from "treeElement/version";
 
 import exampleData from "../support/exampleData";
-import { getTreeListElement } from "../support/queries";
+import { getTreeListElement, getTreeTitle } from "../support/queries";
 
 const server = setupServer();
 
@@ -1366,7 +1366,9 @@ describe("methods", () => {
       });
 
       tree.setOption("selectable", true);
-      await userEvent.click(screen.getByRole("treeitem", { name: "node1" }));
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
 
       expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
     });

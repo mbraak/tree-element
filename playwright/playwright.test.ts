@@ -71,7 +71,7 @@ test.describe("without dragAndDrop", () => {
 
   test("selects a node", async ({ page }) => {
     const treeItem = page.getByRole("treeitem", { name: "Saurischia" });
-    await treeItem.click();
+    await page.getByText("Saurischia", { exact: true }).click();
 
     await expect(treeItem).toHaveAttribute("aria-selected", "true");
 

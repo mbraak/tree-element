@@ -6,6 +6,7 @@ import TreeElement from "treeElement";
 import { vi } from "vitest";
 
 import exampleData from "../support/exampleData";
+import { getTreeTitle } from "../support/queries";
 
 describe("keyboard support", () => {
   let htmlElement: HTMLElement;
@@ -418,11 +419,11 @@ describe("keyboard support", () => {
     it("keeps the tab stop when the first node is selected and deselected by clicking", async () => {
       const tree = createTreeElement();
 
-      await userEvent.click(getTreeItem("node1"));
+      await userEvent.click(getTreeTitle(getTreeItem("node1")));
 
       expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
 
-      await userEvent.click(getTreeItem("node1"));
+      await userEvent.click(getTreeTitle(getTreeItem("node1")));
 
       expect(tree.getSelectedNode()).toBeNull();
 

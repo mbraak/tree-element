@@ -84,6 +84,21 @@ ul.tree-element {
     vertical-align: middle;
   }
 
+  /* The li is the treeitem, so it gets the focus. Show the focus ring around
+     the title, not around the li with all its children. */
+  li.tree-element-common:focus {
+    outline: none;
+  }
+
+  li.tree-element-common:focus-visible
+    > .tree-element-element
+    .tree-element-title {
+    /* Same as the default focus ring of the browser. Browsers without
+       -webkit-focus-ring-color ignore the second line. */
+    outline: auto;
+    outline-color: -webkit-focus-ring-color;
+  }
+
   /* Line up with the titles of folders, after the toggler */
   .tree-element-title-button-left {
     margin-left: 24px;

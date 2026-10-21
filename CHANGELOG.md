@@ -6,6 +6,10 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Changed
+
+- Make the tree readable for screen readers.
+
 ## 0.3.2 - 2026-10-12
 
 ### Changed

@@ -208,11 +208,11 @@ export default class ElementsRenderer {
       this.buttonLeft ? 1 : 0
     ] as HTMLSpanElement;
 
-    this.fillTitleSpan(titleSpan, node.name, isSelected, level);
+    this.fillNode(li, titleSpan, node.name, isSelected, level);
 
     if (node.is_loading) {
       li.classList.add(this.classNames.loading);
-      titleSpan.setAttribute("aria-busy", "true");
+      li.setAttribute("aria-busy", "true");
     }
 
     return li;
@@ -251,10 +251,10 @@ export default class ElementsRenderer {
       div.append(toggler);
     }
 
+    li.setAttribute("aria-expanded", getBoolString(isOpen));
+
     // title span
-    const titleSpan = this.createTitleSpanTemplate(true);
-    titleSpan.setAttribute("aria-expanded", getBoolString(isOpen));
-    div.append(titleSpan);
+    div.append(this.createTitleSpanTemplate(true));
 
     if (!this.buttonLeft) {
       div.append(toggler);
@@ -288,11 +288,18 @@ export default class ElementsRenderer {
 
   /*
   Create the outer part of a <li> template: li > div
+  The li is the treeitem, so the ul of its children is inside the treeitem.
   */
   private createLiTemplate(liClasses: string): HTMLLIElement {
     const li = document.createElement("li");
     li.className = liClasses;
-    li.setAttribute("role", "none");
+    li.setAttribute("role", "treeitem");
+    li.setAttribute("aria-selected", "false");
+
+    // Every node is focusable, but only the tab stop is in the tab order
+    if (this.tabIndex !== undefined) {
+      li.setAttribute("tabindex", "-1");
+    }
 
     const div = document.createElement("div");
     div.className = `${this.classNames.element} ${this.classNames.common}`;
@@ -318,7 +325,7 @@ export default class ElementsRenderer {
     const div = li.firstChild as HTMLDivElement;
     const titleSpan = div.firstChild as HTMLSpanElement;
 
-    this.fillTitleSpan(titleSpan, node.name, isSelected, level);
+    this.fillNode(li, titleSpan, node.name, isSelected, level);
 
     return li;
   }
@@ -347,13 +354,6 @@ export default class ElementsRenderer {
     classes += ` ${this.buttonLeft ? this.classNames.titleButtonLeft : this.classNames.titleButtonRight}`;
 
     titleSpan.className = classes;
-    titleSpan.setAttribute("role", "treeitem");
-    titleSpan.setAttribute("aria-selected", "false");
-
-    // Every node is focusable, but only the tab stop is in the tab order
-    if (this.tabIndex !== undefined) {
-      titleSpan.setAttribute("tabindex", "-1");
-    }
 
     return titleSpan;
   }
@@ -397,23 +397,24 @@ export default class ElementsRenderer {
   }
 
   /*
-  Set the parts of a cloned title span that differ per node
+  Set the parts of a cloned li and title span that differ per node
   */
-  private fillTitleSpan(
+  private fillNode(
+    li: HTMLLIElement,
     titleSpan: HTMLSpanElement,
     nodeName: string,
     isSelected: boolean,
     level: number,
   ): void {
-    titleSpan.setAttribute("aria-level", String(level));
+    li.setAttribute("aria-level", String(level));
 
     if (isSelected) {
-      titleSpan.setAttribute("aria-selected", "true");
+      li.setAttribute("aria-selected", "true");
 
       const tabIndex = this.tabIndex;
 
       if (tabIndex !== undefined) {
-        titleSpan.setAttribute("tabindex", String(tabIndex));
+        li.setAttribute("tabindex", String(tabIndex));
       }
     }
 
@@ -423,6 +424,10 @@ export default class ElementsRenderer {
       // eslint-disable-next-line no-unsanitized/property -- the user opted out of escaping with autoEscape: false
       titleSpan.innerHTML = nodeName;
     }
+
+    // The treeitem is named by its title, without the html when autoEscape
+    // is false. Otherwise the name would contain everything in the row.
+    li.setAttribute("aria-label", titleSpan.textContent);
   }
 
   private getButtonClasses(isOpen: boolean): string {

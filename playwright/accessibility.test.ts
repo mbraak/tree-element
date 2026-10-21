@@ -16,6 +16,10 @@ const getAxeViolations = async (page: Page) => {
   const results = await new AxeBuilder({ page })
     .include("#tree1")
     .withTags(WCAG_TAGS)
+    // A treeitem is named by its title with aria-label. Its visible text
+    // also contains the titles of its children, which this rule doesn't allow.
+    // The visible label, the title, is in the name, so WCAG 2.5.3 is met.
+    .disableRules(["label-content-name-mismatch"])
     .analyze();
 
   // Only the parts that help to find the problem
@@ -72,6 +76,83 @@ test.describe("axe", () => {
     await initTree(page, { ariaLabel: "Dinosaurs", dragAndDrop: true });
 
     expect(await getAxeViolations(page)).toEqual([]);
+  });
+});
+
+// The accessibility tree that the browser gives to screen readers. The
+// children of a treeitem are in a group inside the treeitem, and a treeitem is
+// named by its title only. `/children: equal` makes the match exact, so a
+// missing group shows that the children of a closed folder are hidden.
+test.describe("accessibility tree", () => {
+  test.beforeEach(async ({ page }) => {
+    await initTree(page, { ariaLabel: "Dinosaurs" });
+  });
+
+  test("exposes the nodes as a nested tree", async ({ page }) => {
+    await expect(page.getByRole("tree", { name: "Dinosaurs" }))
+      .toMatchAriaSnapshot(`
+      - tree "Dinosaurs":
+        - /children: equal
+        - treeitem "Saurischia" [expanded] [level=1]:
+          - text: Saurischia
+          - group:
+            - treeitem "Herrerasaurians" [level=2]
+            - treeitem "Theropods" [level=2]
+            - treeitem "Sauropodomorphs" [level=2]
+        - treeitem "Ornithischians" [expanded] [level=1]:
+          - text: Ornithischians
+          - group:
+            - treeitem "Heterodontosaurids" [level=2]
+            - treeitem "Thyreophorans" [level=2]
+            - treeitem "Ornithopods" [level=2]
+            - treeitem "Pachycephalosaurians" [level=2]
+            - treeitem "Ceratopsians" [level=2]
+    `);
+  });
+
+  test("exposes a selected and opened node", async ({ page }) => {
+    await page.getByText("Theropods", { exact: true }).click();
+    await page.keyboard.press("ArrowRight");
+
+    await expect(getTreeItem(page, "Theropods")).toMatchAriaSnapshot(`
+      - treeitem "Theropods" [expanded] [level=2] [selected]:
+        - /children: equal
+        - text: Theropods
+        - group:
+          - treeitem "Coelophysoids" [level=3]
+          - treeitem "Ceratosaurians" [level=3]
+          - treeitem "Spinosauroids" [level=3]
+          - treeitem "Carnosaurians" [level=3]
+          - treeitem "Coelurosaurians" [level=3]
+    `);
+  });
+
+  test("hides the children of a closed folder", async ({ page }) => {
+    await page.getByText("Saurischia", { exact: true }).click();
+    await page.keyboard.press("ArrowLeft");
+
+    // Wait until the group has slid up. During the animation the group is
+    // still in the accessibility tree.
+    await expect(
+      getTreeItem(page, "Saurischia").getByRole("group", {
+        includeHidden: true,
+      }),
+    ).toBeHidden();
+
+    await expect(page.getByRole("tree", { name: "Dinosaurs" }))
+      .toMatchAriaSnapshot(`
+      - tree "Dinosaurs":
+        - /children: equal
+        - treeitem "Saurischia" [level=1] [selected]
+        - treeitem "Ornithischians" [expanded] [level=1]:
+          - text: Ornithischians
+          - group:
+            - treeitem "Heterodontosaurids" [level=2]
+            - treeitem "Thyreophorans" [level=2]
+            - treeitem "Ornithopods" [level=2]
+            - treeitem "Pachycephalosaurians" [level=2]
+            - treeitem "Ceratopsians" [level=2]
+    `);
   });
 });
 
@@ -145,7 +226,13 @@ test.describe("keyboard", () => {
     expect(
       await treeItem.evaluate((element) => element.matches(":focus-visible")),
     ).toBe(true);
-    await expect(treeItem).not.toHaveCSS("outline-style", "none");
+    // The outline is around the title, not around the treeitem with its
+    // children
+    await expect(treeItem).toHaveCSS("outline-style", "none");
+    await expect(page.getByText("Saurischia", { exact: true })).not.toHaveCSS(
+      "outline-style",
+      "none",
+    );
   });
 
   test("selects the first node with space", async ({ page }) => {

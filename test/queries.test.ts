@@ -1,25 +1,29 @@
-import { getTreeButton, getTreeListElement } from "./support/queries";
+import {
+  getTreeButton,
+  getTreeListElement,
+  getTreeTitle,
+} from "./support/queries";
 
 // Create the html for a tree node:
 //
-//   <li>
+//   <li role="treeitem">
 //     <div class="tree-element-element">
-//       <span class="tree-element-title" role="treeitem"></span>
+//       <span class="tree-element-title"></span>
 //     </div>
 //   </li>
 const createNode = () => {
-  const li = document.createElement("li");
+  const treeElement = document.createElement("li");
+  treeElement.setAttribute("role", "treeitem");
 
   const nodeElement = document.createElement("div");
   nodeElement.className = "tree-element-element";
-  li.append(nodeElement);
+  treeElement.append(nodeElement);
 
-  const treeElement = document.createElement("span");
-  treeElement.className = "tree-element-title";
-  treeElement.setAttribute("role", "treeitem");
-  nodeElement.append(treeElement);
+  const title = document.createElement("span");
+  title.className = "tree-element-title";
+  nodeElement.append(title);
 
-  return { li, nodeElement, treeElement };
+  return { nodeElement, title, treeElement };
 };
 
 const createTogglerElement = () => {
@@ -37,13 +41,15 @@ describe("getTreeButton", () => {
     expect(getTreeButton(treeElement)).toBe(toggler);
   });
 
-  it("only returns a toggler element that is a sibling of the tree element", () => {
+  it("only returns a toggler element of the tree element itself", () => {
     const { nodeElement, treeElement } = createNode();
     const toggler = createTogglerElement();
     nodeElement.append(toggler);
 
     // A nested toggler (e.g. in a child node) should be ignored.
-    treeElement.append(createTogglerElement());
+    const child = createNode();
+    child.nodeElement.append(createTogglerElement());
+    treeElement.append(child.treeElement);
 
     expect(getTreeButton(treeElement)).toBe(toggler);
   });
@@ -55,16 +61,6 @@ describe("getTreeButton", () => {
 
     expect(() => getTreeButton(treeElement)).toThrow(
       "Element must have role treeitem",
-    );
-  });
-
-  it("throws when the tree element doesn't have a parent", () => {
-    const { nodeElement, treeElement } = createNode();
-    treeElement.remove();
-    nodeElement.append(createTogglerElement());
-
-    expect(() => getTreeButton(treeElement)).toThrow(
-      "Tree element must have a parent",
     );
   });
 
@@ -89,11 +85,28 @@ describe("getTreeButton", () => {
   });
 });
 
-describe("getTreeListElement", () => {
-  it("returns the list element of the tree element", () => {
-    const { li, treeElement } = createNode();
+describe("getTreeTitle", () => {
+  it("returns the title element", () => {
+    const { title, treeElement } = createNode();
 
-    expect(getTreeListElement(treeElement)).toBe(li);
+    expect(getTreeTitle(treeElement)).toBe(title);
+  });
+
+  it("throws when the title element is missing", () => {
+    const { title, treeElement } = createNode();
+    title.remove();
+
+    expect(() => getTreeTitle(treeElement)).toThrow(
+      "Unable to find tree title element",
+    );
+  });
+});
+
+describe("getTreeListElement", () => {
+  it("returns the tree element, which is the list element", () => {
+    const { treeElement } = createNode();
+
+    expect(getTreeListElement(treeElement)).toBe(treeElement);
   });
 
   it("throws when the element doesn't have role treeitem", () => {
@@ -105,31 +118,10 @@ describe("getTreeListElement", () => {
     );
   });
 
-  it("throws when the tree element doesn't have a parent", () => {
-    const { treeElement } = createNode();
-    treeElement.remove();
-
-    expect(() => getTreeListElement(treeElement)).toThrow(
-      "Tree element must have a parent",
-    );
-  });
-
-  it("throws when the parent of the tree element doesn't have a parent", () => {
-    const { nodeElement, treeElement } = createNode();
-    nodeElement.remove();
-
-    expect(() => getTreeListElement(treeElement)).toThrow(
-      "Tree element must have a parent",
-    );
-  });
-
-  it("throws when the element isn't in a list element", () => {
-    const { nodeElement, treeElement } = createNode();
+  it("throws when the element isn't a list element", () => {
     const div = document.createElement("div");
-    div.append(nodeElement);
+    div.setAttribute("role", "treeitem");
 
-    expect(() => getTreeListElement(treeElement)).toThrow(
-      "Must be a list element",
-    );
+    expect(() => getTreeListElement(div)).toThrow("Must be a list element");
   });
 });
