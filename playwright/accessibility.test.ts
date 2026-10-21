@@ -368,3 +368,96 @@ test.describe("keyboard", () => {
     expect(await getSelectedNames(page)).toEqual(["Theropods"]);
   });
 });
+
+test.describe("multiSelect", () => {
+  test.beforeEach(async ({ page }) => {
+    await initTree(page, { ariaLabel: "Dinosaurs", multiSelect: true });
+    await addButtons(page);
+  });
+
+  test("has no violations with selected nodes and a focused node", async ({
+    page,
+  }) => {
+    await page.getByText("Saurischia", { exact: true }).click();
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press(" ");
+    await page.keyboard.press("ArrowDown");
+
+    await expect(getTreeItem(page, "Theropods")).toBeFocused();
+    expect(await getSelectedNames(page)).toEqual([
+      "Saurischia",
+      "Herrerasaurians",
+    ]);
+    expect(await getAxeViolations(page)).toEqual([]);
+  });
+
+  test("exposes the tree as multiselectable", async ({ page }) => {
+    await page.getByText("Saurischia", { exact: true }).click();
+
+    await expect(page.getByRole("tree", { name: "Dinosaurs" })).toHaveAttribute(
+      "aria-multiselectable",
+      "true",
+    );
+    await expect(getTreeItem(page, "Saurischia")).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(getTreeItem(page, "Ornithischians")).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+  });
+
+  test("moves the focus with the keys and toggles with space", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Before" }).focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press(" ");
+    await page.keyboard.press("End");
+    await page.keyboard.press(" ");
+    await page.keyboard.press("Home");
+
+    await expect(getTreeItem(page, "Saurischia")).toBeFocused();
+    expect(await getSelectedNames(page)).toEqual([
+      "Saurischia",
+      "Ceratopsians",
+    ]);
+
+    await page.keyboard.press(" ");
+
+    expect(await getSelectedNames(page)).toEqual(["Ceratopsians"]);
+  });
+
+  test("is a single tab stop on the focused node", async ({ page }) => {
+    await page.getByRole("button", { name: "Before" }).focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press(" ");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press(" ");
+    await page.keyboard.press("Tab");
+
+    await expect(page.getByRole("button", { name: "After" })).toBeFocused();
+
+    await page.keyboard.press("Shift+Tab");
+
+    await expect(getTreeItem(page, "Herrerasaurians")).toBeFocused();
+  });
+
+  test("shows a focus outline on a node that is not selected", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Before" }).focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press(" ");
+    await page.keyboard.press("ArrowDown");
+
+    const treeItem = getTreeItem(page, "Herrerasaurians");
+
+    await expect(treeItem).toBeFocused();
+    await expect(treeItem).toHaveAttribute("aria-selected", "false");
+    await expect(
+      page.getByText("Herrerasaurians", { exact: true }),
+    ).not.toHaveCSS("outline-style", "none");
+  });
+});

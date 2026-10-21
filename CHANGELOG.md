@@ -23,6 +23,8 @@ All notable changes to tree-element are documented here. The format is based on
 ### Changed
 
 - Make the tree readable for screen readers.
+- Only the selected node has `aria-selected`. Nodes that are not selected no
+  longer have `aria-selected="false"`, unless `multiSelect` is on.
 
 ## 0.3.2 - 2026-10-12
 

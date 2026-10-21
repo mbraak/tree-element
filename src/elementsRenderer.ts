@@ -298,7 +298,11 @@ export default class ElementsRenderer {
     const li = document.createElement("li");
     li.className = liClasses;
     li.setAttribute("role", "treeitem");
-    li.setAttribute("aria-selected", "false");
+
+    // Only a multiselect tree marks the nodes that are not selected
+    if (this.multiSelect) {
+      li.setAttribute("aria-selected", "false");
+    }
 
     // Every node is focusable, but only the tab stop is in the tab order
     if (this.tabIndex !== undefined) {

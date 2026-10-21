@@ -58,11 +58,14 @@ class NodeElement {
     }
 
     this.element.classList.remove(this.classNames.selected);
-    this.element.setAttribute("aria-selected", "false");
 
+    // Only a multiselect tree marks the nodes that are not selected
     if (this.multiSelect) {
+      this.element.setAttribute("aria-selected", "false");
       return;
     }
+
+    this.element.removeAttribute("aria-selected");
 
     // Check for null or undefined
     if (this.tabIndex != null) {
