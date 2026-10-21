@@ -8,23 +8,11 @@ All notable changes to tree-element are documented here. The format is based on
 
 ### Added
 
-- The option `multiSelect` lets the user select multiple nodes: a click adds a
-  node to the selection, or removes it. The arrow keys, `Home` and `End` move
-  the focus without changing the selection, and `Space` adds the focused node
-  or removes it. The tree gets `aria-multiselectable="true"`.
-
-### Fixed
-
-- Selecting a node, by clicking or with `selectNode`, deselects all selected
-  nodes instead of only the first one.
-- `selectNode(null)` deselects all selected nodes instead of only the first
-  one.
+- The option `multiSelect` lets the user select multiple nodes.
 
 ### Changed
 
 - Make the tree readable for screen readers.
-- Only the selected node has `aria-selected`. Nodes that are not selected no
-  longer have `aria-selected="false"`, unless `multiSelect` is on.
 
 ## 0.3.2 - 2026-10-12
 
