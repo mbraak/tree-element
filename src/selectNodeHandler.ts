@@ -128,9 +128,9 @@ export default class SelectNodeHandler {
       this.selectedNodes.delete(node.id);
 
       if (includeChildren) {
-        node.iterate(() => {
-          if (node.id != null) {
-            this.selectedNodes.delete(node.id);
+        node.iterate((child: Node) => {
+          if (child.id != null) {
+            this.selectedNodes.delete(child.id);
           }
           return true;
         });

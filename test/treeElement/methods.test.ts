@@ -1192,6 +1192,20 @@ describe("methods", () => {
       expect(tree.getSelectedNode()).toBeNull();
     });
 
+    it("deselects the child nodes of the removed node", () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      tree.addToSelection(tree.getNodeByNameMustExist("child1"));
+      tree.removeNode(tree.getNodeByNameMustExist("node1"));
+
+      const newNode = tree.appendNode(
+        { id: 125, name: "child1" },
+        tree.getNodeByNameMustExist("node2"),
+      );
+
+      expect(tree.isNodeSelected(newNode)).toBeFalse();
+    });
+
     it("removes the node with a parent node and its children", () => {
       const tree = createTreeElement({ data: exampleData });
 
