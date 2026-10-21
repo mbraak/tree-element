@@ -6,6 +6,10 @@ export type AddToSelection = (node: Node) => void;
 
 export type CloseNode = (node: Node) => Promise<void>;
 
+export type FocusNode = (node: Node) => void;
+
+export type GetActiveNode = () => Node | null;
+
 export type GetFocusedNode = () => Node | null;
 
 export type GetNodeById = (nodeId: NodeId) => Node | null;
@@ -33,6 +37,8 @@ export type RefreshElements = (fromNode: Node | null) => void;
 export type RemoveFromSelection = (node: Node) => void;
 
 export type SelectNode = (node: Node) => void;
+
+export type ToggleNodeInSelection = (node: Node) => void;
 
 // Trigger an event. Return if the event is processed (true) or cancelled (false).
 export type TriggerEvent = <Name extends TreeEventName>(

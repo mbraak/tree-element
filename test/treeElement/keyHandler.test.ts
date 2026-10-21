@@ -1,10 +1,13 @@
 import type {
   CloseNode,
+  FocusNode,
+  GetActiveNode,
   GetFocusedNode,
   GetSelectedNode,
   GetTree,
   OpenNode,
   SelectNode,
+  ToggleNodeInSelection,
   TriggerEvent,
 } from "treeElement/methodTypes";
 
@@ -16,33 +19,45 @@ import exampleData from "../support/exampleData";
 
 interface CreateKeyHandlerParams {
   closeNode?: CloseNode;
+  focusNode?: FocusNode;
+  getActiveNode?: GetActiveNode;
   getFocusedNode?: GetFocusedNode;
   getSelectedNode?: GetSelectedNode;
   getTree?: GetTree;
   keyboardSupport?: boolean;
+  multiSelect?: boolean;
   openNode?: OpenNode;
   selectNode?: SelectNode;
+  toggleNodeInSelection?: ToggleNodeInSelection;
   triggerEvent?: TriggerEvent;
 }
 
 const createKeyHandler = ({
   closeNode = vi.fn(),
+  focusNode = vi.fn(),
+  getActiveNode = vi.fn(() => null),
   getFocusedNode = vi.fn(() => new Node({ name: "focused" })),
   getSelectedNode = vi.fn(() => null),
   getTree = vi.fn(() => null),
   keyboardSupport = true,
+  multiSelect = false,
   openNode = vi.fn(() => Promise.resolve()),
   selectNode = vi.fn(),
+  toggleNodeInSelection = vi.fn(),
   triggerEvent = vi.fn(() => true),
 }: CreateKeyHandlerParams = {}) =>
   new KeyHandler({
     closeNode,
+    focusNode,
+    getActiveNode,
     getFocusedNode,
     getSelectedNode,
     getTree,
     keyboardSupport,
+    multiSelect,
     openNode,
     selectNode,
+    toggleNodeInSelection,
     triggerEvent,
   });
 
@@ -92,6 +107,50 @@ describe("KeyHandler", () => {
       pressKey("ArrowDown");
 
       expect(selectNode).not.toHaveBeenCalled();
+
+      keyHandler.deinit();
+    });
+  });
+
+  describe("with multiSelect", () => {
+    it("focuses the next node instead of selecting it", () => {
+      const node1 = tree.getNodeByNameMustExist("node1");
+      const focusNode = vi.fn();
+      const selectNode = vi.fn();
+
+      const keyHandler = createKeyHandler({
+        focusNode,
+        getActiveNode: () => node1,
+        getFocusedNode: () => node1,
+        multiSelect: true,
+        selectNode,
+      });
+
+      pressKey("ArrowDown");
+
+      expect(focusNode).toHaveBeenCalledExactlyOnceWith(
+        tree.getNodeByNameMustExist("node2"),
+      );
+      expect(selectNode).not.toHaveBeenCalled();
+
+      keyHandler.deinit();
+    });
+
+    it("toggles the focused node with Space", () => {
+      const node1 = tree.getNodeByNameMustExist("node1");
+      const toggleNodeInSelection = vi.fn();
+
+      const keyHandler = createKeyHandler({
+        getActiveNode: () => node1,
+        getFocusedNode: () => node1,
+        multiSelect: true,
+        toggleNodeInSelection,
+      });
+
+      const event = pressKey(" ");
+
+      expect(toggleNodeInSelection).toHaveBeenCalledExactlyOnceWith(node1);
+      expect(event.defaultPrevented).toBeTrue();
 
       keyHandler.deinit();
     });

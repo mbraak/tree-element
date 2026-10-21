@@ -1,53 +1,77 @@
 import type {
   CloseNode,
+  FocusNode,
+  GetActiveNode,
   GetFocusedNode,
   GetSelectedNode,
   GetTree,
   OpenNode,
   SelectNode,
+  ToggleNodeInSelection,
   TriggerEvent,
 } from "./methodTypes";
 import type { Node } from "./node";
 
 interface KeyHandlerParams {
   closeNode: CloseNode;
+  focusNode: FocusNode;
+  getActiveNode: GetActiveNode;
   getFocusedNode: GetFocusedNode;
   getSelectedNode: GetSelectedNode;
   getTree: GetTree;
   keyboardSupport: boolean;
+  multiSelect: boolean;
   openNode: OpenNode;
   selectNode: SelectNode;
+  toggleNodeInSelection: ToggleNodeInSelection;
   triggerEvent: TriggerEvent;
 }
 
+/* The keys move from the selected node and select the node they move to.
+ * With multiSelect they move from the focused node and only move the focus;
+ * Space adds the focused node to the selection or removes it.
+ */
+
 export default class KeyHandler {
   private closeNode: CloseNode;
+  private focusNode: FocusNode;
+  private getActiveNode: GetActiveNode;
   private getFocusedNode: GetFocusedNode;
   private getSelectedNode: GetSelectedNode;
   private getTree: GetTree;
 
   private keyboardSupport: boolean;
+  private multiSelect: boolean;
   private openNode: OpenNode;
   private originalSelectNode: SelectNode;
+  private toggleNodeInSelection: ToggleNodeInSelection;
   private triggerEvent: TriggerEvent;
 
   constructor({
     closeNode,
+    focusNode,
+    getActiveNode,
     getFocusedNode,
     getSelectedNode,
     getTree,
     keyboardSupport,
+    multiSelect,
     openNode,
     selectNode,
+    toggleNodeInSelection,
     triggerEvent,
   }: KeyHandlerParams) {
     this.closeNode = closeNode;
+    this.focusNode = focusNode;
+    this.getActiveNode = getActiveNode;
     this.getFocusedNode = getFocusedNode;
     this.getSelectedNode = getSelectedNode;
     this.getTree = getTree;
     this.keyboardSupport = keyboardSupport;
+    this.multiSelect = multiSelect;
     this.openNode = openNode;
     this.originalSelectNode = selectNode;
+    this.toggleNodeInSelection = toggleNodeInSelection;
     this.triggerEvent = triggerEvent;
 
     if (keyboardSupport) {
@@ -62,16 +86,38 @@ export default class KeyHandler {
   }
 
   public moveDown(): boolean {
-    return this.selectNode(this.getSelectedNode()?.getNextVisibleNode());
+    return this.goToNode(this.getCurrentNode()?.getNextVisibleNode());
   }
 
   public moveUp(): boolean {
-    return this.selectNode(this.getSelectedNode()?.getPreviousVisibleNode());
+    return this.goToNode(this.getCurrentNode()?.getPreviousVisibleNode());
   }
 
   // Activate the node, for example to open its edit page.
   private activate(node: Node, originalEvent: KeyboardEvent): boolean {
     this.triggerEvent("tree.activate", { node, originalEvent });
+    return true;
+  }
+
+  // No node is selected. These keys select the focused node, which is
+  // usually the first node, see TreeElement.updateTabStop.
+  private getCurrentNode(): Node | null {
+    return this.multiSelect ? this.getActiveNode() : this.getSelectedNode();
+  }
+
+  // Move to the node: select it, or with multiSelect focus it.
+  // Result: there was a node to move to.
+  private goToNode(node?: Node | null): boolean {
+    if (!node) {
+      return false;
+    }
+
+    if (this.multiSelect) {
+      this.focusNode(node);
+    } else {
+      this.originalSelectNode(node);
+    }
+
     return true;
   }
 
@@ -99,6 +145,12 @@ export default class KeyHandler {
     }
   }
 
+  private handleKey(key: string, focusedNode: Node): boolean {
+    return this.getCurrentNode()
+      ? this.handleArrowKey(key)
+      : this.handleKeyWithoutSelection(key, focusedNode);
+  }
+
   private handleKeyDown = (e: KeyboardEvent): void => {
     const focusedNode = this.getFocusedNode();
 
@@ -108,29 +160,37 @@ export default class KeyHandler {
 
     let isKeyHandled: boolean;
 
-    const selectedNode = this.getSelectedNode();
-
     switch (e.key) {
+      case " ": {
+        isKeyHandled = this.multiSelect
+          ? this.toggle(focusedNode)
+          : this.handleKey(e.key, focusedNode);
+        break;
+      }
+
       case "End": {
-        isKeyHandled = this.selectNode(this.getTree()?.getLastChild());
+        isKeyHandled = this.goToNode(this.getTree()?.getLastChild());
         break;
       }
 
       case "Enter": {
         // Without a selected node, activate the focused node
-        isKeyHandled = this.activate(selectedNode ?? focusedNode, e);
+        isKeyHandled = this.activate(
+          this.multiSelect
+            ? focusedNode
+            : (this.getSelectedNode() ?? focusedNode),
+          e,
+        );
         break;
       }
 
       case "Home": {
-        isKeyHandled = this.selectNode(this.getTree()?.children[0]);
+        isKeyHandled = this.goToNode(this.getTree()?.children[0]);
         break;
       }
 
       default: {
-        isKeyHandled = selectedNode
-          ? this.handleArrowKey(e.key)
-          : this.handleKeyWithoutSelection(e.key, focusedNode);
+        isKeyHandled = this.handleKey(e.key, focusedNode);
       }
     }
 
@@ -139,14 +199,12 @@ export default class KeyHandler {
     }
   };
 
-  // No node is selected. These keys select the focused node, which is
-  // usually the first node, see TreeElement.updateTabStop.
   private handleKeyWithoutSelection(key: string, focusedNode: Node): boolean {
     switch (key) {
       case " ":
       case "ArrowDown":
       case "ArrowRight": {
-        return this.selectNode(focusedNode);
+        return this.goToNode(focusedNode);
       }
 
       default: {
@@ -156,48 +214,40 @@ export default class KeyHandler {
   }
 
   private moveLeft(): boolean {
-    const selectedNode = this.getSelectedNode();
+    const currentNode = this.getCurrentNode();
 
     /* istanbul ignore if */
-    if (!selectedNode) {
+    if (!currentNode) {
       return false;
     }
 
-    if (selectedNode.isFolder() && selectedNode.is_open) {
+    if (currentNode.isFolder() && currentNode.is_open) {
       // Left on an open node closes the node
-      void this.closeNode(selectedNode);
+      void this.closeNode(currentNode);
       return true;
     }
     // Left on a closed or end node moves focus to the node's parent
-    return this.selectNode(selectedNode.getParent());
+    return this.goToNode(currentNode.getParent());
   }
 
   private moveRight(): boolean {
-    const selectedNode = this.getSelectedNode();
+    const currentNode = this.getCurrentNode();
 
-    if (selectedNode?.isFolder()) {
+    if (currentNode?.isFolder()) {
       // folder node
-      if (selectedNode.is_open) {
+      if (currentNode.is_open) {
         // Right moves to the first child of an open node
-        return this.selectNode(selectedNode.getNextVisibleNode());
+        return this.goToNode(currentNode.getNextVisibleNode());
       }
       // Right expands a closed node
-      void this.openNode(selectedNode);
+      void this.openNode(currentNode);
       return true;
     }
     return false;
   }
 
-  /* Select the node.
-   * Don't do anything if the node is null.
-   * Result: a different node was selected.
-   */
-  private selectNode(node?: Node | null): boolean {
-    if (node) {
-      this.originalSelectNode(node);
-
-      return true;
-    }
-    return false;
+  private toggle(node: Node): boolean {
+    this.toggleNodeInSelection(node);
+    return true;
   }
 }

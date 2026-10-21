@@ -29,6 +29,7 @@ const defaults: TreeElementOptions = {
   // dataUrl: undefined,
   dragAndDrop: false,
   keyboardSupport: true,
+  multiSelect: false,
   nodeClass: Node,
   // onCanMove: undefined, // Can this node be moved?
   // onCanMoveTo: undefined, // Can this node be moved to this position? function(moved_node, target_node, position)

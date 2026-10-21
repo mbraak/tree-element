@@ -29,6 +29,7 @@ const createNodeElement = ({ tabIndex }: CreateNodeElementParams = {}) => {
     getTree: () => tree,
     htmlElement: treeElement,
     isNodeSelected: () => false,
+    multiSelect: false,
     setNodeElement,
     showEmptyFolder: false,
   });

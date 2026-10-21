@@ -149,37 +149,32 @@ export default class SelectNodeHandler {
    * mustToggle: support deselecting the selected node
    */
   public selectSingleNode(node: Node, optionsParam?: SelectNodeOptions) {
-    const defaultOptions = { mustSetFocus: true, mustToggle: true };
-    const selectOptions = { ...defaultOptions, ...optionsParam };
-
-    const canSelect = (): boolean => {
-      if (!this.getSelectable()) {
-        return false;
-      }
-
-      const onCanSelectNode = this.getOnCanSelectNode();
-      return onCanSelectNode ? onCanSelectNode(node) : true;
-    };
-
-    if (!canSelect()) {
+    if (!this.canSelect(node)) {
       return;
     }
 
-    const deselectCurrentNode = (deselectedNode: Node) => {
-      this.removeFromSelection(deselectedNode);
-      this.getNodeElementForNode(deselectedNode).deselect();
-    };
+    const defaultOptions = { mustSetFocus: true, mustToggle: true };
+    const selectOptions = { ...defaultOptions, ...optionsParam };
+
+    const otherSelectedNodes = this.getSelectedNodes().filter(
+      (selectedNode) => selectedNode !== node,
+    );
 
     if (this.isNodeSelected(node)) {
-      if (selectOptions.mustToggle) {
-        deselectCurrentNode(node);
+      if (otherSelectedNodes.length) {
+        // Part of a multiple selection: keep only this node selected
+        for (const otherNode of otherSelectedNodes) {
+          this.deselectNode(otherNode);
+        }
+      } else if (selectOptions.mustToggle) {
+        this.deselectNode(node);
         this.triggerEvent("tree.deselect", { node });
       }
     } else {
-      const deselectedNode = this.getSelectedNode();
+      const deselectedNode = otherSelectedNodes[0] ?? null;
 
-      if (deselectedNode) {
-        deselectCurrentNode(deselectedNode);
+      for (const otherNode of otherSelectedNodes) {
+        this.deselectNode(otherNode);
       }
 
       this.addToSelection(node);
@@ -194,5 +189,43 @@ export default class SelectNodeHandler {
 
     this.updateTabStop();
     this.saveState();
+  }
+
+  /* Add a node to the selection, or remove it when it is selected, without
+   * changing the other selected nodes.
+   * Checks if the node is selectable and saves the state.
+   */
+  public toggleNodeInSelection(node: Node, mustSetFocus = true): void {
+    if (!this.canSelect(node)) {
+      return;
+    }
+
+    if (this.isNodeSelected(node)) {
+      this.deselectNode(node);
+      this.triggerEvent("tree.deselect", { node });
+    } else {
+      this.addToSelection(node);
+      this.openParents(node);
+      this.getNodeElementForNode(node).select(mustSetFocus);
+
+      this.triggerEvent("tree.select", { deselectedNode: null, node });
+    }
+
+    this.updateTabStop();
+    this.saveState();
+  }
+
+  private canSelect(node: Node): boolean {
+    if (!this.getSelectable()) {
+      return false;
+    }
+
+    const onCanSelectNode = this.getOnCanSelectNode();
+    return onCanSelectNode ? onCanSelectNode(node) : true;
+  }
+
+  private deselectNode(node: Node): void {
+    this.removeFromSelection(node);
+    this.getNodeElementForNode(node).deselect();
   }
 }

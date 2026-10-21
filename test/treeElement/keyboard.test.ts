@@ -482,4 +482,173 @@ describe("keyboard support", () => {
       expect(screen.queryByRole("treeitem")).not.toBeInTheDocument();
     });
   });
+
+  describe("with multiSelect", () => {
+    const selectedNames = (tree: TreeElement) =>
+      tree.getSelectedNodes().map((node) => node.name);
+
+    const tabIndexes = () =>
+      screen
+        .getAllByRole("treeitem")
+        .map((treeItem) => treeItem.getAttribute("tabindex"));
+
+    it("moves the focus with the arrow keys without selecting", async () => {
+      const tree = createTreeElement({ autoOpen: 0, multiSelect: true });
+
+      await userEvent.tab();
+
+      expect(screen.getByRole("treeitem", { name: "node1" })).toHaveFocus();
+
+      await userEvent.keyboard("{ArrowDown}");
+
+      expect(screen.getByRole("treeitem", { name: "child1" })).toHaveFocus();
+
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}");
+
+      expect(screen.getByRole("treeitem", { name: "node2" })).toHaveFocus();
+
+      await userEvent.keyboard("{ArrowUp}");
+
+      expect(screen.getByRole("treeitem", { name: "child2" })).toHaveFocus();
+      expect(selectedNames(tree)).toStrictEqual([]);
+    });
+
+    it("adds the focused node to the selection with Space, and removes it", async () => {
+      const tree = createTreeElement({ autoOpen: 0, multiSelect: true });
+
+      await userEvent.tab();
+      await userEvent.keyboard(" {ArrowDown}{ArrowDown} ");
+
+      expect(selectedNames(tree)).toStrictEqual(["node1", "child2"]);
+      expect(screen.getByRole("treeitem", { name: "child2" })).toHaveFocus();
+
+      await userEvent.keyboard("{ArrowUp}{ArrowUp} ");
+
+      expect(selectedNames(tree)).toStrictEqual(["child2"]);
+      expect(screen.getByRole("treeitem", { name: "node1" })).toHaveFocus();
+    });
+
+    it("opens and closes folders with the right and left keys", async () => {
+      createTreeElement({ multiSelect: true });
+
+      await userEvent.tab();
+
+      const node1 = screen.getByRole("treeitem", { name: "node1" });
+
+      await userEvent.keyboard("{ArrowRight}");
+
+      expect(node1).toBeAriaExpanded();
+
+      await userEvent.keyboard("{ArrowRight}");
+
+      expect(screen.getByRole("treeitem", { name: "child1" })).toHaveFocus();
+
+      await userEvent.keyboard("{ArrowLeft}");
+
+      expect(node1).toHaveFocus();
+
+      await userEvent.keyboard("{ArrowLeft}");
+
+      expect(node1).not.toBeAriaExpanded();
+    });
+
+    it("moves the focus with the home and end keys", async () => {
+      const tree = createTreeElement({ autoOpen: 0, multiSelect: true });
+
+      await userEvent.tab();
+      await userEvent.keyboard("{End}");
+
+      expect(screen.getByRole("treeitem", { name: "node3" })).toHaveFocus();
+
+      await userEvent.keyboard("{Home}");
+
+      expect(screen.getByRole("treeitem", { name: "node1" })).toHaveFocus();
+      expect(selectedNames(tree)).toStrictEqual([]);
+    });
+
+    it("activates the focused node with the enter key", async () => {
+      const tree = createTreeElement({ autoOpen: 0, multiSelect: true });
+
+      const onActivate = vi.fn();
+      htmlElement.addEventListener("tree.activate", (e) => {
+        onActivate(e.detail.node);
+      });
+
+      tree.addToSelection(tree.getNodeByNameMustExist("node1"), false);
+
+      await userEvent.tab();
+      await userEvent.keyboard("{ArrowDown}{Enter}");
+
+      expect(onActivate).toHaveBeenCalledExactlyOnceWith(
+        tree.getNodeByNameMustExist("child1"),
+      );
+    });
+
+    it("keeps one tab stop: the focused node", async () => {
+      createTreeElement({ autoOpen: 0, multiSelect: true });
+
+      expect(tabIndexes()).toStrictEqual(["0", "-1", "-1", "-1", "-1"]);
+
+      await userEvent.tab();
+      await userEvent.keyboard(" {ArrowDown} {ArrowDown}");
+
+      // node1 and child1 are selected, child2 has the focus
+      expect(tabIndexes()).toStrictEqual(["-1", "-1", "0", "-1", "-1"]);
+
+      await userEvent.tab({ shift: true });
+      await userEvent.tab();
+
+      expect(screen.getByRole("treeitem", { name: "child2" })).toHaveFocus();
+    });
+
+    it("makes a clicked node the tab stop", async () => {
+      createTreeElement({ autoOpen: 0, multiSelect: true });
+
+      const node2 = screen.getByRole("treeitem", { name: "node2" });
+
+      await userEvent.click(getTreeTitle(node2));
+
+      expect(node2).toHaveFocus();
+      expect(node2).toBeAriaSelected();
+      expect(tabIndexes()).toStrictEqual(["-1", "-1", "-1", "0", "-1"]);
+    });
+
+    it("keeps a clicked node the tab stop when it is deselected", async () => {
+      createTreeElement({ autoOpen: 0, multiSelect: true });
+
+      const node2 = screen.getByRole("treeitem", { name: "node2" });
+
+      await userEvent.click(getTreeTitle(node2));
+      await userEvent.click(getTreeTitle(node2));
+
+      expect(node2).toHaveFocus();
+      expect(node2).not.toBeAriaSelected();
+      expect(tabIndexes()).toStrictEqual(["-1", "-1", "-1", "0", "-1"]);
+    });
+
+    it("makes the first node the tab stop when the focused node is removed", async () => {
+      const tree = createTreeElement({ autoOpen: 0, multiSelect: true });
+
+      await userEvent.tab();
+      await userEvent.keyboard("{ArrowDown}");
+
+      tree.removeNode(tree.getNodeByNameMustExist("child1"));
+
+      expect(tabIndexes()).toStrictEqual(["0", "-1", "-1", "-1"]);
+    });
+
+    it("moves the focus with moveDown and moveUp", async () => {
+      const tree = createTreeElement({ multiSelect: true });
+
+      await userEvent.tab();
+      tree.moveDown();
+
+      expect(screen.getByRole("treeitem", { name: "node2" })).toHaveFocus();
+
+      tree.moveUp();
+
+      expect(screen.getByRole("treeitem", { name: "node1" })).toHaveFocus();
+      expect(selectedNames(tree)).toStrictEqual([]);
+    });
+  });
 });

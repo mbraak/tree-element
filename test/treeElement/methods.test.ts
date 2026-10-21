@@ -1331,6 +1331,17 @@ describe("methods", () => {
       expect(tree.getSelectedNode()).toBeNull();
     });
 
+    it("deselects all selected nodes with a null parameter", () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      tree.addToSelection(tree.getNodeByNameMustExist("node1"));
+      tree.addToSelection(tree.getNodeByNameMustExist("node2"));
+
+      tree.selectNode(null);
+
+      expect(tree.getSelectedNodes()).toStrictEqual([]);
+    });
+
     it("doesn't select the node when the selectable option is false", () => {
       const tree = createTreeElement({
         data: exampleData,

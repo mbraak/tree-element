@@ -47,6 +47,8 @@ interface TreeElementParams extends Partial<TreeElementOptions> {
 }
 
 export default class TreeElement {
+  // With multiSelect: the node that is the tab stop, see updateTabStop
+  private activeNode: Node | null;
   private classNames: ClassNames;
   private dataLoader: DataLoader;
   private dndHandler: DragAndDropHandler;
@@ -82,6 +84,7 @@ export default class TreeElement {
     this.tree = new Node({}, true);
     this.nodeMap = new WeakMap();
     this.fallbackTabStop = null;
+    this.activeNode = null;
 
     const {
       ariaLabel,
@@ -92,6 +95,7 @@ export default class TreeElement {
       dataFilter,
       dragAndDrop,
       keyboardSupport,
+      multiSelect,
       onCanMove,
       onCanMoveTo,
       onCreateLi,
@@ -153,6 +157,19 @@ export default class TreeElement {
     const selectNode =
       selectNodeHandler.selectSingleNode.bind(selectNodeHandler);
 
+    const toggleNodeInSelection =
+      selectNodeHandler.toggleNodeInSelection.bind(selectNodeHandler);
+
+    // With multiSelect, a click adds a node to the selection or removes it
+    const onClickTitle = (node: Node) => {
+      if (this.options.multiSelect) {
+        toggleNodeInSelection(node, false);
+        this.focusNode(node);
+      } else {
+        selectNode(node);
+      }
+    };
+
     const getMouseDelay = () => this.options.startDndDelay ?? 0;
 
     const dataLoader = new DataLoader({
@@ -205,12 +222,16 @@ export default class TreeElement {
 
     const keyHandler = new KeyHandler({
       closeNode,
+      focusNode: this.focusNode.bind(this),
+      getActiveNode: this.getActiveNode.bind(this),
       getFocusedNode,
       getSelectedNode,
       getTree,
       keyboardSupport,
+      multiSelect,
       openNode,
       selectNode,
+      toggleNodeInSelection,
       triggerEvent,
     });
 
@@ -225,6 +246,7 @@ export default class TreeElement {
       getTree,
       htmlElement: treeElement,
       isNodeSelected,
+      multiSelect,
       onCreateLi,
       openedIcon,
       rtl,
@@ -245,7 +267,7 @@ export default class TreeElement {
       getMouseDelay,
       getNode,
       onClickButton: this.toggle.bind(this),
-      onClickTitle: selectNode,
+      onClickTitle,
       onMouseCapture,
       onMouseDrag,
       onMouseStart,
@@ -262,6 +284,10 @@ export default class TreeElement {
     this.saveStateHandler = saveStateHandler;
     this.scrollHandler = scrollHandler;
     this.selectNodeHandler = selectNodeHandler;
+
+    if (multiSelect) {
+      treeElement.addEventListener("focusin", this.handleFocusIn);
+    }
 
     this.initData();
   }
@@ -388,6 +414,7 @@ export default class TreeElement {
     this.dataLoader.deinit();
     this.keyHandler.deinit();
     this.mouseHandler.deinit();
+    this.htmlElement.removeEventListener("focusin", this.handleFocusIn);
 
     this.tree = new Node({}, true);
   }
@@ -584,7 +611,8 @@ export default class TreeElement {
   }
 
   /**
-   * Selects the next visible node, like the down arrow key.
+   * Selects the next visible node, like the down arrow key. With
+   * `multiSelect` it moves the focus instead.
    *
    * @group Selection
    */
@@ -609,7 +637,8 @@ export default class TreeElement {
   }
 
   /**
-   * Selects the previous visible node, like the up arrow key.
+   * Selects the previous visible node, like the up arrow key. With
+   * `multiSelect` it moves the focus instead.
    *
    * @group Selection
    */
@@ -754,8 +783,8 @@ export default class TreeElement {
    */
   public selectNode(node: Node | null, options?: SelectNodeOptions): void {
     if (!node) {
-      // Called with empty node -> deselect current node
-      this.deselectCurrentNode();
+      // Called with empty node -> deselect all nodes
+      this.deselectAllNodes();
       this.saveStateHandler.saveState();
       return;
     }
@@ -913,6 +942,7 @@ export default class TreeElement {
       classNames,
       closedIconElement,
       getScrollLeft,
+      multiSelect: this.options.multiSelect,
       node,
       openedIconElement,
       renderChildren,
@@ -933,6 +963,7 @@ export default class TreeElement {
     return new NodeElement({
       classNames,
       getScrollLeft,
+      multiSelect: this.options.multiSelect,
       node,
       tabIndex,
       treeElement,
@@ -968,9 +999,8 @@ export default class TreeElement {
     return requestUrl;
   }
 
-  private deselectCurrentNode(): void {
-    const node = this.getSelectedNode();
-    if (node) {
+  private deselectAllNodes(): void {
+    for (const node of this.getSelectedNodes()) {
       this.removeFromSelection(node);
     }
   }
@@ -982,6 +1012,23 @@ export default class TreeElement {
     for (const n of selectedNodesUnderParent) {
       this.selectNodeHandler.removeFromSelection(n);
     }
+  }
+
+  // The treeitem of the first node, or null when the tree is empty
+  // Move the focus to a node, without selecting it
+  private focusNode(node: Node): void {
+    this.activeNode = node;
+    this.updateTabStop();
+    node.element?.focus();
+  }
+
+  // With multiSelect: the active node, if it is still rendered in the tree
+  private getActiveNode(): Node | null {
+    const element = this.activeNode?.element;
+
+    return element && this.htmlElement.contains(element)
+      ? this.activeNode
+      : null;
   }
 
   // Get the maximum level for auto open
@@ -1000,7 +1047,6 @@ export default class TreeElement {
     return 0;
   }
 
-  // The treeitem of the first node, or null when the tree is empty
   private getFirstTreeItem(): HTMLElement | null {
     return this.tree.children[0]?.element ?? null;
   }
@@ -1038,6 +1084,18 @@ export default class TreeElement {
   private getNodeIdToBeSelected(): NodeId | null {
     return this.saveStateHandler.getNodeIdToBeSelected();
   }
+
+  // With multiSelect, the focused node becomes the tab stop
+  private handleFocusIn = (): void => {
+    const node = this.getFocusedNode();
+
+    if (!node || node === this.activeNode) {
+      return;
+    }
+
+    this.activeNode = node;
+    this.updateTabStop();
+  };
 
   private hasRenderedSelectedNode(): boolean {
     return this.getSelectedNodes().some((node) => Boolean(node.element));
@@ -1276,19 +1334,27 @@ export default class TreeElement {
   /* Keyboard users reach the tree through the tab stop. The selected node is
    * the tab stop, see NodeElement.select. Without a selected node, the first
    * node is the tab stop, so the tree can always be reached.
+   * With multiSelect the tab stop is the active node: the node that was
+   * focused last. Without one, it is the first node.
    */
   private updateTabStop(): void {
     const tabIndex = this.options.tabIndex;
+    const multiSelect = this.options.multiSelect;
     const previousTabStop = this.fallbackTabStop;
-    const tabStop =
-      tabIndex == null || this.hasRenderedSelectedNode()
-        ? null
-        : this.getFirstTreeItem();
+    let tabStop: HTMLElement | null;
+
+    if (tabIndex == null) {
+      tabStop = null;
+    } else if (multiSelect) {
+      tabStop = this.getActiveNode()?.element ?? this.getFirstTreeItem();
+    } else {
+      tabStop = this.hasRenderedSelectedNode() ? null : this.getFirstTreeItem();
+    }
 
     if (
       previousTabStop &&
       previousTabStop !== tabStop &&
-      previousTabStop.getAttribute("aria-selected") !== "true"
+      (multiSelect || previousTabStop.getAttribute("aria-selected") !== "true")
     ) {
       previousTabStop.setAttribute("tabindex", "-1");
     }

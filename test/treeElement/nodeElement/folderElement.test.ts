@@ -40,6 +40,7 @@ const createFolderElement = ({
     getTree: () => tree,
     htmlElement: treeElement,
     isNodeSelected: () => false,
+    multiSelect: false,
     setNodeElement,
     showEmptyFolder: false,
   });
