@@ -2917,9 +2917,9 @@ var TreeElement = (function () {
       } else {
         this._selectedNodes.delete(node.id);
         if (includeChildren) {
-          node.iterate(() => {
-            if (node.id != null) {
-              this._selectedNodes.delete(node.id);
+          node.iterate(child => {
+            if (child.id != null) {
+              this._selectedNodes.delete(child.id);
             }
             return true;
           });
