@@ -20,6 +20,7 @@ interface InitTreeOptions {
   ariaLabel?: string;
   autoOpen?: number;
   dragAndDrop?: boolean;
+  multiSelect?: boolean;
   onCanMove?: boolean;
   onCanMoveTo?: boolean;
   rtl?: boolean;
@@ -31,6 +32,7 @@ export const initTree = async (
     ariaLabel,
     autoOpen = 0,
     dragAndDrop = false,
+    multiSelect = false,
     onCanMove,
     onCanMoveTo,
     rtl = false,
@@ -50,6 +52,7 @@ export const initTree = async (
             data: ExampleData.exampleData,
             dragAndDrop: ${dragAndDrop},
             htmlElement,
+            multiSelect: ${multiSelect},
             onCanMove: ${onCanMove ? "onCanMove" : "null"},
             onCanMoveTo: ${onCanMoveTo ? "onCanMoveTo" : "null"},
             openFolderDelay: 100,

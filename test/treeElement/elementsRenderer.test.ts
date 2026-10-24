@@ -74,6 +74,7 @@ const createRenderer = ({
     getTree: getTree ?? (() => tree),
     htmlElement: element,
     isNodeSelected,
+    multiSelect: false,
     onCreateLi,
     openedIcon,
     rtl,

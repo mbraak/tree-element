@@ -6,6 +6,10 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Added
+
+- The option `multiSelect` lets the user select multiple nodes.
+
 ### Changed
 
 - Make the tree readable for screen readers.

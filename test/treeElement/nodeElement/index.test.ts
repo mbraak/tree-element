@@ -9,10 +9,14 @@ import defaultClassNames from "../../support/classNames";
 import { getTreeListElement } from "../../support/queries";
 
 interface CreateNodeElementParams {
+  multiSelect?: boolean;
   tabIndex?: number;
 }
 
-const createNodeElement = ({ tabIndex }: CreateNodeElementParams = {}) => {
+const createNodeElement = ({
+  multiSelect = false,
+  tabIndex,
+}: CreateNodeElementParams = {}) => {
   const tree = new Node().loadFromData([{ id: 1, name: "node1" }]);
   const node = tree.children[0] as Node;
 
@@ -29,6 +33,7 @@ const createNodeElement = ({ tabIndex }: CreateNodeElementParams = {}) => {
     getTree: () => tree,
     htmlElement: treeElement,
     isNodeSelected: () => false,
+    multiSelect,
     setNodeElement,
     showEmptyFolder: false,
   });
@@ -37,6 +42,7 @@ const createNodeElement = ({ tabIndex }: CreateNodeElementParams = {}) => {
   const nodeElement = new NodeElement({
     classNames: defaultClassNames,
     getScrollLeft: () => 0,
+    multiSelect,
     node,
     tabIndex,
     treeElement,
@@ -207,8 +213,19 @@ describe("deselect", () => {
     expect(listElement).not.toHaveClass("tree-element-selected");
   });
 
-  it("sets aria-selected to false on the title span", () => {
+  it("removes aria-selected", () => {
     const { nodeElement } = createNodeElement();
+
+    nodeElement.select(false);
+    nodeElement.deselect();
+
+    const treeItem = screen.getByRole("treeitem", { name: "node1" });
+
+    expect(treeItem).not.toHaveAttribute("aria-selected");
+  });
+
+  it("sets aria-selected to false with multiSelect", () => {
+    const { nodeElement } = createNodeElement({ multiSelect: true });
 
     nodeElement.select(false);
     nodeElement.deselect();
