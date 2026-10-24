@@ -1404,9 +1404,9 @@ describe("methods", () => {
       const tree = createTreeElement({ data: exampleData });
 
       expect(() => {
-        // @ts-expect-error multiSelect is not a ChangeableOption
-        tree.setOption("multiSelect", true);
-      }).toThrow("The option multiSelect can only be set in the constructor");
+        // @ts-expect-error rtl is not a ChangeableOption
+        tree.setOption("rtl", true);
+      }).toThrow("The option rtl can only be set in the constructor");
     });
 
     it("updates the rendered nodes when tabIndex is changed", () => {
@@ -1440,6 +1440,68 @@ describe("methods", () => {
 
       expect(getTreeItem("node1")).not.toHaveAttribute("tabindex");
       expect(getTreeItem("child1")).not.toHaveAttribute("tabindex");
+    });
+
+    it("turns on multiSelect", async () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      tree.setOption("multiSelect", true);
+
+      expect(screen.getByRole("tree")).toHaveAttribute(
+        "aria-multiselectable",
+        "true",
+      );
+      expect(getTreeItem("node1")).toHaveAttribute("aria-selected", "false");
+
+      await userEvent.click(getTreeTitle(getTreeItem("node1")));
+      await userEvent.click(getTreeTitle(getTreeItem("node2")));
+
+      expect(tree.getSelectedNodes()).toMatchObject([
+        { name: "node1" },
+        { name: "node2" },
+      ]);
+    });
+
+    it("moves the focus with the arrow keys when multiSelect is turned on", async () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      tree.selectNode(tree.getNodeByNameMustExist("node1"));
+      tree.setOption("multiSelect", true);
+      await userEvent.keyboard("{ArrowDown}");
+
+      expect(getTreeItem("node2")).toHaveFocus();
+      expect(tree.getSelectedNodes()).toMatchObject([{ name: "node1" }]);
+    });
+
+    it("turns off multiSelect", async () => {
+      const tree = createTreeElement({ data: exampleData, multiSelect: true });
+
+      tree.setOption("multiSelect", false);
+
+      expect(screen.getByRole("tree")).not.toHaveAttribute(
+        "aria-multiselectable",
+      );
+      expect(getTreeItem("node1")).not.toHaveAttribute("aria-selected");
+
+      await userEvent.click(getTreeTitle(getTreeItem("node1")));
+      await userEvent.click(getTreeTitle(getTreeItem("node2")));
+
+      expect(tree.getSelectedNodes()).toMatchObject([{ name: "node2" }]);
+    });
+
+    it("keeps the selection and the focus when multiSelect is changed", () => {
+      const tree = createTreeElement({ data: exampleData, multiSelect: true });
+
+      tree.addToSelection(tree.getNodeByNameMustExist("node1"));
+      tree.addToSelection(tree.getNodeByNameMustExist("node2"));
+      tree.setOption("multiSelect", false);
+
+      expect(tree.getSelectedNodes()).toMatchObject([
+        { name: "node1" },
+        { name: "node2" },
+      ]);
+      expect(getTreeItem("node2")).toHaveFocus();
+      expect(getTreeItem("node1")).toHaveAttribute("aria-selected", "true");
     });
 
     it("adds the dnd class when dragAndDrop is turned on", () => {

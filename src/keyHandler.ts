@@ -108,6 +108,11 @@ export default class KeyHandler {
     }
   }
 
+  // Change multiSelect after construction
+  public setMultiSelect(multiSelect: boolean): void {
+    this.multiSelect = multiSelect;
+  }
+
   // Activate the node, for example to open its edit page.
   private activate(node: Node, originalEvent: KeyboardEvent): boolean {
     this.triggerEvent("tree.activate", { node, originalEvent });

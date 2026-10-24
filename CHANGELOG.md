@@ -6,6 +6,10 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Added
+
+- `multiSelect` can be turned on or off with `setOption`.
+
 ### Changed
 
 - `setOption` throws an error for an option that can only be set in the

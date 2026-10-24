@@ -40,6 +40,7 @@ export const changeableOptions = [
   "dataUrl",
   "dragAndDrop",
   "keyboardSupport",
+  "multiSelect",
   "onCanSelectNode",
   "selectable",
   "slide",
@@ -177,8 +178,6 @@ export interface TreeElementOptions {
    * selection, or removes it when it is selected. The arrow keys move the
    * focus instead of the selection, and `Space` adds the focused node or
    * removes it. See [Selection](/guide/selection#multiple-nodes).
-   *
-   * Set it in the constructor; `setOption` throws an error for it.
    *
    * @defaultValue `false`
    * @group Selection

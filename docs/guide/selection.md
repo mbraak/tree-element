@@ -51,7 +51,7 @@ new TreeElement({
 });
 ```
 
-Set `multiSelect` in the constructor; `setOption` throws an error for it.
+`multiSelect` can also be turned on or off later with `setOption("multiSelect", true)`.
 
 A click dispatches [`tree.select`](../reference/events#tree-select) or
 [`tree.deselect`](../reference/events#tree-deselect) for the clicked node, with `deselectedNode`

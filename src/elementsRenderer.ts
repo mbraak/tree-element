@@ -97,11 +97,12 @@ export default class ElementsRenderer {
     this.openedIconElement = this.createButtonElement(openedIcon);
     this.closedIconElement = this.createButtonElement(closedIcon);
 
-    this.rootUlTemplate = this.createUlTemplate(true);
-    this.groupUlTemplate = this.createUlTemplate(false);
-    this.nodeTemplate = this.createNodeTemplate();
-    this.openedFolderTemplate = this.createFolderTemplate(true);
-    this.closedFolderTemplate = this.createFolderTemplate(false);
+    const templates = this.createTemplates();
+    this.closedFolderTemplate = templates.closedFolderTemplate;
+    this.groupUlTemplate = templates.groupUlTemplate;
+    this.nodeTemplate = templates.nodeTemplate;
+    this.openedFolderTemplate = templates.openedFolderTemplate;
+    this.rootUlTemplate = templates.rootUlTemplate;
   }
 
   public render(fromNode: Node | null): void {
@@ -155,8 +156,7 @@ export default class ElementsRenderer {
    */
   public setDragAndDrop(dragAndDrop: boolean): void {
     this.dragAndDrop = dragAndDrop;
-    this.rootUlTemplate = this.createUlTemplate(true);
-    this.groupUlTemplate = this.createUlTemplate(false);
+    this.updateTemplates();
 
     for (const ul of this.htmlElement.querySelectorAll(
       `ul.${this.classNames.common}`,
@@ -165,15 +165,21 @@ export default class ElementsRenderer {
     }
   }
 
+  /* Change multiSelect after construction. Only the templates are updated;
+   * the tree must be rendered again.
+   */
+  public setMultiSelect(multiSelect: boolean): void {
+    this.multiSelect = multiSelect;
+    this.updateTemplates();
+  }
+
   /* Change tabIndex after construction. The rendered nodes and the
    * templates for new nodes get the new tabindex. The tab stop is updated by
    * TreeElement.updateTabStop.
    */
   public setTabIndex(tabIndex: number | undefined): void {
     this.tabIndex = tabIndex;
-    this.nodeTemplate = this.createNodeTemplate();
-    this.openedFolderTemplate = this.createFolderTemplate(true);
-    this.closedFolderTemplate = this.createFolderTemplate(false);
+    this.updateTemplates();
 
     for (const li of this.htmlElement.querySelectorAll("li[role=treeitem]")) {
       if (tabIndex === undefined) {
@@ -389,6 +395,16 @@ export default class ElementsRenderer {
     return li;
   }
 
+  private createTemplates() {
+    return {
+      closedFolderTemplate: this.createFolderTemplate(false),
+      groupUlTemplate: this.createUlTemplate(false),
+      nodeTemplate: this.createNodeTemplate(),
+      openedFolderTemplate: this.createFolderTemplate(true),
+      rootUlTemplate: this.createUlTemplate(true),
+    };
+  }
+
   private createTitleSpanTemplate(isFolder: boolean): HTMLSpanElement {
     const titleSpan = document.createElement("span");
 
@@ -503,5 +519,14 @@ export default class ElementsRenderer {
   */
   private mustRenderChildren(node: Node): boolean {
     return node.hasChildren() && node.is_open === true;
+  }
+
+  private updateTemplates(): void {
+    const templates = this.createTemplates();
+    this.closedFolderTemplate = templates.closedFolderTemplate;
+    this.groupUlTemplate = templates.groupUlTemplate;
+    this.nodeTemplate = templates.nodeTemplate;
+    this.openedFolderTemplate = templates.openedFolderTemplate;
+    this.rootUlTemplate = templates.rootUlTemplate;
   }
 }

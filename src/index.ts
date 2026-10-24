@@ -822,6 +822,11 @@ export default class TreeElement {
 
         break;
       }
+      case "multiSelect": {
+        this.setMultiSelect(Boolean(value));
+
+        break;
+      }
       case "tabIndex": {
         this.options.tabIndex = (value as null | number) ?? undefined;
         this.renderer.setTabIndex(this.options.tabIndex);
@@ -1345,6 +1350,29 @@ export default class TreeElement {
     } else {
       await this.autoOpenNodesOnDemand();
     }
+  }
+
+  /* Change multiSelect after construction. The attributes of the nodes
+   * depend on it, so the tree is rendered again. The selection is kept: a
+   * tree without multiSelect can also have several selected nodes, see
+   * addToSelection.
+   */
+  private setMultiSelect(multiSelect: boolean): void {
+    const focusedNode = this.getFocusedNode();
+
+    this.keyHandler.setMultiSelect(multiSelect);
+    this.renderer.setMultiSelect(multiSelect);
+
+    if (multiSelect) {
+      this.htmlElement.addEventListener("focusin", this.handleFocusIn);
+    } else {
+      this.htmlElement.removeEventListener("focusin", this.handleFocusIn);
+    }
+
+    this.activeNode = multiSelect ? focusedNode : null;
+    this.fallbackTabStop = null;
+    this.refreshElements(null);
+    focusedNode?.element?.focus();
   }
 
   // Set this HTML element to this node in the node map.
