@@ -13,6 +13,8 @@ import { getTreeListElement, getTreeTitle } from "../support/queries";
 
 const server = setupServer();
 
+const getTreeItem = (name: string) => screen.getByRole("treeitem", { name });
+
 describe("methods", () => {
   let htmlElement: HTMLElement;
   let treeElement: TreeElement | undefined;
@@ -1405,6 +1407,39 @@ describe("methods", () => {
         // @ts-expect-error multiSelect is not a ChangeableOption
         tree.setOption("multiSelect", true);
       }).toThrow("The option multiSelect can only be set in the constructor");
+    });
+
+    it("updates the rendered nodes when tabIndex is changed", () => {
+      const tree = createTreeElement({ autoOpen: true, data: exampleData });
+
+      tree.selectNode(tree.getNodeByNameMustExist("node2"));
+      tree.setOption("tabIndex", 3);
+
+      expect(getTreeItem("node2")).toHaveAttribute("tabindex", "3");
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "-1");
+      expect(getTreeItem("child1")).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("moves the tab stop to the first node when tabIndex is changed without a selected node", () => {
+      const tree = createTreeElement({
+        data: exampleData,
+        tabIndex: undefined,
+      });
+
+      tree.setOption("tabIndex", 3);
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "3");
+      expect(getTreeItem("node2")).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("removes the tabindex of the nodes when tabIndex is unset", async () => {
+      const tree = createTreeElement({ animationSpeed: 0, data: exampleData });
+
+      tree.setOption("tabIndex", undefined);
+      await tree.openNode(tree.getNodeByNameMustExist("node1"));
+
+      expect(getTreeItem("node1")).not.toHaveAttribute("tabindex");
+      expect(getTreeItem("child1")).not.toHaveAttribute("tabindex");
     });
 
     it("adds the dnd class when dragAndDrop is turned on", () => {

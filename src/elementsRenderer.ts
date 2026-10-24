@@ -165,6 +165,30 @@ export default class ElementsRenderer {
     }
   }
 
+  /* Change tabIndex after construction. The rendered nodes and the
+   * templates for new nodes get the new tabindex. The tab stop is updated by
+   * TreeElement.updateTabStop.
+   */
+  public setTabIndex(tabIndex: number | undefined): void {
+    this.tabIndex = tabIndex;
+    this.nodeTemplate = this.createNodeTemplate();
+    this.openedFolderTemplate = this.createFolderTemplate(true);
+    this.closedFolderTemplate = this.createFolderTemplate(false);
+
+    for (const li of this.htmlElement.querySelectorAll("li[role=treeitem]")) {
+      if (tabIndex === undefined) {
+        li.removeAttribute("tabindex");
+      } else if (
+        !this.multiSelect &&
+        li.getAttribute("aria-selected") === "true"
+      ) {
+        li.setAttribute("tabindex", String(tabIndex));
+      } else {
+        li.setAttribute("tabindex", "-1");
+      }
+    }
+  }
+
   private attachNodeData(node: Node, li: HTMLElement): void {
     node.element = li;
     this.setNodeElement(li, node);

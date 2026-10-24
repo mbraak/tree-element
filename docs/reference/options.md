@@ -45,7 +45,9 @@ These options take effect when you change them:
 - `dragAndDrop`
 - `onCanSelectNode`
 - `selectable`
+- `slide`
 - `startDndDelay`
+- `tabIndex`
 
 These take effect the next time the whole tree is loaded, by `loadData(data)` or
 `loadDataFromUrl()` without a parent node:
@@ -76,9 +78,3 @@ These can only be set in the constructor, `setOption` throws an error for them:
 - `saveState`
 - `showEmptyFolder`
 - `useContextMenu`
-
-These only partly take effect:
-
-- `slide` — opening and closing folders uses the new value, but opening a folder while dragging
-  over it uses the original one.
-- `tabIndex` — moving the tab stop uses the new value, but rendering nodes uses the original one.

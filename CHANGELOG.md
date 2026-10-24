@@ -17,6 +17,10 @@ All notable changes to tree-element are documented here. The format is based on
 
 - Changing `dragAndDrop` with `setOption` also updates the `tree-element-dnd`
   class, so touch dragging follows the new value.
+- Changing `slide` with `setOption` also applies to folders that open while
+  dragging over them.
+- Changing `tabIndex` with `setOption` also updates the nodes that are
+  already rendered.
 
 ## 0.4.0 - 2026-10-24
 

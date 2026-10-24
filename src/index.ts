@@ -110,7 +110,6 @@ export default class TreeElement {
       rtl,
       saveState: saveStateOption,
       showEmptyFolder,
-      slide,
       tabIndex,
     } = this.options;
 
@@ -216,7 +215,6 @@ export default class TreeElement {
       openFolderDelay,
       openNode,
       refreshElements,
-      slide,
       treeElement,
       triggerEvent,
     });
@@ -815,6 +813,11 @@ export default class TreeElement {
 
     if (option === "dragAndDrop") {
       this.renderer.setDragAndDrop(Boolean(value));
+    } else if (option === "tabIndex") {
+      this.options.tabIndex = (value as null | number) ?? undefined;
+      this.renderer.setTabIndex(this.options.tabIndex);
+      this.fallbackTabStop = null;
+      this.updateTabStop();
     }
   }
 
