@@ -49,12 +49,6 @@ These options take effect when you change them:
 - `startDndDelay`
 - `tabIndex`
 
-These take effect the next time the whole tree is loaded, by `loadData(data)` or
-`loadDataFromUrl()` without a parent node:
-
-- `autoOpen`
-- `nodeClass`
-
 `dataUrl` takes effect on the next `loadDataFromUrl()` without a url, and the next time a folder
 loads on demand.
 
@@ -62,6 +56,7 @@ These can only be set in the constructor, `setOption` throws an error for them:
 
 - `ariaLabel`, `ariaLabelledBy`
 - `autoEscape`
+- `autoOpen`
 - `buttonLeft`
 - `classPrefix`, `commonClassName`, `treeClassName`
 - `closedIcon`, `openedIcon`
@@ -70,6 +65,7 @@ These can only be set in the constructor, `setOption` throws an error for them:
 - `keyboardSupport`
 - `multiSelect` — changing it later leaves the tree half in one mode and half in the other, and
   `refresh()` does not fix that
+- `nodeClass`
 - `onCanMove`, `onCanMoveTo`, `onDragMove`, `onDragStop`, `onIsMoveHandle`
 - `onCreateLi`
 - `onGetStateFromStorage`, `onSetStateFromStorage`

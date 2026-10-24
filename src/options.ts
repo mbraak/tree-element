@@ -37,10 +37,8 @@ export type OnSetStateFromStorage = ((data: string) => void) | undefined;
  */
 export const changeableOptions = [
   "animationSpeed",
-  "autoOpen",
   "dataUrl",
   "dragAndDrop",
-  "nodeClass",
   "onCanSelectNode",
   "selectable",
   "slide",
