@@ -97,7 +97,6 @@ const createDragAndDropHandler = ({
     openFolderDelay: openFolderDelay,
     openNode: openNode ?? vi.fn(),
     refreshElements,
-    slide: false,
     treeElement: treeElement,
     triggerEvent,
   });
@@ -1007,7 +1006,7 @@ describe("DragAndDropHandler", () => {
 
       vi.advanceTimersByTime(100);
 
-      expect(openNode).toHaveBeenCalledExactlyOnceWith(node2, false);
+      expect(openNode).toHaveBeenCalledExactlyOnceWith(node2);
     });
 
     it("doesn't open a closed folder when it is hovered over but not long enough", () => {
