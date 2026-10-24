@@ -33,12 +33,53 @@ cancelled. This exists for tests and for integrating with another event system.
 `setOption` updates an option after construction:
 
 ```js
-tree.setOption("dragAndDrop", false);
+tree.setOption("selectable", false);
 ```
 
-Options are read when they are used, so some take effect on the next render and others — like
-`keyboardSupport`, which installs its listener in the constructor — do not take effect at all. Call
-`refresh()` after changing an option that affects rendering.
+Only some options can be changed this way. The tree reads most options once, in the constructor, so
+changing them later has no effect. To change one of those, create the tree again.
 
-`multiSelect` can only be set in the constructor. Changing it later leaves the tree half in one
-mode and half in the other, and `refresh()` does not fix that.
+These options take effect when you change them:
+
+- `animationSpeed`
+- `onCanSelectNode`
+- `selectable`
+- `startDndDelay`
+
+These take effect the next time the whole tree is loaded, by `loadData(data)` or
+`loadDataFromUrl()` without a parent node:
+
+- `autoOpen`
+- `nodeClass`
+
+`dataUrl` takes effect on the next `loadDataFromUrl()` without a url, and the next time a folder
+loads on demand.
+
+These can only be set in the constructor:
+
+- `ariaLabel`, `ariaLabelledBy`
+- `autoEscape`
+- `buttonLeft`
+- `classPrefix`, `commonClassName`, `treeClassName`
+- `closedIcon`, `openedIcon`
+- `data` — use `loadData` to replace the nodes
+- `dataFilter`
+- `keyboardSupport`
+- `multiSelect` — changing it later leaves the tree half in one mode and half in the other, and
+  `refresh()` does not fix that
+- `onCanMove`, `onCanMoveTo`, `onDragMove`, `onDragStop`, `onIsMoveHandle`
+- `onCreateLi`
+- `onGetStateFromStorage`, `onSetStateFromStorage`
+- `openFolderDelay`
+- `rtl`
+- `saveState`
+- `showEmptyFolder`
+- `useContextMenu`
+
+These only partly take effect:
+
+- `dragAndDrop` — turning it on or off later enables or disables dragging, but the folders keep
+  the drag-and-drop class of the original setting.
+- `slide` — opening and closing folders uses the new value, but opening a folder while dragging
+  over it uses the original one.
+- `tabIndex` — moving the tab stop uses the new value, but rendering nodes uses the original one.
