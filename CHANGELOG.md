@@ -6,6 +6,18 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Changed
+
+- `setOption` throws an error for an option that can only be set in the
+  constructor. Before, the change was ignored or only partly applied. See
+  [Changing an option later](https://mbraak.github.io/tree-element/reference/options#changing-an-option-later)
+  for the options it accepts.
+
+### Fixed
+
+- Changing `dragAndDrop` with `setOption` also updates the `tree-element-dnd`
+  class, so touch dragging follows the new value.
+
 ## 0.4.0 - 2026-10-24
 
 ### Added

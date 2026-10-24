@@ -1398,6 +1398,15 @@ describe("methods", () => {
       expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
     });
 
+    it("throws an error for an option that can only be set in the constructor", () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      expect(() => {
+        // @ts-expect-error multiSelect is not a ChangeableOption
+        tree.setOption("multiSelect", true);
+      }).toThrow("The option multiSelect can only be set in the constructor");
+    });
+
     it("adds the dnd class when dragAndDrop is turned on", () => {
       const tree = createTreeElement({ autoOpen: true, data: exampleData });
 

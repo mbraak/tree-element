@@ -2,7 +2,7 @@ import type { ClassNames } from "./classNames";
 import type { TreeEventName, TreeEvents } from "./events";
 import type { PositionInfo } from "./mouseUtils";
 import type { NodeData, NodeId, Position } from "./node";
-import type { TreeElementOptions } from "./options";
+import type { ChangeableOption, TreeElementOptions } from "./options";
 import type { SavedState } from "./saveStateHandler";
 import type { SelectNodeOptions } from "./selectNodeHandler";
 
@@ -15,6 +15,7 @@ import MouseHandler from "./mouseHandler";
 import { Node } from "./node";
 import NodeElement from "./nodeElement";
 import FolderElement from "./nodeElement/folderElement";
+import { changeableOptions } from "./options";
 import { getOffsetTop } from "./positionUtils";
 import RequestUrl from "./requestUrl";
 import SaveStateHandler from "./saveStateHandler";
@@ -797,12 +798,19 @@ export default class TreeElement {
   }
 
   /**
-   * Changes an option after construction. See
-   * [Options](/reference/options#changing-an-option-later) for the caveats.
+   * Changes an option after construction. Only some options can be changed;
+   * the others throw an error. See
+   * [Options](/reference/options#changing-an-option-later).
    *
    * @group Other
    */
-  public setOption(option: string, value: unknown) {
+  public setOption(option: ChangeableOption, value: unknown) {
+    if (!(changeableOptions as readonly string[]).includes(option)) {
+      throw new Error(
+        `The option ${option} can only be set in the constructor`,
+      );
+    }
+
     (this.options as unknown as Record<string, unknown>)[option] = value;
 
     if (option === "dragAndDrop") {
@@ -1378,6 +1386,6 @@ export {
   type TreeEvents,
 } from "./events";
 export { type Node, type NodeData, type NodeId, type Position } from "./node";
-export { type TreeElementOptions } from "./options";
+export { type ChangeableOption, type TreeElementOptions } from "./options";
 export { type SavedState } from "./saveStateHandler";
 export { type SelectNodeOptions } from "./selectNodeHandler";

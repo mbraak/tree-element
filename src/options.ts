@@ -31,6 +31,28 @@ export type OnIsMoveHandle = (el: HTMLElement) => boolean;
 
 export type OnSetStateFromStorage = ((data: string) => void) | undefined;
 
+/* The options that setOption can change. The others are read once, in the
+ * constructor, so changing them later would have no effect or leave the tree
+ * in an inconsistent state.
+ */
+export const changeableOptions = [
+  "animationSpeed",
+  "autoOpen",
+  "dataUrl",
+  "dragAndDrop",
+  "nodeClass",
+  "onCanSelectNode",
+  "selectable",
+  "slide",
+  "startDndDelay",
+  "tabIndex",
+] as const;
+
+/**
+ * The options that `setOption` can change.
+ */
+export type ChangeableOption = (typeof changeableOptions)[number];
+
 export interface TreeElementOptions {
   /**
    * The duration of the slide animation: `"fast"` is 200ms, `"slow"` is
@@ -157,8 +179,7 @@ export interface TreeElementOptions {
    * focus instead of the selection, and `Space` adds the focused node or
    * removes it. See [Selection](/guide/selection#multiple-nodes).
    *
-   * Set it in the constructor; changing it with `setOption` is not
-   * supported.
+   * Set it in the constructor; `setOption` throws an error for it.
    *
    * @defaultValue `false`
    * @group Selection

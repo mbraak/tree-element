@@ -36,8 +36,8 @@ cancelled. This exists for tests and for integrating with another event system.
 tree.setOption("selectable", false);
 ```
 
-Only some options can be changed this way. The tree reads most options once, in the constructor, so
-changing them later has no effect. To change one of those, create the tree again.
+Only some options can be changed this way. The tree reads the others once, in the constructor, and
+`setOption` throws an error for them. To change one of those, create the tree again.
 
 These options take effect when you change them:
 
@@ -56,7 +56,7 @@ These take effect the next time the whole tree is loaded, by `loadData(data)` or
 `dataUrl` takes effect on the next `loadDataFromUrl()` without a url, and the next time a folder
 loads on demand.
 
-These can only be set in the constructor:
+These can only be set in the constructor, `setOption` throws an error for them:
 
 - `ariaLabel`, `ariaLabelledBy`
 - `autoEscape`
