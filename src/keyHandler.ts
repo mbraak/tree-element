@@ -93,6 +93,21 @@ export default class KeyHandler {
     return this.goToNode(this.getCurrentNode()?.getPreviousVisibleNode());
   }
 
+  // Change keyboardSupport after construction
+  public setKeyboardSupport(keyboardSupport: boolean): void {
+    if (keyboardSupport === this.keyboardSupport) {
+      return;
+    }
+
+    this.keyboardSupport = keyboardSupport;
+
+    if (keyboardSupport) {
+      document.addEventListener("keydown", this.handleKeyDown);
+    } else {
+      document.removeEventListener("keydown", this.handleKeyDown);
+    }
+  }
+
   // Activate the node, for example to open its edit page.
   private activate(node: Node, originalEvent: KeyboardEvent): boolean {
     this.triggerEvent("tree.activate", { node, originalEvent });

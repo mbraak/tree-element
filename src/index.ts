@@ -811,13 +811,26 @@ export default class TreeElement {
 
     (this.options as unknown as Record<string, unknown>)[option] = value;
 
-    if (option === "dragAndDrop") {
-      this.renderer.setDragAndDrop(Boolean(value));
-    } else if (option === "tabIndex") {
-      this.options.tabIndex = (value as null | number) ?? undefined;
-      this.renderer.setTabIndex(this.options.tabIndex);
-      this.fallbackTabStop = null;
-      this.updateTabStop();
+    switch (option) {
+      case "dragAndDrop": {
+        this.renderer.setDragAndDrop(Boolean(value));
+
+        break;
+      }
+      case "keyboardSupport": {
+        this.keyHandler.setKeyboardSupport(Boolean(value));
+
+        break;
+      }
+      case "tabIndex": {
+        this.options.tabIndex = (value as null | number) ?? undefined;
+        this.renderer.setTabIndex(this.options.tabIndex);
+        this.fallbackTabStop = null;
+        this.updateTabStop();
+
+        break;
+      }
+      // No default
     }
   }
 

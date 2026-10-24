@@ -39,6 +39,7 @@ export const changeableOptions = [
   "animationSpeed",
   "dataUrl",
   "dragAndDrop",
+  "keyboardSupport",
   "onCanSelectNode",
   "selectable",
   "slide",

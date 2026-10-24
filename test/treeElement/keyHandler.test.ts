@@ -730,4 +730,59 @@ describe("KeyHandler", () => {
       });
     });
   });
+
+  describe("setKeyboardSupport", () => {
+    it("handles keydown events after it is turned on", () => {
+      const node1 = tree.getNodeByNameMustExist("node1");
+      const selectNode = vi.fn();
+
+      const keyHandler = createKeyHandler({
+        getSelectedNode: () => node1,
+        keyboardSupport: false,
+        selectNode,
+      });
+
+      keyHandler.setKeyboardSupport(true);
+      pressKey("ArrowDown");
+
+      expect(selectNode).toHaveBeenCalledWith(
+        tree.getNodeByNameMustExist("node2"),
+      );
+
+      keyHandler.deinit();
+    });
+
+    it("ignores keydown events after it is turned off", () => {
+      const node1 = tree.getNodeByNameMustExist("node1");
+      const selectNode = vi.fn();
+
+      const keyHandler = createKeyHandler({
+        getSelectedNode: () => node1,
+        selectNode,
+      });
+
+      keyHandler.setKeyboardSupport(false);
+      pressKey("ArrowDown");
+
+      expect(selectNode).not.toHaveBeenCalled();
+
+      keyHandler.deinit();
+    });
+
+    it("adds the listener only once when it is turned on twice", () => {
+      const addEventListener = vi.spyOn(document, "addEventListener");
+      const keyHandler = createKeyHandler({ keyboardSupport: false });
+
+      keyHandler.setKeyboardSupport(true);
+      keyHandler.setKeyboardSupport(true);
+
+      expect(addEventListener).toHaveBeenCalledExactlyOnceWith(
+        "keydown",
+        expect.any(Function),
+      );
+
+      addEventListener.mockRestore();
+      keyHandler.deinit();
+    });
+  });
 });

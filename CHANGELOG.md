@@ -19,6 +19,8 @@ All notable changes to tree-element are documented here. The format is based on
   class, so touch dragging follows the new value.
 - Changing `slide` with `setOption` also applies to folders that open while
   dragging over them.
+- Changing `keyboardSupport` with `setOption` turns the keyboard handling on
+  or off.
 - Changing `tabIndex` with `setOption` also updates the nodes that are
   already rendered.
 

@@ -44,6 +44,7 @@ These options take effect when you change them:
 - `animationSpeed`
 - `dataUrl`
 - `dragAndDrop`
+- `keyboardSupport`
 - `onCanSelectNode`
 - `selectable`
 - `slide`
@@ -60,7 +61,6 @@ These can only be set in the constructor, `setOption` throws an error for them:
 - `closedIcon`, `openedIcon`
 - `data` — use `loadData` to replace the nodes
 - `dataFilter`
-- `keyboardSupport`
 - `multiSelect` — changing it later leaves the tree half in one mode and half in the other, and
   `refresh()` does not fix that
 - `nodeClass`
