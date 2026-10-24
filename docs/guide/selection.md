@@ -51,6 +51,8 @@ new TreeElement({
 });
 ```
 
+Set `multiSelect` in the constructor; changing it later with `setOption` is not supported.
+
 A click dispatches [`tree.select`](../reference/events#tree-select) or
 [`tree.deselect`](../reference/events#tree-deselect) for the clicked node, with `deselectedNode`
 set to `null`. `onCanSelectNode` is respected. The tree gets `aria-multiselectable="true"`, so

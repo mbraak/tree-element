@@ -157,6 +157,9 @@ export interface TreeElementOptions {
    * focus instead of the selection, and `Space` adds the focused node or
    * removes it. See [Selection](/guide/selection#multiple-nodes).
    *
+   * Set it in the constructor; changing it with `setOption` is not
+   * supported.
+   *
    * @defaultValue `false`
    * @group Selection
    */
