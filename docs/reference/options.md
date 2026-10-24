@@ -42,6 +42,7 @@ changing them later has no effect. To change one of those, create the tree again
 These options take effect when you change them:
 
 - `animationSpeed`
+- `dragAndDrop`
 - `onCanSelectNode`
 - `selectable`
 - `startDndDelay`
@@ -78,8 +79,6 @@ These can only be set in the constructor:
 
 These only partly take effect:
 
-- `dragAndDrop` — turning it on or off later enables or disables dragging, but the folders keep
-  the drag-and-drop class of the original setting.
 - `slide` — opening and closing folders uses the new value, but opening a folder while dragging
   over it uses the original one.
 - `tabIndex` — moving the tab stop uses the new value, but rendering nodes uses the original one.

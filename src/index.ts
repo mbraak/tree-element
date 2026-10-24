@@ -804,6 +804,10 @@ export default class TreeElement {
    */
   public setOption(option: string, value: unknown) {
     (this.options as unknown as Record<string, unknown>)[option] = value;
+
+    if (option === "dragAndDrop") {
+      this.renderer.setDragAndDrop(Boolean(value));
+    }
   }
 
   /**

@@ -150,6 +150,21 @@ export default class ElementsRenderer {
     }
   }
 
+  /* Change dragAndDrop after construction. The rendered lists and the
+   * templates for new lists get or lose the dnd class.
+   */
+  public setDragAndDrop(dragAndDrop: boolean): void {
+    this.dragAndDrop = dragAndDrop;
+    this.rootUlTemplate = this.createUlTemplate(true);
+    this.groupUlTemplate = this.createUlTemplate(false);
+
+    for (const ul of this.htmlElement.querySelectorAll(
+      `ul.${this.classNames.common}`,
+    )) {
+      ul.classList.toggle(this.classNames.dnd, dragAndDrop);
+    }
+  }
+
   private attachNodeData(node: Node, li: HTMLElement): void {
     node.element = li;
     this.setNodeElement(li, node);

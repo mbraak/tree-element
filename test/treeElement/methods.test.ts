@@ -1397,6 +1397,31 @@ describe("methods", () => {
 
       expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
     });
+
+    it("adds the dnd class when dragAndDrop is turned on", () => {
+      const tree = createTreeElement({ autoOpen: true, data: exampleData });
+
+      tree.setOption("dragAndDrop", true);
+
+      expect(screen.getByRole("tree")).toHaveClass("tree-element-dnd");
+      expect(screen.getAllByRole("group")[0]).toHaveClass("tree-element-dnd");
+    });
+
+    it("removes the dnd class when dragAndDrop is turned off", async () => {
+      const tree = createTreeElement({
+        animationSpeed: 0,
+        data: exampleData,
+        dragAndDrop: true,
+      });
+
+      tree.setOption("dragAndDrop", false);
+      await tree.openNode(tree.getNodeByNameMustExist("node1"));
+
+      expect(screen.getByRole("tree")).not.toHaveClass("tree-element-dnd");
+      expect(screen.getAllByRole("group")[0]).not.toHaveClass(
+        "tree-element-dnd",
+      );
+    });
   });
 
   describe("setState", () => {
