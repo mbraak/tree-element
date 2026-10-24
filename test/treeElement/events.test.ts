@@ -346,6 +346,60 @@ describe("events", () => {
       expect(onDeselect).not.toHaveBeenCalled();
     });
 
+    it("fires tree.deselect for the other nodes when a node of a multiple selection is clicked", async () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      const node1 = tree.getNodeByNameMustExist("node1");
+      const node2 = tree.getNodeByNameMustExist("node2");
+      const child2 = tree.getNodeByNameMustExist("child2");
+      tree.addToSelection(node1);
+      tree.addToSelection(node2);
+      tree.addToSelection(child2);
+
+      const onDeselect = listenToEvent("tree.deselect");
+      const onSelect = listenToEvent("tree.select");
+
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
+
+      expect(tree.getSelectedNodes()).toStrictEqual([node1]);
+      expect(onDeselect.mock.calls).toStrictEqual([
+        [{ node: node2 }],
+        [{ node: child2 }],
+      ]);
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it("fires tree.deselect for the nodes that tree.select doesn't report when a multiple selection is replaced", async () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      const node2 = tree.getNodeByNameMustExist("node2");
+      tree.addToSelection(tree.getNodeByNameMustExist("node1"));
+      tree.addToSelection(tree.getNodeByNameMustExist("child2"));
+
+      const events: string[] = [];
+
+      htmlElement.addEventListener("tree.deselect", (e) => {
+        events.push(`deselect ${e.detail.node.name}`);
+      });
+      htmlElement.addEventListener("tree.select", (e) => {
+        events.push(
+          `select ${e.detail.node.name} instead of ${e.detail.deselectedNode?.name ?? "-"}`,
+        );
+      });
+
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node2" })),
+      );
+
+      expect(tree.getSelectedNodes()).toStrictEqual([node2]);
+      expect(events).toStrictEqual([
+        "deselect child2",
+        "select node2 instead of node1",
+      ]);
+    });
+
     it("fires tree.deselect instead of tree.select", async () => {
       const tree = createTreeElement({ data: exampleData });
 

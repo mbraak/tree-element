@@ -3087,6 +3087,11 @@ var TreeElement = (function () {
           for (let otherNode of otherSelectedNodes) {
             this._deselectNode(otherNode);
           }
+          for (let otherNode of otherSelectedNodes) {
+            this._triggerEvent("tree.deselect", {
+              node: otherNode
+            });
+          }
         } else if (selectOptions.mustToggle) {
           this._deselectNode(node);
           this._triggerEvent("tree.deselect", {
@@ -3094,13 +3099,20 @@ var TreeElement = (function () {
           });
         }
       } else {
-        let deselectedNode = otherSelectedNodes[0] ?? null;
+        // tree.select reports the first deselected node; the others, from a
+        // multiple selection, get a tree.deselect.
+        let [deselectedNode = null, ...alsoDeselectedNodes] = otherSelectedNodes;
         for (let otherNode of otherSelectedNodes) {
           this._deselectNode(otherNode);
         }
         this._addToSelection(node);
         this._openParents(node);
         this._getNodeElementForNode(node)._select(selectOptions.mustSetFocus);
+        for (let otherNode of alsoDeselectedNodes) {
+          this._triggerEvent("tree.deselect", {
+            node: otherNode
+          });
+        }
         this._triggerEvent("tree.select", {
           deselectedNode,
           node

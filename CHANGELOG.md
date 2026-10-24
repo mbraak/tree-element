@@ -27,6 +27,10 @@ All notable changes to tree-element are documented here. The format is based on
   or off.
 - Changing `tabIndex` with `setOption` also updates the nodes that are
   already rendered.
+- When several nodes are selected and a click or `selectNode` selects just
+  one node, `tree.deselect` is dispatched for the nodes that lose the
+  selection. Before, they were deselected without an event, except for the
+  one in the `deselectedNode` of `tree.select`.
 
 ## 0.4.0 - 2026-10-24
 
