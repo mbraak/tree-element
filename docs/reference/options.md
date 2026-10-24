@@ -42,15 +42,13 @@ Only some options can be changed this way. The tree reads the others once, in th
 These options take effect when you change them:
 
 - `animationSpeed`
+- `dataUrl`
 - `dragAndDrop`
 - `onCanSelectNode`
 - `selectable`
 - `slide`
 - `startDndDelay`
 - `tabIndex`
-
-`dataUrl` takes effect on the next `loadDataFromUrl()` without a url, and the next time a folder
-loads on demand.
 
 These can only be set in the constructor, `setOption` throws an error for them:
 
