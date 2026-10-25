@@ -356,11 +356,7 @@ export class DragAndDropHandler {
   }
 
   private mustCaptureElement(element: HTMLElement): boolean {
-    const nodeName = element.nodeName;
-
-    return (
-      nodeName !== "INPUT" && nodeName !== "SELECT" && nodeName !== "TEXTAREA"
-    );
+    return !["INPUT", "SELECT", "TEXTAREA"].includes(element.nodeName);
   }
 
   private mustOpenFolderTimer(area: HitArea): boolean {

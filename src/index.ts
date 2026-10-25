@@ -1088,14 +1088,11 @@ export default class TreeElement {
   private getFocusedNode(): Node | null {
     const activeElement = document.activeElement;
 
-    /* istanbul ignore if */
-    if (!activeElement) {
-      return null;
-    }
-
-    // The keyboard must still work for input elements.
-    const tagName = activeElement.tagName;
-    if (tagName !== "A" && tagName !== "LI" && tagName !== "SPAN") {
+    // An active element must exist and the keyboard must still work for input elements.
+    if (
+      !activeElement ||
+      !["A", "LI", "SPAN"].includes(activeElement.tagName)
+    ) {
       return null;
     }
 

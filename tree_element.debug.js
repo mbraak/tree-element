@@ -592,8 +592,7 @@ var TreeElement = (function () {
       }
     }
     _mustCaptureElement(element) {
-      let nodeName = element.nodeName;
-      return nodeName !== "INPUT" && nodeName !== "SELECT" && nodeName !== "TEXTAREA";
+      return !["INPUT", "SELECT", "TEXTAREA"].includes(element.nodeName);
     }
     _mustOpenFolderTimer(area) {
       let node = area.node;
@@ -4190,14 +4189,8 @@ var TreeElement = (function () {
     _getFocusedNode() {
       let activeElement = document.activeElement;
 
-      /* istanbul ignore if */
-      if (!activeElement) {
-        return null;
-      }
-
-      // The keyboard must still work for input elements.
-      let tagName = activeElement.tagName;
-      if (tagName !== "A" && tagName !== "LI" && tagName !== "SPAN") {
+      // An active element must exist and the keyboard must still work for input elements.
+      if (!activeElement || !["A", "LI", "SPAN"].includes(activeElement.tagName)) {
         return null;
       }
       let node = this.getNode(activeElement);
