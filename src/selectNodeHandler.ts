@@ -166,12 +166,19 @@ export default class SelectNodeHandler {
         for (const otherNode of otherSelectedNodes) {
           this.deselectNode(otherNode);
         }
+
+        for (const otherNode of otherSelectedNodes) {
+          this.triggerEvent("tree.deselect", { node: otherNode });
+        }
       } else if (selectOptions.mustToggle) {
         this.deselectNode(node);
         this.triggerEvent("tree.deselect", { node });
       }
     } else {
-      const deselectedNode = otherSelectedNodes[0] ?? null;
+      // tree.select reports the first deselected node; the others, from a
+      // multiple selection, get a tree.deselect.
+      const [deselectedNode = null, ...alsoDeselectedNodes] =
+        otherSelectedNodes;
 
       for (const otherNode of otherSelectedNodes) {
         this.deselectNode(otherNode);
@@ -180,6 +187,10 @@ export default class SelectNodeHandler {
       this.addToSelection(node);
       this.openParents(node);
       this.getNodeElementForNode(node).select(selectOptions.mustSetFocus);
+
+      for (const otherNode of alsoDeselectedNodes) {
+        this.triggerEvent("tree.deselect", { node: otherNode });
+      }
 
       this.triggerEvent("tree.select", {
         deselectedNode,

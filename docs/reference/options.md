@@ -33,12 +33,41 @@ cancelled. This exists for tests and for integrating with another event system.
 `setOption` updates an option after construction:
 
 ```js
-tree.setOption("dragAndDrop", false);
+tree.setOption("selectable", false);
 ```
 
-Options are read when they are used, so some take effect on the next render and others — like
-`keyboardSupport`, which installs its listener in the constructor — do not take effect at all. Call
-`refresh()` after changing an option that affects rendering.
+Only some options can be changed this way. The tree reads the others once, in the constructor, and
+`setOption` throws an error for them. To change one of those, create the tree again.
 
-`multiSelect` can only be set in the constructor. Changing it later leaves the tree half in one
-mode and half in the other, and `refresh()` does not fix that.
+These options take effect when you change them:
+
+- `animationSpeed`
+- `dataUrl`
+- `dragAndDrop`
+- `keyboardSupport`
+- `multiSelect`
+- `onCanSelectNode`
+- `selectable`
+- `slide`
+- `startDndDelay`
+- `tabIndex`
+
+These can only be set in the constructor, `setOption` throws an error for them:
+
+- `ariaLabel`, `ariaLabelledBy`
+- `autoEscape`
+- `autoOpen`
+- `buttonLeft`
+- `classPrefix`, `commonClassName`, `treeClassName`
+- `closedIcon`, `openedIcon`
+- `data` — use `loadData` to replace the nodes
+- `dataFilter`
+- `nodeClass`
+- `onCanMove`, `onCanMoveTo`, `onDragMove`, `onDragStop`, `onIsMoveHandle`
+- `onCreateLi`
+- `onGetStateFromStorage`, `onSetStateFromStorage`
+- `openFolderDelay`
+- `rtl`
+- `saveState`
+- `showEmptyFolder`
+- `useContextMenu`

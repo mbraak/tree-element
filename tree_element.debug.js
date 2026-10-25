@@ -1,5 +1,5 @@
 /*
-Tree-element 0.3.2
+Tree-element 0.4.0
 
 Copyright 2026 Marco Braak
 
@@ -391,7 +391,6 @@ var TreeElement = (function () {
       _openFolderDelay: openFolderDelay,
       _openNode: openNode,
       _refreshElements: refreshElements,
-      _slide: slide,
       _treeElement: treeElement,
       _triggerEvent: triggerEvent
     }) {
@@ -409,7 +408,6 @@ var TreeElement = (function () {
       this._openFolderDelay = openFolderDelay;
       this._openNode = openNode;
       this._refreshElements = refreshElements;
-      this._slide = slide;
       this._treeElement = treeElement;
       this._triggerEvent = triggerEvent;
       this._hoveredArea = null;
@@ -614,7 +612,7 @@ var TreeElement = (function () {
     }
     _startOpenFolderTimer(folder) {
       let openFolder = () => {
-        void this._openNode(folder, this._slide).then(() => {
+        void this._openNode(folder).then(() => {
           this._refresh();
           this._updateDropHint();
         });
@@ -697,11 +695,12 @@ var TreeElement = (function () {
       this._tabIndex = tabIndex;
       this._openedIconElement = this._createButtonElement(openedIcon);
       this._closedIconElement = this._createButtonElement(closedIcon);
-      this._rootUlTemplate = this._createUlTemplate(true);
-      this._groupUlTemplate = this._createUlTemplate(false);
-      this._nodeTemplate = this._createNodeTemplate();
-      this._openedFolderTemplate = this._createFolderTemplate(true);
-      this._closedFolderTemplate = this._createFolderTemplate(false);
+      let templates = this._createTemplates();
+      this._closedFolderTemplate = templates.closedFolderTemplate;
+      this._groupUlTemplate = templates.groupUlTemplate;
+      this._nodeTemplate = templates.nodeTemplate;
+      this._openedFolderTemplate = templates.openedFolderTemplate;
+      this._rootUlTemplate = templates.rootUlTemplate;
     }
     _render(fromNode) {
       if (fromNode?.parent) {
@@ -733,6 +732,43 @@ var TreeElement = (function () {
       let tree = this._getTree();
       if (tree) {
         this._createDomElements(this._htmlElement, tree.children, true, 1);
+      }
+    }
+
+    /* Change dragAndDrop after construction. The rendered lists and the
+     * templates for new lists get or lose the dnd class.
+     */
+    _setDragAndDrop(dragAndDrop) {
+      this._dragAndDrop = dragAndDrop;
+      this._updateTemplates();
+      for (let ul of this._htmlElement.querySelectorAll(`ul.${this._classNames.common}`)) {
+        ul.classList.toggle(this._classNames.dnd, dragAndDrop);
+      }
+    }
+
+    /* Change multiSelect after construction. Only the templates are updated;
+     * the tree must be rendered again.
+     */
+    _setMultiSelect(multiSelect) {
+      this._multiSelect = multiSelect;
+      this._updateTemplates();
+    }
+
+    /* Change tabIndex after construction. The rendered nodes and the
+     * templates for new nodes get the new tabindex. The tab stop is updated by
+     * TreeElement.updateTabStop.
+     */
+    _setTabIndex(tabIndex) {
+      this._tabIndex = tabIndex;
+      this._updateTemplates();
+      for (let li of this._htmlElement.querySelectorAll("li[role=treeitem]")) {
+        if (tabIndex === undefined) {
+          li.removeAttribute("tabindex");
+        } else if (!this._multiSelect && li.getAttribute("aria-selected") === "true") {
+          li.setAttribute("tabindex", String(tabIndex));
+        } else {
+          li.setAttribute("tabindex", "-1");
+        }
       }
     }
     _attachNodeData(node, li) {
@@ -880,6 +916,15 @@ var TreeElement = (function () {
       div.append(this._createTitleSpanTemplate(false));
       return li;
     }
+    _createTemplates() {
+      return {
+        closedFolderTemplate: this._createFolderTemplate(false),
+        groupUlTemplate: this._createUlTemplate(false),
+        nodeTemplate: this._createNodeTemplate(),
+        openedFolderTemplate: this._createFolderTemplate(true),
+        rootUlTemplate: this._createUlTemplate(true)
+      };
+    }
     _createTitleSpanTemplate(isFolder) {
       let titleSpan = document.createElement("span");
       let classes = `${this._classNames.title} ${this._classNames.common}`;
@@ -967,6 +1012,14 @@ var TreeElement = (function () {
     _mustRenderChildren(node) {
       return node.hasChildren() && node.is_open === true;
     }
+    _updateTemplates() {
+      let templates = this._createTemplates();
+      this._closedFolderTemplate = templates.closedFolderTemplate;
+      this._groupUlTemplate = templates.groupUlTemplate;
+      this._nodeTemplate = templates.nodeTemplate;
+      this._openedFolderTemplate = templates.openedFolderTemplate;
+      this._rootUlTemplate = templates.rootUlTemplate;
+    }
   }
 
   /* The keys move from the selected node and select the node they move to.
@@ -1015,6 +1068,24 @@ var TreeElement = (function () {
     }
     _moveUp() {
       return this._goToNode(this._getCurrentNode()?.getPreviousVisibleNode());
+    }
+
+    // Change keyboardSupport after construction
+    _setKeyboardSupport(keyboardSupport) {
+      if (keyboardSupport === this._keyboardSupport) {
+        return;
+      }
+      this._keyboardSupport = keyboardSupport;
+      if (keyboardSupport) {
+        document.addEventListener("keydown", this._handleKeyDown);
+      } else {
+        document.removeEventListener("keydown", this._handleKeyDown);
+      }
+    }
+
+    // Change multiSelect after construction
+    _setMultiSelect(multiSelect) {
+      this._multiSelect = multiSelect;
     }
 
     // Activate the node, for example to open its edit page.
@@ -2472,6 +2543,16 @@ var TreeElement = (function () {
     }
   }
 
+  /* The options that setOption can change. The others are read once, in the
+   * constructor, so changing them later would have no effect or leave the tree
+   * in an inconsistent state.
+   */
+  let changeableOptions = ["animationSpeed", "dataUrl", "dragAndDrop", "keyboardSupport", "multiSelect", "onCanSelectNode", "selectable", "slide", "startDndDelay", "tabIndex"];
+
+  /**
+   * The options that `setOption` can change.
+   */
+
   // Url of a request. A relative url is resolved against the page, like a link
   // or `fetch` would, so it also works when the page is in a subdirectory.
 
@@ -3006,6 +3087,11 @@ var TreeElement = (function () {
           for (let otherNode of otherSelectedNodes) {
             this._deselectNode(otherNode);
           }
+          for (let otherNode of otherSelectedNodes) {
+            this._triggerEvent("tree.deselect", {
+              node: otherNode
+            });
+          }
         } else if (selectOptions.mustToggle) {
           this._deselectNode(node);
           this._triggerEvent("tree.deselect", {
@@ -3013,13 +3099,20 @@ var TreeElement = (function () {
           });
         }
       } else {
-        let deselectedNode = otherSelectedNodes[0] ?? null;
+        // tree.select reports the first deselected node; the others, from a
+        // multiple selection, get a tree.deselect.
+        let [deselectedNode = null, ...alsoDeselectedNodes] = otherSelectedNodes;
         for (let otherNode of otherSelectedNodes) {
           this._deselectNode(otherNode);
         }
         this._addToSelection(node);
         this._openParents(node);
         this._getNodeElementForNode(node)._select(selectOptions.mustSetFocus);
+        for (let otherNode of alsoDeselectedNodes) {
+          this._triggerEvent("tree.deselect", {
+            node: otherNode
+          });
+        }
         this._triggerEvent("tree.select", {
           deselectedNode,
           node
@@ -3157,7 +3250,7 @@ var TreeElement = (function () {
   };
 
   // Generated by config/generateVersion.mjs. Do not edit.
-  let version = "0.3.2";
+  let version = "0.4.0";
 
   // The types that appear in the public api. Consumers cannot import them from
   // the submodules directly, because those are not exposed in package.json.
@@ -3224,7 +3317,6 @@ var TreeElement = (function () {
         rtl,
         saveState: saveStateOption,
         showEmptyFolder,
-        slide,
         tabIndex
       } = this._options;
       let classNames = this._classNames;
@@ -3313,7 +3405,6 @@ var TreeElement = (function () {
         _openFolderDelay: openFolderDelay,
         _openNode: openNode,
         _refreshElements: refreshElements,
-        _slide: slide,
         _treeElement: treeElement,
         _triggerEvent: triggerEvent
       });
@@ -3848,13 +3939,43 @@ var TreeElement = (function () {
     }
 
     /**
-     * Changes an option after construction. See
-     * [Options](/reference/options#changing-an-option-later) for the caveats.
+     * Changes an option after construction. Only some options can be changed;
+     * the others throw an error. See
+     * [Options](/reference/options#changing-an-option-later).
      *
      * @group Other
      */
     setOption(option, value) {
+      if (!changeableOptions.includes(option)) {
+        throw new Error(`The option ${option} can only be set in the constructor`);
+      }
       this._options[option] = value;
+      switch (option) {
+        case "dragAndDrop":
+          {
+            this._renderer._setDragAndDrop(Boolean(value));
+            break;
+          }
+        case "keyboardSupport":
+          {
+            this._keyHandler._setKeyboardSupport(Boolean(value));
+            break;
+          }
+        case "multiSelect":
+          {
+            this._setMultiSelect(Boolean(value));
+            break;
+          }
+        case "tabIndex":
+          {
+            this._options.tabIndex = value ?? undefined;
+            this._renderer._setTabIndex(this._options.tabIndex);
+            this._fallbackTabStop = null;
+            this._updateTabStop();
+            break;
+          }
+        // No default
+      }
     }
 
     /**
@@ -4274,6 +4395,26 @@ var TreeElement = (function () {
       } else {
         await this._autoOpenNodesOnDemand();
       }
+    }
+
+    /* Change multiSelect after construction. The attributes of the nodes
+     * depend on it, so the tree is rendered again. The selection is kept: a
+     * tree without multiSelect can also have several selected nodes, see
+     * addToSelection.
+     */
+    _setMultiSelect(multiSelect) {
+      let focusedNode = this._getFocusedNode();
+      this._keyHandler._setMultiSelect(multiSelect);
+      this._renderer._setMultiSelect(multiSelect);
+      if (multiSelect) {
+        this._htmlElement.addEventListener("focusin", this._handleFocusIn);
+      } else {
+        this._htmlElement.removeEventListener("focusin", this._handleFocusIn);
+      }
+      this._activeNode = multiSelect ? focusedNode : null;
+      this._fallbackTabStop = null;
+      this._refreshElements(null);
+      focusedNode?.element?.focus();
     }
 
     // Set this HTML element to this node in the node map.
