@@ -9,6 +9,9 @@ All notable changes to tree-element are documented here. The format is based on
 ### Added
 
 - `multiSelect` can be turned on or off with `setOption`.
+- Vertical lines from a folder to its children. Their color is the
+  `--tree-element-line-color` custom property; set it to `transparent` to hide
+  them.
 
 ### Changed
 

@@ -2,6 +2,7 @@
   Colors. Override them on :root or on an element around the tree, for example
   for a dark theme. :where keeps the specificity at 0, so any rule wins.
   --tree-element-selected-color defaults to --tree-element-title-color.
+  Set --tree-element-line-color to transparent to hide the tree lines.
 */
 :where(:root) {
   --tree-element-title-color: #1c4257;
@@ -12,6 +13,7 @@
   --tree-element-drop-hint-color: #00f;
   --tree-element-dragging-color: #fff;
   --tree-element-dragging-background: #000;
+  --tree-element-line-color: #d5dbe1;
 }
 
 ul.tree-element {
@@ -31,6 +33,9 @@ ul.tree-element {
     margin-bottom: 0;
     padding: 0;
     display: block;
+    /* The line down from the toggler of the folder: the indent is half the
+       width of the toggler, so the line is under its center. */
+    border-left: 1px solid var(--tree-element-line-color);
   }
 
   li.tree-element-closed > ul.tree-element-common {
@@ -183,6 +188,8 @@ ul.tree-element.tree-element-rtl {
   ul.tree-element-common {
     margin-left: 0;
     margin-right: 12px;
+    border-left: none;
+    border-right: 1px solid var(--tree-element-line-color);
   }
 
   .tree-element-title {

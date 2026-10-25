@@ -143,6 +143,10 @@ change one tree:
 | `--tree-element-drop-hint-color`      | `#00f`                              | The drop hints while dragging.              |
 | `--tree-element-dragging-color`       | `#fff`                              | The text of the node that is dragged.       |
 | `--tree-element-dragging-background`  | `#000`                              | The background of the node that is dragged. |
+| `--tree-element-line-color`           | `#d5dbe1`                           | The lines from a folder to its children.    |
+
+The tree lines are decoration, so they are light. Set `--tree-element-line-color` to `transparent`
+to hide them.
 
 The defaults meet the WCAG AA contrast minimums on a white page: the title has at least 4.6:1,
 also on the darkest part of the selected row. Check the contrast when you change them.
@@ -159,6 +163,7 @@ theme for a page with a `#121212` background:
     --tree-element-selected-background: #1f3a52;
     --tree-element-selected-text-shadow: none;
     --tree-element-drop-hint-color: #6ea8ff;
+    --tree-element-line-color: #3a4651;
   }
 }
 ```
