@@ -3,7 +3,7 @@ import type { GetTree, IsNodeSelected } from "./methodTypes";
 import type { Node } from "./node";
 import type { IconElement, OnCreateLi } from "./options";
 
-import { getBoolString } from "./util";
+import { setFolderLiOpenState, setTogglerOpenState } from "./folderOpenState";
 
 interface ElementsRendererParams {
   ariaLabel?: string;
@@ -273,34 +273,26 @@ export default class ElementsRenderer {
    * state, so there is a template for each.
    */
   private createFolderTemplate(isOpen: boolean): HTMLLIElement {
-    const liClasses = [this.classNames.common, this.classNames.folder];
+    const li = this.createLiTemplate(
+      `${this.classNames.common} ${this.classNames.folder}`,
+    );
+    setFolderLiOpenState(li, isOpen, this.classNames);
 
-    if (!isOpen) {
-      liClasses.push(this.classNames.closed);
-    }
-
-    const li = this.createLiTemplate(liClasses.join(" "));
     const div = li.firstChild as HTMLDivElement;
 
     // The toggler is hidden from screen readers: the icon is decoration, and
     // aria-expanded on the treeitem has the open state.
     const toggler = document.createElement("span");
-    toggler.className = this.getButtonClasses(isOpen);
+    toggler.className = this.getButtonClasses();
     toggler.setAttribute("aria-hidden", "true");
-
-    const iconElement = isOpen
-      ? this.openedIconElement
-      : this.closedIconElement;
-
-    if (iconElement) {
-      toggler.append(iconElement.cloneNode(true));
-    }
+    setTogglerOpenState(toggler, isOpen, this.classNames, {
+      closed: this.closedIconElement,
+      opened: this.openedIconElement,
+    });
 
     if (this.buttonLeft) {
       div.append(toggler);
     }
-
-    li.setAttribute("aria-expanded", getBoolString(isOpen));
 
     // title span
     div.append(this.createTitleSpanTemplate(true));
@@ -498,12 +490,8 @@ export default class ElementsRenderer {
     li.setAttribute("aria-label", titleSpan.textContent);
   }
 
-  private getButtonClasses(isOpen: boolean): string {
+  private getButtonClasses(): string {
     const classes = [this.classNames.toggler, this.classNames.common];
-
-    if (!isOpen) {
-      classes.push(this.classNames.closed);
-    }
 
     if (this.buttonLeft) {
       classes.push(this.classNames.togglerLeft);

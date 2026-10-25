@@ -4,7 +4,7 @@ import type { Node, Position } from "../node";
 import type { NodeElementParams } from "./index";
 
 import { slideDown, slideUp } from "../animation";
-import { getBoolString } from "../util";
+import { setFolderLiOpenState, setTogglerOpenState } from "../folderOpenState";
 import NodeElement from "./index";
 
 export type RenderChildren = (node: Node) => HTMLUListElement | null;
@@ -126,22 +126,14 @@ class FolderElement extends NodeElement {
   }
 
   private setButtonState(isOpen: boolean): void {
-    const button = this.getButton();
-    button.classList.toggle(this.classNames.closed, !isOpen);
-    button.replaceChildren();
-
-    const iconElement = isOpen
-      ? this.openedIconElement
-      : this.closedIconElement;
-
-    if (iconElement) {
-      button.append(iconElement.cloneNode(true));
-    }
+    setTogglerOpenState(this.getButton(), isOpen, this.classNames, {
+      closed: this.closedIconElement,
+      opened: this.openedIconElement,
+    });
   }
 
   private setElementState(isOpen: boolean): void {
-    this.element.classList.toggle(this.classNames.closed, !isOpen);
-    this.element.setAttribute("aria-expanded", getBoolString(isOpen));
+    setFolderLiOpenState(this.element, isOpen, this.classNames);
   }
 }
 
