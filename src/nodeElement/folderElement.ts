@@ -4,6 +4,7 @@ import type { Node, Position } from "../node";
 import type { NodeElementParams } from "./index";
 
 import { slideDown, slideUp } from "../animation";
+import { getBoolString } from "../util";
 import NodeElement from "./index";
 
 export type RenderChildren = (node: Node) => HTMLUListElement | null;
@@ -63,16 +64,7 @@ class FolderElement extends NodeElement {
       return;
     }
 
-    const button = this.getButton();
-    button.classList.add(this.classNames.closed);
-    button.replaceChildren();
-
-    const closedIconElement = this.closedIconElement;
-
-    if (closedIconElement) {
-      const icon = closedIconElement.cloneNode(true);
-      button.append(icon);
-    }
+    this.setButtonState(false);
 
     const ul = this.getUl();
 
@@ -84,13 +76,9 @@ class FolderElement extends NodeElement {
       }
     }
 
-    this.element.classList.add(this.classNames.closed);
+    this.setElementState(false);
 
-    this.element.setAttribute("aria-expanded", "false");
-
-    this.triggerEvent("tree.close", {
-      node: this.node,
-    });
+    this.triggerEvent("tree.close", { node: this.node });
   }
 
   public async open(
@@ -109,16 +97,7 @@ class FolderElement extends NodeElement {
       return;
     }
 
-    const button = this.getButton();
-    button.classList.remove(this.classNames.closed);
-    button.replaceChildren();
-
-    const openedIconElement = this.openedIconElement;
-
-    if (openedIconElement) {
-      const icon = openedIconElement.cloneNode(true);
-      button.append(icon);
-    }
+    this.setButtonState(true);
 
     // The children are rendered the first time the folder is opened
     const ul = this.getUl() ?? this.renderChildren(this.node);
@@ -131,13 +110,9 @@ class FolderElement extends NodeElement {
       }
     }
 
-    this.element.classList.remove(this.classNames.closed);
+    this.setElementState(true);
 
-    this.element.setAttribute("aria-expanded", "true");
-
-    this.triggerEvent("tree.open", {
-      node: this.node,
-    });
+    this.triggerEvent("tree.open", { node: this.node });
   }
 
   protected mustShowBorderDropHint(position: Position): boolean {
@@ -148,6 +123,25 @@ class FolderElement extends NodeElement {
     return this.element.querySelector(
       `:scope > .${this.classNames.element} > .${this.classNames.toggler}`,
     ) as HTMLElement;
+  }
+
+  private setButtonState(isOpen: boolean): void {
+    const button = this.getButton();
+    button.classList.toggle(this.classNames.closed, !isOpen);
+    button.replaceChildren();
+
+    const iconElement = isOpen
+      ? this.openedIconElement
+      : this.closedIconElement;
+
+    if (iconElement) {
+      button.append(iconElement.cloneNode(true));
+    }
+  }
+
+  private setElementState(isOpen: boolean): void {
+    this.element.classList.toggle(this.classNames.closed, !isOpen);
+    this.element.setAttribute("aria-expanded", getBoolString(isOpen));
   }
 }
 
