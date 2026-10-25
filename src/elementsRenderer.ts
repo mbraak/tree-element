@@ -1,4 +1,5 @@
 import type { ClassNames } from "./classNames";
+import type { FolderIcons } from "./folderOpenState";
 import type { GetTree, IsNodeSelected } from "./methodTypes";
 import type { Node } from "./node";
 import type { IconElement, OnCreateLi } from "./options";
@@ -37,8 +38,7 @@ interface ElementsRendererParams {
  * selected and loading classes.
  */
 export default class ElementsRenderer {
-  public closedIconElement?: globalThis.Node;
-  public openedIconElement?: globalThis.Node;
+  public icons: FolderIcons;
   private ariaLabel?: string;
   private ariaLabelledBy?: string;
   private autoEscape: boolean;
@@ -94,8 +94,10 @@ export default class ElementsRenderer {
     this.setNodeElement = setNodeElement;
     this.showEmptyFolder = showEmptyFolder;
     this.tabIndex = tabIndex;
-    this.openedIconElement = this.createButtonElement(openedIcon);
-    this.closedIconElement = this.createButtonElement(closedIcon);
+    this.icons = {
+      closed: this.createButtonElement(closedIcon),
+      opened: this.createButtonElement(openedIcon),
+    };
 
     const templates = this.createTemplates();
     this.closedFolderTemplate = templates.closedFolderTemplate;
@@ -285,10 +287,7 @@ export default class ElementsRenderer {
     const toggler = document.createElement("span");
     toggler.className = this.getButtonClasses();
     toggler.setAttribute("aria-hidden", "true");
-    setTogglerOpenState(toggler, isOpen, this.classNames, {
-      closed: this.closedIconElement,
-      opened: this.openedIconElement,
-    });
+    setTogglerOpenState(toggler, isOpen, this.classNames, this.icons);
 
     if (this.buttonLeft) {
       div.append(toggler);

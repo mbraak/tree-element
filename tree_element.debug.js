@@ -646,6 +646,24 @@ var TreeElement = (function () {
   let isInt = n => Number.isInteger(n);
   let getBoolString = value => value ? "true" : "false";
 
+  /* The open state of a folder is shown on the toggler and on the <li>.
+   * These are used both when a folder is rendered and when it is opened or
+   * closed, so a rendered folder looks the same as a toggled one.
+   */
+
+  let setTogglerOpenState = (toggler, isOpen, classNames, icons) => {
+    toggler.classList.toggle(classNames.closed, !isOpen);
+    toggler.replaceChildren();
+    let iconElement = isOpen ? icons.opened : icons.closed;
+    if (iconElement) {
+      toggler.append(iconElement.cloneNode(true));
+    }
+  };
+  let setFolderLiOpenState = (li, isOpen, classNames) => {
+    li.classList.toggle(classNames.closed, !isOpen);
+    li.setAttribute("aria-expanded", getBoolString(isOpen));
+  };
+
   /* Renders the tree to html.
    *
    * The children of a closed folder are not rendered. They are rendered when
@@ -692,8 +710,10 @@ var TreeElement = (function () {
       this._setNodeElement = setNodeElement;
       this._showEmptyFolder = showEmptyFolder;
       this._tabIndex = tabIndex;
-      this._openedIconElement = this._createButtonElement(openedIcon);
-      this._closedIconElement = this._createButtonElement(closedIcon);
+      this._icons = {
+        closed: this._createButtonElement(closedIcon),
+        opened: this._createButtonElement(openedIcon)
+      };
       let templates = this._createTemplates();
       this._closedFolderTemplate = templates.closedFolderTemplate;
       this._groupUlTemplate = templates.groupUlTemplate;
@@ -825,26 +845,19 @@ var TreeElement = (function () {
      * state, so there is a template for each.
      */
     _createFolderTemplate(isOpen) {
-      let liClasses = [this._classNames.common, this._classNames.folder];
-      if (!isOpen) {
-        liClasses.push(this._classNames.closed);
-      }
-      let li = this._createLiTemplate(liClasses.join(" "));
+      let li = this._createLiTemplate(`${this._classNames.common} ${this._classNames.folder}`);
+      setFolderLiOpenState(li, isOpen, this._classNames);
       let div = li.firstChild;
 
       // The toggler is hidden from screen readers: the icon is decoration, and
       // aria-expanded on the treeitem has the open state.
       let toggler = document.createElement("span");
-      toggler.className = this._getButtonClasses(isOpen);
+      toggler.className = this._getButtonClasses();
       toggler.setAttribute("aria-hidden", "true");
-      let iconElement = isOpen ? this._openedIconElement : this._closedIconElement;
-      if (iconElement) {
-        toggler.append(iconElement.cloneNode(true));
-      }
+      setTogglerOpenState(toggler, isOpen, this._classNames, this._icons);
       if (this._buttonLeft) {
         div.append(toggler);
       }
-      li.setAttribute("aria-expanded", getBoolString(isOpen));
 
       // title span
       div.append(this._createTitleSpanTemplate(true));
@@ -992,11 +1005,8 @@ var TreeElement = (function () {
       // is false. Otherwise the name would contain everything in the row.
       li.setAttribute("aria-label", titleSpan.textContent);
     }
-    _getButtonClasses(isOpen) {
+    _getButtonClasses() {
       let classes = [this._classNames.toggler, this._classNames.common];
-      if (!isOpen) {
-        classes.push(this._classNames.closed);
-      }
       if (this._buttonLeft) {
         classes.push(this._classNames.togglerLeft);
       } else {
@@ -2442,11 +2452,10 @@ var TreeElement = (function () {
   class FolderElement extends NodeElement {
     constructor({
       _classNames: classNames,
-      _closedIconElement: closedIconElement,
       _getScrollLeft: getScrollLeft,
+      _icons: icons,
       _multiSelect: multiSelect,
       _node: node,
-      _openedIconElement: openedIconElement,
       _renderChildren: renderChildren,
       _tabIndex: tabIndex,
       _treeElement: treeElement,
@@ -2460,8 +2469,7 @@ var TreeElement = (function () {
         _tabIndex: tabIndex,
         _treeElement: treeElement
       });
-      this._closedIconElement = closedIconElement;
-      this._openedIconElement = openedIconElement;
+      this._icons = icons;
       this._renderChildren = renderChildren;
       this._triggerEvent = triggerEvent;
     }
@@ -2476,14 +2484,7 @@ var TreeElement = (function () {
         });
         return;
       }
-      let button = this._getButton();
-      button.classList.add(this._classNames.closed);
-      button.replaceChildren();
-      let closedIconElement = this._closedIconElement;
-      if (closedIconElement) {
-        let icon = closedIconElement.cloneNode(true);
-        button.append(icon);
-      }
+      this._setButtonState(false);
       let ul = this._getUl();
       if (ul) {
         if (slide) {
@@ -2492,8 +2493,7 @@ var TreeElement = (function () {
           ul.style.display = "none";
         }
       }
-      this._element.classList.add(this._classNames.closed);
-      this._element.setAttribute("aria-expanded", "false");
+      this._setElementState(false);
       this._triggerEvent("tree.close", {
         node: this._node
       });
@@ -2510,14 +2510,7 @@ var TreeElement = (function () {
         });
         return;
       }
-      let button = this._getButton();
-      button.classList.remove(this._classNames.closed);
-      button.replaceChildren();
-      let openedIconElement = this._openedIconElement;
-      if (openedIconElement) {
-        let icon = openedIconElement.cloneNode(true);
-        button.append(icon);
-      }
+      this._setButtonState(true);
 
       // The children are rendered the first time the folder is opened
       let ul = this._getUl() ?? this._renderChildren(this._node);
@@ -2528,8 +2521,7 @@ var TreeElement = (function () {
           ul.style.display = "block";
         }
       }
-      this._element.classList.remove(this._classNames.closed);
-      this._element.setAttribute("aria-expanded", "true");
+      this._setElementState(true);
       this._triggerEvent("tree.open", {
         node: this._node
       });
@@ -2539,6 +2531,12 @@ var TreeElement = (function () {
     }
     _getButton() {
       return this._element.querySelector(`:scope > .${this._classNames.element} > .${this._classNames.toggler}`);
+    }
+    _setButtonState(isOpen) {
+      setTogglerOpenState(this._getButton(), isOpen, this._classNames, this._icons);
+    }
+    _setElementState(isOpen) {
+      setFolderLiOpenState(this._element, isOpen, this._classNames);
     }
   }
 
@@ -4072,9 +4070,7 @@ var TreeElement = (function () {
     }
     _createFolderElement(node) {
       let classNames = this._classNames;
-      let closedIconElement = this._renderer._closedIconElement;
       let getScrollLeft = this._scrollHandler._getScrollLeft.bind(this._scrollHandler);
-      let openedIconElement = this._renderer._openedIconElement;
       let tabIndex = this._options.tabIndex;
       let treeElement = this._htmlElement;
       let triggerEvent = this._triggerEvent.bind(this);
@@ -4089,11 +4085,10 @@ var TreeElement = (function () {
       };
       return new FolderElement({
         _classNames: classNames,
-        _closedIconElement: closedIconElement,
         _getScrollLeft: getScrollLeft,
+        _icons: this._renderer._icons,
         _multiSelect: this._options.multiSelect,
         _node: node,
-        _openedIconElement: openedIconElement,
         _renderChildren: renderChildren,
         _tabIndex: tabIndex,
         _treeElement: treeElement,

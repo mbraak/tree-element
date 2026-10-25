@@ -953,11 +953,9 @@ export default class TreeElement {
 
   private createFolderElement(node: Node) {
     const classNames = this.classNames;
-    const closedIconElement = this.renderer.closedIconElement;
     const getScrollLeft = this.scrollHandler.getScrollLeft.bind(
       this.scrollHandler,
     );
-    const openedIconElement = this.renderer.openedIconElement;
     const tabIndex = this.options.tabIndex;
     const treeElement = this.htmlElement;
     const triggerEvent = this.triggerEvent.bind(this);
@@ -973,11 +971,10 @@ export default class TreeElement {
 
     return new FolderElement({
       classNames,
-      closedIconElement,
       getScrollLeft,
+      icons: this.renderer.icons,
       multiSelect: this.options.multiSelect,
       node,
-      openedIconElement,
       renderChildren,
       tabIndex,
       treeElement,

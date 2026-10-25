@@ -1,4 +1,5 @@
 import type { AnimationSpeed } from "../animation";
+import type { FolderIcons } from "../folderOpenState";
 import type { TriggerEvent } from "../methodTypes";
 import type { Node, Position } from "../node";
 import type { NodeElementParams } from "./index";
@@ -10,25 +11,22 @@ import NodeElement from "./index";
 export type RenderChildren = (node: Node) => HTMLUListElement | null;
 
 interface FolderElementParams extends NodeElementParams {
-  closedIconElement?: globalThis.Node;
-  openedIconElement?: globalThis.Node;
+  icons: FolderIcons;
   renderChildren: RenderChildren;
   triggerEvent: TriggerEvent;
 }
 
 class FolderElement extends NodeElement {
-  private closedIconElement?: globalThis.Node;
-  private openedIconElement?: globalThis.Node;
+  private icons: FolderIcons;
   private renderChildren: RenderChildren;
   private triggerEvent: TriggerEvent;
 
   constructor({
     classNames,
-    closedIconElement,
     getScrollLeft,
+    icons,
     multiSelect,
     node,
-    openedIconElement,
     renderChildren,
     tabIndex,
     treeElement,
@@ -43,8 +41,7 @@ class FolderElement extends NodeElement {
       treeElement,
     });
 
-    this.closedIconElement = closedIconElement;
-    this.openedIconElement = openedIconElement;
+    this.icons = icons;
     this.renderChildren = renderChildren;
     this.triggerEvent = triggerEvent;
   }
@@ -126,10 +123,7 @@ class FolderElement extends NodeElement {
   }
 
   private setButtonState(isOpen: boolean): void {
-    setTogglerOpenState(this.getButton(), isOpen, this.classNames, {
-      closed: this.closedIconElement,
-      opened: this.openedIconElement,
-    });
+    setTogglerOpenState(this.getButton(), isOpen, this.classNames, this.icons);
   }
 
   private setElementState(isOpen: boolean): void {
