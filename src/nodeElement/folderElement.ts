@@ -1,33 +1,32 @@
 import type { AnimationSpeed } from "../animation";
+import type { FolderIcons } from "../folderOpenState";
 import type { TriggerEvent } from "../methodTypes";
 import type { Node, Position } from "../node";
 import type { NodeElementParams } from "./index";
 
 import { slideDown, slideUp } from "../animation";
+import { setFolderLiOpenState, setTogglerOpenState } from "../folderOpenState";
 import NodeElement from "./index";
 
 export type RenderChildren = (node: Node) => HTMLUListElement | null;
 
 interface FolderElementParams extends NodeElementParams {
-  closedIconElement?: globalThis.Node;
-  openedIconElement?: globalThis.Node;
+  icons: FolderIcons;
   renderChildren: RenderChildren;
   triggerEvent: TriggerEvent;
 }
 
 class FolderElement extends NodeElement {
-  private closedIconElement?: globalThis.Node;
-  private openedIconElement?: globalThis.Node;
+  private icons: FolderIcons;
   private renderChildren: RenderChildren;
   private triggerEvent: TriggerEvent;
 
   constructor({
     classNames,
-    closedIconElement,
     getScrollLeft,
+    icons,
     multiSelect,
     node,
-    openedIconElement,
     renderChildren,
     tabIndex,
     treeElement,
@@ -42,8 +41,7 @@ class FolderElement extends NodeElement {
       treeElement,
     });
 
-    this.closedIconElement = closedIconElement;
-    this.openedIconElement = openedIconElement;
+    this.icons = icons;
     this.renderChildren = renderChildren;
     this.triggerEvent = triggerEvent;
   }
@@ -58,39 +56,13 @@ class FolderElement extends NodeElement {
 
     this.node.is_open = false;
 
-    if (!this.isRendered()) {
-      this.triggerEvent("tree.close", { node: this.node });
-      return;
+    if (this.isRendered()) {
+      this.setButtonState(false);
+      await this.setUlState(this.getUl(), false, slide, animationSpeed);
+      this.setElementState(false);
     }
 
-    const button = this.getButton();
-    button.classList.add(this.classNames.closed);
-    button.replaceChildren();
-
-    const closedIconElement = this.closedIconElement;
-
-    if (closedIconElement) {
-      const icon = closedIconElement.cloneNode(true);
-      button.append(icon);
-    }
-
-    const ul = this.getUl();
-
-    if (ul) {
-      if (slide) {
-        await slideUp(ul, animationSpeed);
-      } else {
-        ul.style.display = "none";
-      }
-    }
-
-    this.element.classList.add(this.classNames.closed);
-
-    this.element.setAttribute("aria-expanded", "false");
-
-    this.triggerEvent("tree.close", {
-      node: this.node,
-    });
+    this.triggerEvent("tree.close", { node: this.node });
   }
 
   public async open(
@@ -103,41 +75,19 @@ class FolderElement extends NodeElement {
 
     this.node.is_open = true;
 
-    if (!this.isRendered()) {
-      // The folder is rendered open when its parent is opened
-      this.triggerEvent("tree.open", { node: this.node });
-      return;
+    // A folder that is not rendered is rendered open when its parent is
+    // opened
+    if (this.isRendered()) {
+      this.setButtonState(true);
+
+      // The children are rendered the first time the folder is opened
+      const ul = this.getUl() ?? this.renderChildren(this.node);
+      await this.setUlState(ul, true, slide, animationSpeed);
+
+      this.setElementState(true);
     }
 
-    const button = this.getButton();
-    button.classList.remove(this.classNames.closed);
-    button.replaceChildren();
-
-    const openedIconElement = this.openedIconElement;
-
-    if (openedIconElement) {
-      const icon = openedIconElement.cloneNode(true);
-      button.append(icon);
-    }
-
-    // The children are rendered the first time the folder is opened
-    const ul = this.getUl() ?? this.renderChildren(this.node);
-
-    if (ul) {
-      if (slide) {
-        await slideDown(ul, animationSpeed);
-      } else {
-        ul.style.display = "block";
-      }
-    }
-
-    this.element.classList.remove(this.classNames.closed);
-
-    this.element.setAttribute("aria-expanded", "true");
-
-    this.triggerEvent("tree.open", {
-      node: this.node,
-    });
+    this.triggerEvent("tree.open", { node: this.node });
   }
 
   protected mustShowBorderDropHint(position: Position): boolean {
@@ -148,6 +98,31 @@ class FolderElement extends NodeElement {
     return this.element.querySelector(
       `:scope > .${this.classNames.element} > .${this.classNames.toggler}`,
     ) as HTMLElement;
+  }
+
+  private setButtonState(isOpen: boolean): void {
+    setTogglerOpenState(this.getButton(), isOpen, this.classNames, this.icons);
+  }
+
+  private setElementState(isOpen: boolean): void {
+    setFolderLiOpenState(this.element, isOpen, this.classNames);
+  }
+
+  private async setUlState(
+    ul: HTMLUListElement | null,
+    isOpen: boolean,
+    slide: boolean,
+    animationSpeed: AnimationSpeed,
+  ): Promise<void> {
+    if (!ul) {
+      return;
+    }
+
+    if (slide) {
+      await (isOpen ? slideDown : slideUp)(ul, animationSpeed);
+    } else {
+      ul.style.display = isOpen ? "block" : "none";
+    }
   }
 }
 

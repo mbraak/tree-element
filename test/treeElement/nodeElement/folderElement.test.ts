@@ -50,10 +50,9 @@ const createFolderElement = ({
 
   const folderElement = new FolderElement({
     classNames: defaultClassNames,
-    closedIconElement,
     getScrollLeft: () => 0,
+    icons: { closed: closedIconElement, opened: openedIconElement },
     node: folderNode,
-    openedIconElement,
     renderChildren: renderer.renderChildren.bind(renderer),
     treeElement,
     triggerEvent,
