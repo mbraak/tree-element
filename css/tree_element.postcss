@@ -28,7 +28,9 @@ ul.tree-element {
 
   ul.tree-element-common {
     list-style: none outside;
-    margin-left: 12px;
+    /* Half the width of the toggler: at least 24px, or the 0.8em of its icon
+       when the font is larger than 30px. */
+    margin-left: max(12px, 0.4em);
     margin-right: 0;
     margin-bottom: 0;
     padding: 0;
@@ -61,6 +63,10 @@ ul.tree-element {
     color: var(--tree-element-toggler-color);
     text-decoration: none;
     vertical-align: middle;
+    /* The line under the toggler is 1px wide, so its center is at 12.5px,
+       half a pixel after the center of the toggler. Move the toggler along.
+       Margin or padding would be rounded to a whole pixel; translate isn't. */
+    translate: 0.5px;
 
     &:hover {
       color: var(--tree-element-toggler-hover-color);
@@ -187,9 +193,13 @@ ul.tree-element.tree-element-rtl {
 
   ul.tree-element-common {
     margin-left: 0;
-    margin-right: 12px;
+    margin-right: max(12px, 0.4em);
     border-left: none;
     border-right: 1px solid var(--tree-element-line-color);
+  }
+
+  .tree-element-toggler {
+    translate: -0.5px;
   }
 
   .tree-element-title {
