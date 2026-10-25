@@ -2485,14 +2485,7 @@ var TreeElement = (function () {
         return;
       }
       this._setButtonState(false);
-      let ul = this._getUl();
-      if (ul) {
-        if (slide) {
-          await slideUp(ul, animationSpeed);
-        } else {
-          ul.style.display = "none";
-        }
-      }
+      await this._setUlState(this._getUl(), false, slide, animationSpeed);
       this._setElementState(false);
       this._triggerEvent("tree.close", {
         node: this._node
@@ -2514,13 +2507,7 @@ var TreeElement = (function () {
 
       // The children are rendered the first time the folder is opened
       let ul = this._getUl() ?? this._renderChildren(this._node);
-      if (ul) {
-        if (slide) {
-          await slideDown(ul, animationSpeed);
-        } else {
-          ul.style.display = "block";
-        }
-      }
+      await this._setUlState(ul, true, slide, animationSpeed);
       this._setElementState(true);
       this._triggerEvent("tree.open", {
         node: this._node
@@ -2537,6 +2524,16 @@ var TreeElement = (function () {
     }
     _setElementState(isOpen) {
       setFolderLiOpenState(this._element, isOpen, this._classNames);
+    }
+    async _setUlState(ul, isOpen, slide, animationSpeed) {
+      if (!ul) {
+        return;
+      }
+      if (slide) {
+        await (isOpen ? slideDown : slideUp)(ul, animationSpeed);
+      } else {
+        ul.style.display = isOpen ? "block" : "none";
+      }
     }
   }
 

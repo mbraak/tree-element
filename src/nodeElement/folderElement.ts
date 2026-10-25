@@ -63,15 +63,7 @@ class FolderElement extends NodeElement {
 
     this.setButtonState(false);
 
-    const ul = this.getUl();
-
-    if (ul) {
-      if (slide) {
-        await slideUp(ul, animationSpeed);
-      } else {
-        ul.style.display = "none";
-      }
-    }
+    await this.setUlState(this.getUl(), false, slide, animationSpeed);
 
     this.setElementState(false);
 
@@ -98,14 +90,7 @@ class FolderElement extends NodeElement {
 
     // The children are rendered the first time the folder is opened
     const ul = this.getUl() ?? this.renderChildren(this.node);
-
-    if (ul) {
-      if (slide) {
-        await slideDown(ul, animationSpeed);
-      } else {
-        ul.style.display = "block";
-      }
-    }
+    await this.setUlState(ul, true, slide, animationSpeed);
 
     this.setElementState(true);
 
@@ -128,6 +113,23 @@ class FolderElement extends NodeElement {
 
   private setElementState(isOpen: boolean): void {
     setFolderLiOpenState(this.element, isOpen, this.classNames);
+  }
+
+  private async setUlState(
+    ul: HTMLUListElement | null,
+    isOpen: boolean,
+    slide: boolean,
+    animationSpeed: AnimationSpeed,
+  ): Promise<void> {
+    if (!ul) {
+      return;
+    }
+
+    if (slide) {
+      await (isOpen ? slideDown : slideUp)(ul, animationSpeed);
+    } else {
+      ul.style.display = isOpen ? "block" : "none";
+    }
   }
 }
 
