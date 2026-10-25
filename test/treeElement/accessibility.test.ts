@@ -61,4 +61,44 @@ describe("accessibility", () => {
 
     expect(results.violations).toBeEmpty();
   });
+
+  // Only a multiselect tree marks the nodes that are not selected
+  it("has aria-selected only on the selected node", () => {
+    const tree = createTreeElement({ autoOpen: true, data: exampleData });
+
+    tree.selectNode(tree.getNodeByNameMustExist("child1"));
+    tree.selectNode(tree.getNodeByNameMustExist("child2"));
+
+    const ariaSelected = [...htmlElement.querySelectorAll("[role=treeitem]")]
+      .filter((treeItem) => treeItem.hasAttribute("aria-selected"))
+      .map((treeItem) => [
+        treeItem.getAttribute("aria-label"),
+        treeItem.getAttribute("aria-selected"),
+      ]);
+
+    expect(ariaSelected).toStrictEqual([["child2", "true"]]);
+  });
+
+  it("has aria-selected on every node with multiSelect", () => {
+    const tree = createTreeElement({
+      autoOpen: true,
+      data: exampleData,
+      multiSelect: true,
+    });
+
+    tree.addToSelection(tree.getNodeByNameMustExist("child1"));
+
+    const ariaSelected = [
+      ...htmlElement.querySelectorAll("[role=treeitem]"),
+    ].map((treeItem) => treeItem.getAttribute("aria-selected"));
+
+    expect(ariaSelected).toStrictEqual([
+      "false",
+      "true",
+      "false",
+      "false",
+      "false",
+      "false",
+    ]);
+  });
 });

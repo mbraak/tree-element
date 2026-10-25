@@ -134,4 +134,107 @@ describe("mouse", () => {
 
     expect(tree.getSelectedNode()).toBeNull();
   });
+
+  describe("with multiSelect", () => {
+    it("adds a node to the selection when it is clicked", async () => {
+      const tree = createTreeElement({ data: exampleData, multiSelect: true });
+
+      const node1 = screen.getByRole("treeitem", { name: "node1" });
+      const node2 = screen.getByRole("treeitem", { name: "node2" });
+
+      await userEvent.click(getTreeTitle(node1));
+      await userEvent.click(getTreeTitle(node2));
+
+      expect(node1).toBeAriaSelected();
+      expect(node2).toBeAriaSelected();
+      expect(tree.getSelectedNodes().map((node) => node.name)).toStrictEqual([
+        "node1",
+        "node2",
+      ]);
+    });
+
+    it("removes a selected node from the selection when it is clicked", async () => {
+      const tree = createTreeElement({ data: exampleData, multiSelect: true });
+
+      tree.addToSelection(tree.getNodeByNameMustExist("node1"));
+      tree.addToSelection(tree.getNodeByNameMustExist("node2"));
+
+      const node1 = screen.getByRole("treeitem", { name: "node1" });
+      const node2 = screen.getByRole("treeitem", { name: "node2" });
+
+      await userEvent.click(getTreeTitle(node1));
+
+      expect(node1).not.toBeAriaSelected();
+      expect(node2).toBeAriaSelected();
+    });
+
+    it("dispatches tree.select and tree.deselect on a click", async () => {
+      createTreeElement({ data: exampleData, multiSelect: true });
+
+      const onSelect = vi.fn();
+      const onDeselect = vi.fn();
+      htmlElement.addEventListener("tree.select", onSelect);
+      htmlElement.addEventListener("tree.deselect", onDeselect);
+
+      const title = getTreeTitle(
+        screen.getByRole("treeitem", { name: "node1" }),
+      );
+
+      await userEvent.click(title);
+      await userEvent.click(title);
+
+      expect(onSelect).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ type: "tree.select" }),
+      );
+      expect(onDeselect).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ type: "tree.deselect" }),
+      );
+    });
+
+    it("doesn't add a node that can't be selected", async () => {
+      const tree = createTreeElement({
+        data: exampleData,
+        multiSelect: true,
+        onCanSelectNode: (node) => node.name !== "node2",
+      });
+
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node1" })),
+      );
+      await userEvent.click(
+        getTreeTitle(screen.getByRole("treeitem", { name: "node2" })),
+      );
+
+      expect(tree.getSelectedNodes().map((node) => node.name)).toStrictEqual([
+        "node1",
+      ]);
+    });
+
+    it("marks the tree as multiselectable", () => {
+      createTreeElement({ data: exampleData, multiSelect: true });
+
+      expect(screen.getByRole("tree")).toHaveAttribute(
+        "aria-multiselectable",
+        "true",
+      );
+    });
+  });
+
+  it("replaces the selection on a click without multiSelect", async () => {
+    const tree = createTreeElement({ data: exampleData });
+
+    tree.addToSelection(tree.getNodeByNameMustExist("node1"));
+    tree.addToSelection(tree.getNodeByNameMustExist("child2"));
+
+    await userEvent.click(
+      getTreeTitle(screen.getByRole("treeitem", { name: "node2" })),
+    );
+
+    expect(tree.getSelectedNodes().map((node) => node.name)).toStrictEqual([
+      "node2",
+    ]);
+    expect(screen.getByRole("tree")).not.toHaveAttribute(
+      "aria-multiselectable",
+    );
+  });
 });

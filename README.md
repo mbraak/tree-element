@@ -95,6 +95,7 @@ new TreeElement({
 | `dataUrl`         | `data-url` attribute    | Url, or a function returning a url                                                |
 | `dragAndDrop`     | `false`                 | Enable drag and drop                                                              |
 | `keyboardSupport` | `true`                  | Navigate with the keyboard                                                        |
+| `multiSelect`     | `false`                 | A click adds a node to the selection, or removes it                               |
 | `nodeClass`       | `Node`                  | Subclass of `Node` to use for nodes                                               |
 | `openFolderDelay` | `500`                   | Milliseconds before a folder opens while dragging over it. `false` disables it    |
 | `openedIcon`      | svg triangle ▼          | Html string or element                                                            |

@@ -39,3 +39,6 @@ tree.setOption("dragAndDrop", false);
 Options are read when they are used, so some take effect on the next render and others — like
 `keyboardSupport`, which installs its listener in the constructor — do not take effect at all. Call
 `refresh()` after changing an option that affects rendering.
+
+`multiSelect` can only be set in the constructor. Changing it later leaves the tree half in one
+mode and half in the other, and `refresh()` does not fix that.

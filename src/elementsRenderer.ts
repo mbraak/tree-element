@@ -16,6 +16,7 @@ interface ElementsRendererParams {
   getTree: GetTree;
   htmlElement: HTMLElement;
   isNodeSelected: IsNodeSelected;
+  multiSelect: boolean;
   onCreateLi?: OnCreateLi;
   openedIcon?: IconElement;
   rtl?: boolean;
@@ -49,6 +50,7 @@ export default class ElementsRenderer {
   private groupUlTemplate: HTMLUListElement;
   private htmlElement: HTMLElement;
   private isNodeSelected: IsNodeSelected;
+  private multiSelect: boolean;
   private nodeTemplate: HTMLLIElement;
   private onCreateLi?: OnCreateLi;
   private openedFolderTemplate: HTMLLIElement;
@@ -69,6 +71,7 @@ export default class ElementsRenderer {
     getTree,
     htmlElement,
     isNodeSelected,
+    multiSelect,
     onCreateLi,
     openedIcon = "+",
     rtl,
@@ -85,6 +88,7 @@ export default class ElementsRenderer {
     this.getTree = getTree;
     this.htmlElement = htmlElement;
     this.isNodeSelected = isNodeSelected;
+    this.multiSelect = multiSelect;
     this.onCreateLi = onCreateLi;
     this.rtl = rtl;
     this.setNodeElement = setNodeElement;
@@ -294,7 +298,11 @@ export default class ElementsRenderer {
     const li = document.createElement("li");
     li.className = liClasses;
     li.setAttribute("role", "treeitem");
-    li.setAttribute("aria-selected", "false");
+
+    // Only a multiselect tree marks the nodes that are not selected
+    if (this.multiSelect) {
+      li.setAttribute("aria-selected", "false");
+    }
 
     // Every node is focusable, but only the tab stop is in the tab order
     if (this.tabIndex !== undefined) {
@@ -391,6 +399,10 @@ export default class ElementsRenderer {
       if (this.ariaLabelledBy !== undefined) {
         ul.setAttribute("aria-labelledby", this.ariaLabelledBy);
       }
+
+      if (this.multiSelect) {
+        ul.setAttribute("aria-multiselectable", "true");
+      }
     }
 
     return ul;
@@ -413,7 +425,8 @@ export default class ElementsRenderer {
 
       const tabIndex = this.tabIndex;
 
-      if (tabIndex !== undefined) {
+      // With multiSelect the tab stop is the active node, see updateTabStop
+      if (tabIndex !== undefined && !this.multiSelect) {
         li.setAttribute("tabindex", String(tabIndex));
       }
     }

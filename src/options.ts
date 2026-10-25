@@ -152,6 +152,19 @@ export interface TreeElementOptions {
    */
   keyboardSupport: boolean;
   /**
+   * Let the user select multiple nodes: a click adds a node to the
+   * selection, or removes it when it is selected. The arrow keys move the
+   * focus instead of the selection, and `Space` adds the focused node or
+   * removes it. See [Selection](/guide/selection#multiple-nodes).
+   *
+   * Set it in the constructor; changing it with `setOption` is not
+   * supported.
+   *
+   * @defaultValue `false`
+   * @group Selection
+   */
+  multiSelect: boolean;
+  /**
    * The class used to create nodes. Subclass [`Node`](/reference/node) to
    * add your own methods. The `Node` class is not exposed on the global
    * `TreeElement`, so this option needs the `lib` build.

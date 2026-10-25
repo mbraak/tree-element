@@ -128,7 +128,7 @@ test.describe("multiple selection", () => {
 
     await expect(
       page.getByRole("treeitem", { name: "Herrerasaurians" }),
-    ).toHaveAttribute("aria-selected", "false");
+    ).not.toHaveAttribute("aria-selected");
     await expect(
       page.getByRole("treeitem", { name: "Ceratopsians" }),
     ).toHaveAttribute("aria-selected", "true");

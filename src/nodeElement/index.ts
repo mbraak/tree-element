@@ -9,6 +9,10 @@ import GhostDropHint from "./ghostDropHint";
 export interface NodeElementParams {
   classNames: ClassNames;
   getScrollLeft: GetScrollLeft;
+  /* With multiSelect the focus moves independently of the selection, so
+   * selecting doesn't change the tabindex or the focus.
+   */
+  multiSelect?: boolean;
   node: Node;
   tabIndex?: number;
   treeElement: HTMLElement;
@@ -19,18 +23,21 @@ class NodeElement {
   public node: Node;
   protected classNames: ClassNames;
   private getScrollLeft: GetScrollLeft;
+  private multiSelect: boolean;
   private tabIndex?: number;
   private treeElement: HTMLElement;
 
   constructor({
     classNames,
     getScrollLeft,
+    multiSelect = false,
     node,
     tabIndex,
     treeElement,
   }: NodeElementParams) {
     this.classNames = classNames;
     this.getScrollLeft = getScrollLeft;
+    this.multiSelect = multiSelect;
     this.node = node;
     this.tabIndex = tabIndex;
     this.treeElement = treeElement;
@@ -52,12 +59,18 @@ class NodeElement {
 
     this.element.classList.remove(this.classNames.selected);
 
+    // Only a multiselect tree marks the nodes that are not selected
+    if (this.multiSelect) {
+      this.element.setAttribute("aria-selected", "false");
+      return;
+    }
+
+    this.element.removeAttribute("aria-selected");
+
     // Check for null or undefined
     if (this.tabIndex != null) {
       this.element.setAttribute("tabindex", "-1");
     }
-
-    this.element.setAttribute("aria-selected", "false");
 
     this.element.blur();
   }
@@ -68,15 +81,14 @@ class NodeElement {
     }
 
     this.element.classList.add(this.classNames.selected);
+    this.element.setAttribute("aria-selected", "true");
 
     const tabIndex = this.tabIndex;
 
     // Check for null or undefined
-    if (tabIndex != null) {
+    if (tabIndex != null && !this.multiSelect) {
       this.element.setAttribute("tabindex", tabIndex.toString());
     }
-
-    this.element.setAttribute("aria-selected", "true");
 
     if (mustSetFocus) {
       this.element.focus();

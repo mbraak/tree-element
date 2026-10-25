@@ -25,6 +25,7 @@ class FolderElement extends NodeElement {
     classNames,
     closedIconElement,
     getScrollLeft,
+    multiSelect,
     node,
     openedIconElement,
     renderChildren,
@@ -35,6 +36,7 @@ class FolderElement extends NodeElement {
     super({
       classNames,
       getScrollLeft,
+      multiSelect,
       node,
       tabIndex,
       treeElement,
