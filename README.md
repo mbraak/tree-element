@@ -15,6 +15,8 @@ npm package: https://www.npmjs.com/package/tree-element
 
 ![screenshot](https://raw.github.com/mbraak/tree-element/master/screenshot.png)
 
+The screenshot above is from https://mbraak.github.io/tree-element-example/
+
 ## Install
 
 ```sh

@@ -10,17 +10,24 @@ const css = fs.readFileSync(
   "utf8",
 );
 
+// The defaults of all custom properties. The colors and the toggler size are
+// in separate :where(:root) blocks.
 const getDefaultColors = (): Map<string, string> => {
-  const block = /:where\(:root\) \{([^}]*)\}/.exec(css)?.[1];
+  const blocks = Array.from(
+    css.matchAll(/:where\(:root\) \{([^}]*)\}/g),
+    ([, block]) => block as string,
+  );
 
-  if (!block) {
+  if (blocks.length === 0) {
     throw new Error("No :where(:root) block in the stylesheet");
   }
 
   return new Map(
-    Array.from(
-      block.matchAll(/--tree-element-([\w-]+):\s*([^;]+);/g),
-      ([, name, value]) => [name as string, (value as string).trim()],
+    blocks.flatMap((block) =>
+      Array.from(
+        block.matchAll(/--tree-element-([\w-]+):\s*([^;]+);/g),
+        ([, name, value]) => [name as string, (value as string).trim()],
+      ),
     ),
   );
 };

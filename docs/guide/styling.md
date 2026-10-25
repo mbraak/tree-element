@@ -143,6 +143,10 @@ change one tree:
 | `--tree-element-drop-hint-color`      | `#00f`                              | The drop hints while dragging.              |
 | `--tree-element-dragging-color`       | `#fff`                              | The text of the node that is dragged.       |
 | `--tree-element-dragging-background`  | `#000`                              | The background of the node that is dragged. |
+| `--tree-element-line-color`           | `#d5dbe1`                           | The lines from a folder to its children.    |
+
+The tree lines are decoration, so they are light. Set `--tree-element-line-color` to `transparent`
+to hide them.
 
 The defaults meet the WCAG AA contrast minimums on a white page: the title has at least 4.6:1,
 also on the darkest part of the selected row. Check the contrast when you change them.
@@ -159,6 +163,7 @@ theme for a page with a `#121212` background:
     --tree-element-selected-background: #1f3a52;
     --tree-element-selected-text-shadow: none;
     --tree-element-drop-hint-color: #6ea8ff;
+    --tree-element-line-color: #3a4651;
   }
 }
 ```
@@ -170,6 +175,24 @@ For anything that isn't a color, override the rules of the stylesheet. Indentati
 ```css
 ul.tree-element ul.tree-element-common {
   margin-left: 24px;
+}
+```
+
+The tree line is the left border of that list, so it moves along with the margin.
+
+## Toggler size
+
+`--tree-element-toggler-size` is the width of the toggler. The stylesheet derives the rest from it:
+the indentation is half of it, so the tree line is under the center of the toggler, and the titles
+of nodes without children are indented by all of it, so they line up with the titles of folders.
+
+The default is `max(24px, 1.5em)`: 24px, the minimum size for something you click, up to a 16px
+font, then it grows with the font. The space around the icon separates the toggler from the title,
+so it grows along. Set it when your icon is wider:
+
+```css
+.my-tree {
+  --tree-element-toggler-size: 32px;
 }
 ```
 
