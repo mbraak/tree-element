@@ -306,6 +306,26 @@ describe("keyboard support", () => {
 
       expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
     });
+
+    it("handles the key when keyboardSupport is turned on later", async () => {
+      const tree = createTreeElement({ keyboardSupport: false });
+
+      tree.setOption("keyboardSupport", true);
+      tree.selectNode(tree.getNodeByNameMustExist("node1"));
+      await userEvent.keyboard("{ArrowDown}");
+
+      expect(tree.getSelectedNode()).toMatchObject({ name: "node2" });
+    });
+
+    it("doesn't handle the key when keyboardSupport is turned off later", async () => {
+      const tree = createTreeElement();
+
+      tree.setOption("keyboardSupport", false);
+      tree.selectNode(tree.getNodeByNameMustExist("node1"));
+      await userEvent.keyboard("{ArrowDown}");
+
+      expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
+    });
   });
 
   describe("without a selected node", () => {

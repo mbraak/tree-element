@@ -13,6 +13,8 @@ import { getTreeListElement, getTreeTitle } from "../support/queries";
 
 const server = setupServer();
 
+const getTreeItem = (name: string) => screen.getByRole("treeitem", { name });
+
 describe("methods", () => {
   let htmlElement: HTMLElement;
   let treeElement: TreeElement | undefined;
@@ -1396,6 +1398,135 @@ describe("methods", () => {
       );
 
       expect(tree.getSelectedNode()).toMatchObject({ name: "node1" });
+    });
+
+    it("throws an error for an option that can only be set in the constructor", () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      expect(() => {
+        // @ts-expect-error rtl is not a ChangeableOption
+        tree.setOption("rtl", true);
+      }).toThrow("The option rtl can only be set in the constructor");
+    });
+
+    it("updates the rendered nodes when tabIndex is changed", () => {
+      const tree = createTreeElement({ autoOpen: true, data: exampleData });
+
+      tree.selectNode(tree.getNodeByNameMustExist("node2"));
+      tree.setOption("tabIndex", 3);
+
+      expect(getTreeItem("node2")).toHaveAttribute("tabindex", "3");
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "-1");
+      expect(getTreeItem("child1")).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("moves the tab stop to the first node when tabIndex is changed without a selected node", () => {
+      const tree = createTreeElement({
+        data: exampleData,
+        tabIndex: undefined,
+      });
+
+      tree.setOption("tabIndex", 3);
+
+      expect(getTreeItem("node1")).toHaveAttribute("tabindex", "3");
+      expect(getTreeItem("node2")).toHaveAttribute("tabindex", "-1");
+    });
+
+    it("removes the tabindex of the nodes when tabIndex is unset", async () => {
+      const tree = createTreeElement({ animationSpeed: 0, data: exampleData });
+
+      tree.setOption("tabIndex", undefined);
+      await tree.openNode(tree.getNodeByNameMustExist("node1"));
+
+      expect(getTreeItem("node1")).not.toHaveAttribute("tabindex");
+      expect(getTreeItem("child1")).not.toHaveAttribute("tabindex");
+    });
+
+    it("turns on multiSelect", async () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      tree.setOption("multiSelect", true);
+
+      expect(screen.getByRole("tree")).toHaveAttribute(
+        "aria-multiselectable",
+        "true",
+      );
+      expect(getTreeItem("node1")).toHaveAttribute("aria-selected", "false");
+
+      await userEvent.click(getTreeTitle(getTreeItem("node1")));
+      await userEvent.click(getTreeTitle(getTreeItem("node2")));
+
+      expect(tree.getSelectedNodes()).toMatchObject([
+        { name: "node1" },
+        { name: "node2" },
+      ]);
+    });
+
+    it("moves the focus with the arrow keys when multiSelect is turned on", async () => {
+      const tree = createTreeElement({ data: exampleData });
+
+      tree.selectNode(tree.getNodeByNameMustExist("node1"));
+      tree.setOption("multiSelect", true);
+      await userEvent.keyboard("{ArrowDown}");
+
+      expect(getTreeItem("node2")).toHaveFocus();
+      expect(tree.getSelectedNodes()).toMatchObject([{ name: "node1" }]);
+    });
+
+    it("turns off multiSelect", async () => {
+      const tree = createTreeElement({ data: exampleData, multiSelect: true });
+
+      tree.setOption("multiSelect", false);
+
+      expect(screen.getByRole("tree")).not.toHaveAttribute(
+        "aria-multiselectable",
+      );
+      expect(getTreeItem("node1")).not.toHaveAttribute("aria-selected");
+
+      await userEvent.click(getTreeTitle(getTreeItem("node1")));
+      await userEvent.click(getTreeTitle(getTreeItem("node2")));
+
+      expect(tree.getSelectedNodes()).toMatchObject([{ name: "node2" }]);
+    });
+
+    it("keeps the selection and the focus when multiSelect is changed", () => {
+      const tree = createTreeElement({ data: exampleData, multiSelect: true });
+
+      tree.addToSelection(tree.getNodeByNameMustExist("node1"));
+      tree.addToSelection(tree.getNodeByNameMustExist("node2"));
+      tree.setOption("multiSelect", false);
+
+      expect(tree.getSelectedNodes()).toMatchObject([
+        { name: "node1" },
+        { name: "node2" },
+      ]);
+      expect(getTreeItem("node2")).toHaveFocus();
+      expect(getTreeItem("node1")).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("adds the dnd class when dragAndDrop is turned on", () => {
+      const tree = createTreeElement({ autoOpen: true, data: exampleData });
+
+      tree.setOption("dragAndDrop", true);
+
+      expect(screen.getByRole("tree")).toHaveClass("tree-element-dnd");
+      expect(screen.getAllByRole("group")[0]).toHaveClass("tree-element-dnd");
+    });
+
+    it("removes the dnd class when dragAndDrop is turned off", async () => {
+      const tree = createTreeElement({
+        animationSpeed: 0,
+        data: exampleData,
+        dragAndDrop: true,
+      });
+
+      tree.setOption("dragAndDrop", false);
+      await tree.openNode(tree.getNodeByNameMustExist("node1"));
+
+      expect(screen.getByRole("tree")).not.toHaveClass("tree-element-dnd");
+      expect(screen.getAllByRole("group")[0]).not.toHaveClass(
+        "tree-element-dnd",
+      );
     });
   });
 

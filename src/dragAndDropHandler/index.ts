@@ -44,7 +44,6 @@ interface DragAndDropHandlerParams {
   openFolderDelay: false | number;
   openNode: OpenNode;
   refreshElements: RefreshElements;
-  slide: boolean;
   treeElement: HTMLElement;
   triggerEvent: TriggerEvent;
 }
@@ -75,7 +74,6 @@ export class DragAndDropHandler {
   private openNode: OpenNode;
   private previousGhost: DropHint | null;
   private refreshElements: RefreshElements;
-  private slide: boolean;
   private treeElement: HTMLElement;
   private triggerEvent: TriggerEvent;
 
@@ -94,7 +92,6 @@ export class DragAndDropHandler {
     openFolderDelay,
     openNode,
     refreshElements,
-    slide,
     treeElement,
     triggerEvent,
   }: DragAndDropHandlerParams) {
@@ -112,7 +109,6 @@ export class DragAndDropHandler {
     this.openFolderDelay = openFolderDelay;
     this.openNode = openNode;
     this.refreshElements = refreshElements;
-    this.slide = slide;
     this.treeElement = treeElement;
     this.triggerEvent = triggerEvent;
 
@@ -385,7 +381,7 @@ export class DragAndDropHandler {
 
   private startOpenFolderTimer(folder: Node): void {
     const openFolder = (): void => {
-      void this.openNode(folder, this.slide).then(() => {
+      void this.openNode(folder).then(() => {
         this.refresh();
         this.updateDropHint();
       });

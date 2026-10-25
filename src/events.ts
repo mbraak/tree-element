@@ -142,7 +142,9 @@ export interface TreeEvents {
    */
   "tree.select": {
     /**
-    The node that was selected before, if any.
+    The node that was selected before, if any. When several nodes were
+    selected, this is the first; the others get a `tree.deselect`, dispatched
+    before this event.
     */
     deselectedNode: Node | null;
     /**
@@ -154,6 +156,10 @@ export interface TreeEvents {
    * Dispatched when the selected node is deselected, which happens when it
    * is clicked again or passed to `selectNode` again with
    * `mustToggle: true`. No `tree.select` is dispatched for it.
+   *
+   * When several nodes are selected and a click or `selectNode` selects just
+   * one node, it is dispatched for each node that loses the selection, except
+   * the one in the `deselectedNode` of `tree.select`.
    *
    * ```js
    * element.addEventListener("tree.deselect", (e) => {

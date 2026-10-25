@@ -178,10 +178,11 @@ describe("options", () => {
     });
 
     it("opens levels 1 with autoOpen '1'", () => {
-      const tree = createTreeElement({ data: [] });
-
-      tree.setOption("autoOpen", "1");
-      tree.loadData(exampleData);
+      // A string is accepted for javascript users, but not by the type
+      createTreeElement({
+        autoOpen: "1" as unknown as number,
+        data: exampleData,
+      });
 
       expect(htmlElement).toHaveTreeStructure([
         expect.objectContaining({ name: "node1", open: true }),

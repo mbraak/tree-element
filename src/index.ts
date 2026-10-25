@@ -2,7 +2,7 @@ import type { ClassNames } from "./classNames";
 import type { TreeEventName, TreeEvents } from "./events";
 import type { PositionInfo } from "./mouseUtils";
 import type { NodeData, NodeId, Position } from "./node";
-import type { TreeElementOptions } from "./options";
+import type { ChangeableOption, TreeElementOptions } from "./options";
 import type { SavedState } from "./saveStateHandler";
 import type { SelectNodeOptions } from "./selectNodeHandler";
 
@@ -15,6 +15,7 @@ import MouseHandler from "./mouseHandler";
 import { Node } from "./node";
 import NodeElement from "./nodeElement";
 import FolderElement from "./nodeElement/folderElement";
+import { changeableOptions } from "./options";
 import { getOffsetTop } from "./positionUtils";
 import RequestUrl from "./requestUrl";
 import SaveStateHandler from "./saveStateHandler";
@@ -109,7 +110,6 @@ export default class TreeElement {
       rtl,
       saveState: saveStateOption,
       showEmptyFolder,
-      slide,
       tabIndex,
     } = this.options;
 
@@ -215,7 +215,6 @@ export default class TreeElement {
       openFolderDelay,
       openNode,
       refreshElements,
-      slide,
       treeElement,
       triggerEvent,
     });
@@ -797,13 +796,47 @@ export default class TreeElement {
   }
 
   /**
-   * Changes an option after construction. See
-   * [Options](/reference/options#changing-an-option-later) for the caveats.
+   * Changes an option after construction. Only some options can be changed;
+   * the others throw an error. See
+   * [Options](/reference/options#changing-an-option-later).
    *
    * @group Other
    */
-  public setOption(option: string, value: unknown) {
+  public setOption(option: ChangeableOption, value: unknown) {
+    if (!(changeableOptions as readonly string[]).includes(option)) {
+      throw new Error(
+        `The option ${option} can only be set in the constructor`,
+      );
+    }
+
     (this.options as unknown as Record<string, unknown>)[option] = value;
+
+    switch (option) {
+      case "dragAndDrop": {
+        this.renderer.setDragAndDrop(Boolean(value));
+
+        break;
+      }
+      case "keyboardSupport": {
+        this.keyHandler.setKeyboardSupport(Boolean(value));
+
+        break;
+      }
+      case "multiSelect": {
+        this.setMultiSelect(Boolean(value));
+
+        break;
+      }
+      case "tabIndex": {
+        this.options.tabIndex = (value as null | number) ?? undefined;
+        this.renderer.setTabIndex(this.options.tabIndex);
+        this.fallbackTabStop = null;
+        this.updateTabStop();
+
+        break;
+      }
+      // No default
+    }
   }
 
   /**
@@ -1316,6 +1349,29 @@ export default class TreeElement {
     }
   }
 
+  /* Change multiSelect after construction. The attributes of the nodes
+   * depend on it, so the tree is rendered again. The selection is kept: a
+   * tree without multiSelect can also have several selected nodes, see
+   * addToSelection.
+   */
+  private setMultiSelect(multiSelect: boolean): void {
+    const focusedNode = this.getFocusedNode();
+
+    this.keyHandler.setMultiSelect(multiSelect);
+    this.renderer.setMultiSelect(multiSelect);
+
+    if (multiSelect) {
+      this.htmlElement.addEventListener("focusin", this.handleFocusIn);
+    } else {
+      this.htmlElement.removeEventListener("focusin", this.handleFocusIn);
+    }
+
+    this.activeNode = multiSelect ? focusedNode : null;
+    this.fallbackTabStop = null;
+    this.refreshElements(null);
+    focusedNode?.element?.focus();
+  }
+
   // Set this HTML element to this node in the node map.
   private setNodeElement(element: HTMLElement, node: Node) {
     this.nodeMap.set(element, node);
@@ -1371,6 +1427,6 @@ export {
   type TreeEvents,
 } from "./events";
 export { type Node, type NodeData, type NodeId, type Position } from "./node";
-export { type TreeElementOptions } from "./options";
+export { type ChangeableOption, type TreeElementOptions } from "./options";
 export { type SavedState } from "./saveStateHandler";
 export { type SelectNodeOptions } from "./selectNodeHandler";

@@ -6,6 +6,32 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+### Added
+
+- `multiSelect` can be turned on or off with `setOption`.
+
+### Changed
+
+- `setOption` throws an error for an option that can only be set in the
+  constructor. Before, the change was ignored or only partly applied. See
+  [Changing an option later](https://mbraak.github.io/tree-element/reference/options#changing-an-option-later)
+  for the options it accepts.
+
+### Fixed
+
+- Changing `dragAndDrop` with `setOption` also updates the `tree-element-dnd`
+  class, so touch dragging follows the new value.
+- Changing `slide` with `setOption` also applies to folders that open while
+  dragging over them.
+- Changing `keyboardSupport` with `setOption` turns the keyboard handling on
+  or off.
+- Changing `tabIndex` with `setOption` also updates the nodes that are
+  already rendered.
+- When several nodes are selected and a click or `selectNode` selects just
+  one node, `tree.deselect` is dispatched for the nodes that lose the
+  selection. Before, they were deselected without an event, except for the
+  one in the `deselectedNode` of `tree.select`.
+
 ## 0.4.0 - 2026-10-24
 
 ### Added
