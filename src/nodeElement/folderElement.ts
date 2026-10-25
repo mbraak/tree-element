@@ -56,16 +56,11 @@ class FolderElement extends NodeElement {
 
     this.node.is_open = false;
 
-    if (!this.isRendered()) {
-      this.triggerEvent("tree.close", { node: this.node });
-      return;
+    if (this.isRendered()) {
+      this.setButtonState(false);
+      await this.setUlState(this.getUl(), false, slide, animationSpeed);
+      this.setElementState(false);
     }
-
-    this.setButtonState(false);
-
-    await this.setUlState(this.getUl(), false, slide, animationSpeed);
-
-    this.setElementState(false);
 
     this.triggerEvent("tree.close", { node: this.node });
   }
@@ -80,19 +75,17 @@ class FolderElement extends NodeElement {
 
     this.node.is_open = true;
 
-    if (!this.isRendered()) {
-      // The folder is rendered open when its parent is opened
-      this.triggerEvent("tree.open", { node: this.node });
-      return;
+    // A folder that is not rendered is rendered open when its parent is
+    // opened
+    if (this.isRendered()) {
+      this.setButtonState(true);
+
+      // The children are rendered the first time the folder is opened
+      const ul = this.getUl() ?? this.renderChildren(this.node);
+      await this.setUlState(ul, true, slide, animationSpeed);
+
+      this.setElementState(true);
     }
-
-    this.setButtonState(true);
-
-    // The children are rendered the first time the folder is opened
-    const ul = this.getUl() ?? this.renderChildren(this.node);
-    await this.setUlState(ul, true, slide, animationSpeed);
-
-    this.setElementState(true);
 
     this.triggerEvent("tree.open", { node: this.node });
   }
