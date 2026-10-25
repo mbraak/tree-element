@@ -26,6 +26,14 @@ describe("accessibility", () => {
     return axe.run();
   };
 
+  // axe-core uses a canvas to detect icon ligatures. Jsdom doesn't implement getContext and logs
+  // a 'not implemented' warning; return null like jsdom does, but without the warning.
+  const getContext = vi.spyOn(HTMLCanvasElement.prototype, "getContext");
+
+  beforeAll(() => {
+    getContext.mockReturnValue(null);
+  });
+
   beforeEach(() => {
     document.title = "Test title";
     document.body.replaceChildren();
@@ -42,6 +50,10 @@ describe("accessibility", () => {
     treeElement = undefined;
 
     document.body.replaceChildren();
+  });
+
+  afterAll(() => {
+    getContext.mockRestore();
   });
 
   it("has an accessible ui", async () => {
