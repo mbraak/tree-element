@@ -186,8 +186,9 @@ The tree line is the left border of that list, so it moves along with the margin
 the indentation is half of it, so the tree line is under the center of the toggler, and the titles
 of nodes without children are indented by all of it, so they line up with the titles of folders.
 
-The default is `max(24px, 0.8em)`: 24px, the minimum size for something you click, until the font is
-larger than 30px, then the width of the default icon. Set it when your icon is wider:
+The default is `max(24px, 1.5em)`: 24px, the minimum size for something you click, up to a 16px
+font, then it grows with the font. The space around the icon separates the toggler from the title,
+so it grows along. Set it when your icon is wider:
 
 ```css
 .my-tree {

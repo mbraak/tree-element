@@ -18,13 +18,14 @@
 
 /*
   The width of the toggler. The indentation and the tree lines follow it, so
-  the line stays under the center of the toggler. The default icon is 0.8em,
-  so above a 30px font the toggler grows with it. Set it to the width of a
-  custom icon that is wider. It is resolved where it is used, so em is the
-  font size of the tree.
+  the line stays under the center of the toggler. 1.5em is 24px at a 16px
+  font: above that the toggler grows with the font, so the space around the
+  0.8em icon, which separates it from the title, grows along. Set it to the
+  width of a custom icon that is wider. It is resolved where it is used, so em
+  is the font size of the tree.
 */
 :where(:root) {
-  --tree-element-toggler-size: max(24px, 0.8em);
+  --tree-element-toggler-size: max(24px, 1.5em);
 }
 
 ul.tree-element {
