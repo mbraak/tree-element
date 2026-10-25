@@ -12,6 +12,10 @@ All notable changes to tree-element are documented here. The format is based on
 - Vertical lines from a folder to its children. Their color is the
   `--tree-element-line-color` custom property; set it to `transparent` to hide
   them.
+- The `--tree-element-toggler-size` custom property: the width of the
+  toggler. The indentation and the tree lines follow it. It defaults to
+  `max(24px, 0.8em)`, so the toggler and the indentation grow with a font
+  larger than 30px.
 
 ### Changed
 

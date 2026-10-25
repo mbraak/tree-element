@@ -178,6 +178,23 @@ ul.tree-element ul.tree-element-common {
 }
 ```
 
+The tree line is the left border of that list, so it moves along with the margin.
+
+## Toggler size
+
+`--tree-element-toggler-size` is the width of the toggler. The stylesheet derives the rest from it:
+the indentation is half of it, so the tree line is under the center of the toggler, and the titles
+of nodes without children are indented by all of it, so they line up with the titles of folders.
+
+The default is `max(24px, 0.8em)`: 24px, the minimum size for something you click, until the font is
+larger than 30px, then the width of the default icon. Set it when your icon is wider:
+
+```css
+.my-tree {
+  --tree-element-toggler-size: 32px;
+}
+```
+
 ## Folder icons
 
 The togglers are small svg triangles by default, pointing right for a closed folder and down for an open
