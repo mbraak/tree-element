@@ -10,10 +10,7 @@ export default defineConfig({
   ],
   testDir: "../playwright",
   webServer: {
-    // Only serves the files; build tree_element.js with coverage first. Run
-    // node directly instead of through pnpm: pnpm 12.6 leaves the child
-    // running when Playwright stops the server, so Playwright never exits.
-    command: "node config/playwrightServer.mjs",
+    command: "node config/devServer.mjs",
     cwd: "..",
     port: 8080,
   },

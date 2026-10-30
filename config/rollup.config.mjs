@@ -1,10 +1,10 @@
 import { babel } from "@rollup/plugin-babel";
 import resolve from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
-import serve from "rollup-plugin-serve";
 import tsConfigPaths from "rollup-plugin-tsconfig-paths";
 
 import { getBanner } from "./banner.mjs";
+import { startServer } from "./devServer.mjs";
 
 const debugBuild = Boolean(process.env.DEBUG_BUILD);
 const devServer = Boolean(process.env.SERVE);
@@ -45,11 +45,7 @@ if (!debugBuild) {
 }
 
 if (devServer) {
-  const servePlugin = serve({
-    contentBase: ["./devserver", "./"],
-    port: 8080,
-  });
-  plugins.push(servePlugin);
+  startServer();
 }
 
 export default {

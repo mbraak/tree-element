@@ -110,7 +110,6 @@
     "postcss-nested": "^9.0.1",
     "prettier": "^3.9.10",
     "rollup": "^4.65.0",
-    "rollup-plugin-serve": "^3.0.0",
     "rollup-plugin-tsconfig-paths": "^1.5.2",
     "tslib": "^2.8.1",
     "typedoc": "^0.28.20",

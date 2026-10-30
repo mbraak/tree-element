@@ -161,9 +161,6 @@ importers:
       rollup:
         specifier: ^4.65.0
         version: 4.65.0
-      rollup-plugin-serve:
-        specifier: ^3.0.0
-        version: 3.0.0
       rollup-plugin-tsconfig-paths:
         specifier: ^1.5.2
         version: 1.5.2(rollup@4.65.0)(typescript@6.0.3)
@@ -3169,11 +3166,6 @@ packages:
   micromark@4.0.3:
     resolution: {integrity: sha512-oGYfQzHSG5dOMovQcJ3fyTmZlWAWpi0XA0sJwJs+i6OT88o1+Jtw/8z0CmdowSLxGhhFK89rQ/oXph/wN02PNw==}
 
-  mime@4.1.1:
-    resolution: {integrity: sha512-YAApRsTpM2+gnUFHhRNGfkX8NK0V5xj1nyQLufGlwEI+eX4xRsTcel2IXDuMEGSGjBvzykNW4VuoEACgwYe7BQ==}
-    engines: {node: '>=16'}
-    hasBin: true
-
   min-indent@1.0.1:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
@@ -3246,10 +3238,6 @@ packages:
 
   oniguruma-to-es@3.1.1:
     resolution: {integrity: sha512-bUH8SDvPkH3ho3dvwJwfonjlQ4R80vjyvrU8YpxuROddv55vAEJrTuCuCVUhhsHbtlD9tGGbaNApGQckXhS8iQ==}
-
-  opener@1.5.2:
-    resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
-    hasBin: true
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -3498,9 +3486,6 @@ packages:
 
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
-
-  rollup-plugin-serve@3.0.0:
-    resolution: {integrity: sha512-DjVRhbwC0OgP1Q1sj8Lvx12ee60UTZM767kkjT61sYKHw/wLpANAw3VZN5ZMa5NlvO8bYpfTaqiUrW+icAjXFg==}
 
   rollup-plugin-tsconfig-paths@1.5.2:
     resolution: {integrity: sha512-tyS7u2Md0eXKwbDfTuDDa1izciwqhOZsHzX7zYc5gKC1L7q5ozdSt+q1jjtD1dDqWyjrt8lZoiLtOQGhMHh1OQ==}
@@ -7117,8 +7102,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  mime@4.1.1: {}
-
   min-indent@1.0.1: {}
 
   minimatch@10.2.6:
@@ -7175,8 +7158,6 @@ snapshots:
       emoji-regex-xs: 1.0.0
       regex: 6.1.0
       regex-recursion: 6.0.2
-
-  opener@1.5.2: {}
 
   optionator@0.9.4:
     dependencies:
@@ -7392,11 +7373,6 @@ snapshots:
   rettime@0.11.12: {}
 
   rfdc@1.4.1: {}
-
-  rollup-plugin-serve@3.0.0:
-    dependencies:
-      mime: 4.1.1
-      opener: 1.5.2
 
   rollup-plugin-tsconfig-paths@1.5.2(rollup@4.65.0)(typescript@6.0.3):
     dependencies:
