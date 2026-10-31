@@ -63,7 +63,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@babel/cli": "^8.0.6",
-    "@babel/core": "^8.0.9",
+    "@babel/core": "^8.0.10",
     "@babel/preset-env": "^8.0.7",
     "@babel/preset-typescript": "^8.0.7",
     "@cspell/eslint-plugin": "^10.4.0",
