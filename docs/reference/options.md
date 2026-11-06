@@ -60,7 +60,7 @@ These can only be set in the constructor, `setOption` throws an error for them:
 - `buttonLeft`
 - `classPrefix`, `commonClassName`, `treeClassName`
 - `closedIcon`, `openedIcon`
-- `data` — use `loadData` to replace the nodes
+- `data`—use `loadData` to replace the nodes
 - `dataFilter`
 - `nodeClass`
 - `onCanMove`, `onCanMoveTo`, `onDragMove`, `onDragStop`, `onIsMoveHandle`

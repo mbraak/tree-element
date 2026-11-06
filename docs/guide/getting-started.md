@@ -71,7 +71,7 @@ the stylesheet uses.
 
 ::: tip
 Every tree on this site is the real widget, compiled from `src`. If a demo behaves differently
-from what a page says, the page is wrong — please
+from what a page says, the page is wrong—please
 [open an issue](https://github.com/mbraak/tree-element/issues).
 :::
 
@@ -140,7 +140,7 @@ tree.selectNode(node);
 tree.appendNode({ name: "Tyrannosauroids", id: 9 }, node);
 ```
 
-Select a node and use the buttons — they call `appendNode`, `updateNode`, `removeNode`, `openNode`
+Select a node and use the buttons—they call `appendNode`, `updateNode`, `removeNode`, `openNode`
 and `closeNode` on the tree below:
 
 <TreeDemo demo="basic" api />
@@ -158,8 +158,8 @@ tree.deinit();
 
 ## Next steps
 
-- [Data](./data) — the node data format
-- [Loading on demand](./loading-on-demand) — fetch subtrees from the server
-- [Selection](./selection) — selecting nodes and keyboard navigation
-- [Drag and drop](./drag-and-drop) — moving nodes
-- [Saving state](./saving-state) — remember open and selected nodes
+- [Data](./data)—the node data format
+- [Loading on demand](./loading-on-demand)—fetch subtrees from the server
+- [Selection](./selection)—selecting nodes and keyboard navigation
+- [Drag and drop](./drag-and-drop)—moving nodes
+- [Saving state](./saving-state)—remember open and selected nodes

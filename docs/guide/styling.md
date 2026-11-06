@@ -1,8 +1,8 @@
 # Styling
 
 The widget needs `tree_element.css` to look like a tree: it removes the list bullets, indents the
-levels, hides closed folders and draws the drag-and-drop hints. Everything else — colors, fonts,
-spacing — is meant to be overridden.
+levels, hides closed folders and draws the drag-and-drop hints. Everything else—colors, fonts,
+spacing—is meant to be overridden.
 
 The stylesheet is generated from `css/tree_element.postcss` by `pnpm production`.
 
@@ -43,7 +43,7 @@ The children of a closed folder are not in the markup: the nested `ul` is added 
 folder is opened, and stays in place when it is closed again.
 
 Note that all selectors in the stylesheet are nested under `ul.tree-element`, so your own rules should
-be too — or be specific enough to win.
+be too—or be specific enough to win.
 
 ## Class names
 
@@ -54,13 +54,13 @@ be too — or be specific enough to win.
 | `tree-element-element`       | The `div` that wraps a node's toggler and title.             |
 | `tree-element-title`         | The `span` with the node name.                               |
 | `tree-element-folder`        | An `li` for a node that has children.                        |
-| `tree-element-closed`        | A closed folder — on the `li` and on its toggler.            |
+| `tree-element-closed`        | A closed folder—on the `li` and on its toggler.              |
 | `tree-element-toggler`       | The open/close button.                                       |
 | `tree-element-toggler-left`  | The toggler when `buttonLeft` is true (the default).         |
 | `tree-element-toggler-right` | The toggler when `buttonLeft` is false.                      |
 | `tree-element-title-folder`  | The title of a folder node.                                  |
 | `tree-element-selected`      | The `li` of a selected node.                                 |
-| `tree-element-loading`       | A node — or the tree — that is fetching data.                |
+| `tree-element-loading`       | A node—or the tree—that is fetching data.                    |
 | `tree-element-rtl`           | The root `ul` when `rtl` is true.                            |
 | `tree-element-dnd`           | The root `ul` when `dragAndDrop` is true.                    |
 | `tree-element-ghost`         | The drop hint while dragging.                                |
@@ -111,8 +111,8 @@ The markup from the top of this page then looks like this:
 ```
 
 Two of the classes are not `<prefix>-<something>`, so they have an option of their own:
-`treeClassName` for the class of the root `ul` — `classPrefix` by default — and `commonClassName` for
-the class that every element gets — `<classPrefix>-common` by default.
+`treeClassName` for the class of the root `ul`—`classPrefix` by default—and `commonClassName` for
+the class that every element gets—`<classPrefix>-common` by default.
 
 ```js
 new TreeElement({
@@ -124,7 +124,7 @@ new TreeElement({
 ```
 
 Note that `tree_element.css` has the default prefix baked in: a tree with another prefix is unstyled
-until you provide your own css. Take `css/tree_element.postcss` as the starting point — replacing
+until you provide your own css. Take `css/tree_element.postcss` as the starting point—replacing
 `tree-element` in it with your prefix gives you the same stylesheet for your class names.
 
 ## Colors
@@ -233,8 +233,8 @@ Put the toggler after the title instead of before it with `buttonLeft: false`:
 
 ## Right to left
 
-`rtl: true` mirrors the tree — the indentation, the togglers and the drag-and-drop hints all move to
-the other side — and flips the default closed icon to point left:
+`rtl: true` mirrors the tree—the indentation, the togglers and the drag-and-drop hints all move to
+the other side—and flips the default closed icon to point left:
 
 ```js
 new TreeElement({
@@ -258,7 +258,7 @@ all in `tree_element.css`: if you replace the stylesheet, carry those rules over
 ## Customizing the markup
 
 `onCreateLi` is called for every rendered node, with the node, its `li` element and whether it is
-selected. A node inside a closed folder is rendered — and `onCreateLi` called — when that folder is
+selected. A node inside a closed folder is rendered—and `onCreateLi` called—when that folder is
 opened. Use it to add your own content:
 
 ```js
@@ -279,7 +279,7 @@ new TreeElement({
 ```
 
 Keep in mind that the `li` is rebuilt whenever the node is refreshed, so `onCreateLi` has to be able
-to run again — build the markup from the node data rather than mutating what is already there.
+to run again—build the markup from the node data rather than mutating what is already there.
 
 ## Empty folders
 
@@ -312,9 +312,9 @@ new TreeElement({
 });
 ```
 
-When the user prefers reduced motion — `prefers-reduced-motion: reduce`, set in the system settings —
-the default `animationSpeed` is `0`, so folders open and close instantly. Setting `animationSpeed`
-yourself overrides this.
+When the user prefers reduced motion—`prefers-reduced-motion: reduce`, set in the system settings—the
+default `animationSpeed` is `0`, so folders open and close instantly. Setting `animationSpeed` yourself
+overrides this.
 
 This tree has `slide: false`, so folders open and close instantly:
 

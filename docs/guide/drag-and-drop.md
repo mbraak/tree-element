@@ -10,7 +10,7 @@ new TreeElement({
 });
 ```
 
-Drag a node in this tree — onto a folder, or between two nodes:
+Drag a node in this tree—onto a folder, or between two nodes:
 
 <TreeDemo demo="dragAndDrop" events />
 
@@ -87,7 +87,7 @@ element.addEventListener("tree.move", (e) => {
 ```
 
 Call `preventDefault()` to stop the tree from applying the move, and `moveInfo.doMove()` to apply
-it later — for instance after the server has confirmed it:
+it later—for instance after the server has confirmed it:
 
 ```js
 element.addEventListener("tree.move", (e) => {

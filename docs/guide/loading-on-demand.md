@@ -40,10 +40,10 @@ GET /my-tree/?node=1&_=1735689600000
 ```
 
 The `node` parameter is added even when `dataUrl` is a function, so a url that already identifies the
-node gets it twice — harmless, but worth knowing when you match on the query. The `_` parameter is a
+node gets it twice—harmless, but worth knowing when you match on the query. The `_` parameter is a
 timestamp the tree adds to every request to defeat caching; ignore it.
 
-The response is a json array of the children of that node — the same format as the top level, and
+The response is a json array of the children of that node—the same format as the top level, and
 children may be marked `load_on_demand` again:
 
 ```json
@@ -66,7 +66,7 @@ new TreeElement({
 });
 ```
 
-Use a function when the url depends on the node — it is called with the node that is being
+Use a function when the url depends on the node—it is called with the node that is being
 loaded, and with no argument for the initial load:
 
 ```js

@@ -76,7 +76,7 @@ new TreeElement({
 });
 ```
 
-Only turn this off for data you control — with `autoEscape: false`, node names from a database or
+Only turn this off for data you control—with `autoEscape: false`, node names from a database or
 an api become an html injection route.
 
 ## Replacing the data
