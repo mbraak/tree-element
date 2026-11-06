@@ -3,8 +3,6 @@ allowBuilds:
   msw: true
   unrs-resolver: true
   babel-plugin-prefix-private-members: true
-minimumReleaseAgeExclude:
-  - babel-plugin-prefix-private-members@0.2.0
 peerDependencyRules:
   allowedVersions:
     "@rollup/plugin-babel>@babel/core": "8"
@@ -14,4 +12,5 @@ overrides:
   "@vitejs/plugin-vue>vite": ^6.4.3
   "babel-plugin-istanbul>test-exclude": ^8.0.0
   glob@>=9.0.0 <=14.0.1: ^14.0.2
+  "eslint-plugin-import-x>minimatch": ^10.2.6
   minimatch@<11.0.1: ^11.0.1
