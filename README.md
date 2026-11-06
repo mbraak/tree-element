@@ -202,7 +202,7 @@ const data: NodeData[] = [{ name: "root", id: 1 }];
 |                                 |                                                                    |
 | ------------------------------- | ------------------------------------------------------------------ |
 | `import "tree-element"`         | `lib/index.js`, unbundled es modules                               |
-| `require`, script tag           | `tree_element.js`, minified iife exposing the global `TreeElement` |
+| `require`, script tag           | `tree_element.js`, minified IIFE exposing the global `TreeElement` |
 | `tree-element/tree_element.css` | The stylesheet                                                     |
 
 `tree_element.debug.js` is the same bundle without minification.
@@ -225,7 +225,7 @@ pnpm docs-check    # type-check the code snippets in the docs
 pnpm ci            # lint, typecheck, check the docs and test
 ```
 
-`pnpm test` runs the vitest unit tests and the playwright browser tests. The
+`pnpm test` runs the Vitest unit tests and the Playwright browser tests. The
 browser tests include accessibility checks: axe scans the rendered tree
 (including color contrast) and keyboard-only tests cover tabbing into the tree,
 the arrow keys, `Home`, `End` and `Enter`. They're in
