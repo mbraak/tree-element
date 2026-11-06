@@ -65,8 +65,8 @@ tree.getNodesByProperty("color", "green");
 
 ## Escaping
 
-Node names are escaped by default, so html in a name is displayed literally rather than being
-rendered. Set `autoEscape: false` if you want names to be treated as html:
+Node names are escaped by default, so HTML in a name is displayed literally rather than being
+rendered. Set `autoEscape: false` if you want names to be treated as HTML:
 
 ```js
 new TreeElement({
@@ -77,7 +77,7 @@ new TreeElement({
 ```
 
 Only turn this off for data you control—with `autoEscape: false`, node names from a database or
-an api become an html injection route.
+an API become an HTML injection route.
 
 ## Replacing the data
 
@@ -93,9 +93,9 @@ Pass a parent node to replace just that node's children:
 tree.loadData([{ name: "child1" }, { name: "child2" }], tree.getNodeById(1));
 ```
 
-## Loading from a url
+## Loading from a URL
 
-`dataUrl` fetches the data instead of taking it inline. The response must be json in the same
+`dataUrl` fetches the data instead of taking it inline. The response must be JSON in the same
 format as `data`:
 
 ```js
@@ -105,7 +105,7 @@ new TreeElement({
 });
 ```
 
-You can also put the url on the element:
+You can also put the URL on the element:
 
 ```html
 <div id="tree1" data-url="/my-tree/"></div>
@@ -140,13 +140,13 @@ To fetch subtrees lazily instead of the whole tree at once, see
 
 ## Reading the data back
 
-`toJson` serializes the current tree, including changes made through the api:
+`toJson` serializes the current tree, including changes made through the API:
 
 ```js
 const json = tree.toJson();
 ```
 
-`Node.getData` gives you the same structure as a javascript array:
+`Node.getData` gives you the same structure as a JavaScript array:
 
 ```js
 tree.getTree().getData();

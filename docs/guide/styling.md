@@ -124,12 +124,12 @@ new TreeElement({
 ```
 
 Note that `tree_element.css` has the default prefix baked in: a tree with another prefix is unstyled
-until you provide your own css. Take `css/tree_element.postcss` as the starting point—replacing
+until you provide your own CSS. Take `css/tree_element.postcss` as the starting point—replacing
 `tree-element` in it with your prefix gives you the same stylesheet for your class names.
 
 ## Colors
 
-The colors are css custom properties. Set them on `:root`, or on an element around the tree to
+The colors are CSS custom properties. Set them on `:root`, or on an element around the tree to
 change one tree:
 
 | Property                              | Default                             | Used for                                    |
@@ -198,10 +198,10 @@ so it grows along. Set it when your icon is wider:
 
 ## Folder icons
 
-The togglers are small svg triangles by default, pointing right for a closed folder and down for an open
+The togglers are small SVG triangles by default, pointing right for a closed folder and down for an open
 one. They are sized in em, so they follow the font size, and take the color of
 `--tree-element-toggler-color`. Replace them with
-`closedIcon` and `openedIcon`, which take an html string or an element:
+`closedIcon` and `openedIcon`, which take an HTML string or an element:
 
 ```js
 new TreeElement({
@@ -214,7 +214,7 @@ new TreeElement({
 
 <TreeDemo demo="icons" />
 
-An element works too, which is how you use an svg or an icon font:
+An element works too, which is how you use an SVG or an icon font:
 
 ```js
 const icon = document.createElement("i");

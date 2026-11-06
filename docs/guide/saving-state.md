@@ -36,7 +36,7 @@ State is keyed on node ids, so nodes need an `id` for this to work.
 
 ## What is stored
 
-A json object with the ids of the open nodes and of the selected node:
+A JSON object with the ids of the open nodes and of the selected node:
 
 ```json
 { "open_nodes": [1, 3], "selected_node": [4] }
@@ -60,7 +60,7 @@ is enabled, `setState` also saves the state it applied to storage.
 ## Storing state somewhere else
 
 Override where the state is kept with `onSetStateFromStorage` and `onGetStateFromStorage`. Both work
-with the state as a json string:
+with the state as a JSON string:
 
 ```js
 new TreeElement({

@@ -63,7 +63,7 @@ All notable changes to tree-element are documented here. The format is based on
 - A relative `dataUrl`, such as `api/nodes.json`, is resolved against the page
   instead of the root of the site. This makes it work when the page is in a
   subdirectory, for example on GitHub Pages.
-- The default `closedIcon` and `openedIcon` are now svg triangles instead of
+- The default `closedIcon` and `openedIcon` are now SVG triangles instead of
   text characters. This make sure they are the same on all platforms.
 
 ## 0.3.0 - 2026-10-11
@@ -74,7 +74,7 @@ All notable changes to tree-element are documented here. The format is based on
 - The key `Enter` dispatches the new event `tree.activate`, for example to open
   the edit page of the node.
 - The options `ariaLabel` and `ariaLabelledBy` give the tree an accessible name.
-- The colors in `tree_element.css` are css custom properties, such as
+- The colors in `tree_element.css` are CSS custom properties, such as
   `--tree-element-title-color`, so you can change them or add a dark theme. See
   [Styling](https://mbraak.github.io/tree-element/guide/styling#colors).
 - A folder's treeitem has `aria-busy="true"` while its children load.
@@ -94,7 +94,7 @@ All notable changes to tree-element are documented here. The format is based on
   24px wide: the WCAG 2.5.8 minimum for click targets. This makes the tree a
   bit taller. The toggler no longer has a margin; the space around its icon
   separates it from the title.
-- The toggler is a `span` instead of an `a` without `href`. Update css that
+- The toggler is a `span` instead of an `a` without `href`. Update CSS that
   selects `a.tree-element-toggler`.
 - When the user prefers reduced motion (`prefers-reduced-motion: reduce`),
   folders open and close without animation, unless `animationSpeed` is set.
@@ -108,7 +108,7 @@ All notable changes to tree-element are documented here. The format is based on
 
 ### Fixed
 
-- The options `closedIcon` and `openedIcon` render a string as html instead of
+- The options `closedIcon` and `openedIcon` render a string as HTML instead of
   as text.
 
 ### Changed
@@ -132,8 +132,8 @@ First release.
 
 ### Added
 
-- Tree widget in plain javascript, with no runtime dependencies
-- Load data from a javascript array or from a url, with load on demand per node
+- Tree widget in plain JavaScript, with no runtime dependencies
+- Load data from a JavaScript array or from a URL, with load on demand per node
 - Drag and drop, with autoscroll and hooks to allow or veto a move
 - Keyboard navigation
 - Save the open and selected nodes to local storage
