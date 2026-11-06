@@ -50,6 +50,30 @@ jobs:
       - name: Lint
         run: |
           pnpm run lint
+      - name: Install Vale
+        env:
+          VALE_VERSION: 3.26.0
+          VALE_SHA256: 22aa69a556558e4a9dfc63c17030777383d8d3c48dcdfad655fa98e839d666ed
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/vale.tar.gz" \
+            "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
+          echo "${VALE_SHA256}  $RUNNER_TEMP/vale.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/vale.tar.gz" -C "$RUNNER_TEMP" vale
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      # Vale only fails on errors, so any alert, including warnings and
+      # suggestions, is turned into an annotation and fails the step.
+      - name: Check the prose in the docs
+        run: |
+          vale sync
+          status=0
+          alerts=$(pnpm --silent lint-docs --output=line) || status=$?
+          if [ -n "$alerts" ]; then
+            echo "$alerts" | while IFS=: read -r file line col check message; do
+              echo "::warning file=$file,line=$line,col=$col,title=$check::$message"
+            done
+            exit 1
+          fi
+          exit "$status"
       - name: Check types
         run: |
           pnpm run tsc
