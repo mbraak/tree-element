@@ -50,30 +50,18 @@ jobs:
       - name: Lint
         run: |
           pnpm run lint
-      - name: Install Vale
-        env:
-          VALE_VERSION: 3.26.0
-          VALE_SHA256: 22aa69a556558e4a9dfc63c17030777383d8d3c48dcdfad655fa98e839d666ed
-        run: |
-          curl -sSfL -o "$RUNNER_TEMP/vale.tar.gz" \
-            "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz"
-          echo "${VALE_SHA256}  $RUNNER_TEMP/vale.tar.gz" | sha256sum --check
-          tar -xzf "$RUNNER_TEMP/vale.tar.gz" -C "$RUNNER_TEMP" vale
-          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
-      # Vale only fails on errors, so any alert, including warnings and
-      # suggestions, is turned into an annotation and fails the step.
+      # Fails on any alert, including warnings and suggestions. CI runs on push,
+      # so every line is checked instead of only the lines a PR changed. Keep
+      # the files and glob in sync with the lint-docs script in package.json.
       - name: Check the prose in the docs
-        run: |
-          vale sync
-          status=0
-          alerts=$(pnpm --silent lint-docs --output=line) || status=$?
-          if [ -n "$alerts" ]; then
-            echo "$alerts" | while IFS=: read -r file line col check message; do
-              echo "::warning file=$file,line=$line,col=$col,title=$check::$message"
-            done
-            exit 1
-          fi
-          exit "$status"
+        uses: vale-cli/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3.0.0
+        with:
+          version: 3.26.0
+          files: README.md,CHANGELOG.md,docs
+          separator: ","
+          glob: "!docs/{reference/generated,.vitepress}/**"
+          fail_level: any
+          filter_mode: nofilter
       - name: Check types
         run: |
           pnpm run tsc
