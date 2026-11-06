@@ -8,40 +8,37 @@ on:
   push:
     tags: ["v*"]
 
-permissions:
-  contents: write # create the GitHub release
-  id-token: write # npm trusted publishing and provenance
+permissions: {}
 
 jobs:
   ci:
-    uses: ./.github/workflows/ci.yml
-    secrets: inherit
+    uses: $/.github/workflows/ci.yml
+    permissions:
+      contents: read
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   publish:
     needs: ci
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub release
+      id-token: write # npm trusted publishing and provenance
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Setup node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-      - name: Install pnpm and a recent npm
-        run: npm install -g npm@latest pnpm
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@v6
-        name: Setup pnpm cache
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          # No caches in the release job, so a poisoned cache cannot end up in the package
+          package-manager-cache: false
+      - name: Install pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - name: Install packages
         run: pnpm install
       - name: Check that the tag matches the version in package.json
@@ -58,8 +55,9 @@ jobs:
       - name: Pack
         run: npm pack
       - name: Publish to npm
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION=${{ steps.version.outputs.version }}
           if npm view "tree-element@$VERSION" version > /dev/null 2>&1; then
             echo "tree-element@$VERSION is already on npm, skipping publish"
           else
@@ -68,8 +66,8 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION=${{ steps.version.outputs.version }}
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
             echo "Release $GITHUB_REF_NAME already exists, skipping"
           else
