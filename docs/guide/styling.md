@@ -4,7 +4,7 @@ The widget needs `tree_element.css` to look like a tree: it removes the list bul
 levels, hides closed folders and draws the drag-and-drop hints. Everything else—colors, fonts,
 spacing—is meant to be overridden.
 
-The stylesheet is generated from `css/tree_element.postcss` by `pnpm production`.
+The style sheet is generated from `css/tree_element.postcss` by `pnpm production`.
 
 ## Markup
 
@@ -42,7 +42,7 @@ A tree renders as nested lists:
 The children of a closed folder are not in the markup: the nested `ul` is added the first time the
 folder is opened, and stays in place when it is closed again.
 
-Note that all selectors in the stylesheet are nested under `ul.tree-element`, so your own rules should
+Note that all selectors in the style sheet are nested under `ul.tree-element`, so your own rules should
 be too—or be specific enough to win.
 
 ## Class names
@@ -125,7 +125,7 @@ new TreeElement({
 
 Note that `tree_element.css` has the default prefix baked in: a tree with another prefix is unstyled
 until you provide your own CSS. Take `css/tree_element.postcss` as the starting point—replacing
-`tree-element` in it with your prefix gives you the same stylesheet for your class names.
+`tree-element` in it with your prefix gives you the same style sheet for your class names.
 
 ## Colors
 
@@ -148,10 +148,10 @@ change one tree:
 The tree lines are decoration, so they are light. Set `--tree-element-line-color` to `transparent`
 to hide them.
 
-The defaults meet the WCAG AA contrast minimums on a white page: the title has at least 4.6:1,
+The defaults meet the Web Content Accessibility Guidelines AA contrast minimums on a white page: the title has at least 4.6:1,
 also on the darkest part of the selected row. Check the contrast when you change them.
 
-The stylesheet has no dark theme, because the tree can't know the background of your page. A dark
+The style sheet has no dark theme, because the tree can't know the background of your page. A dark
 theme for a page with a `#121212` background:
 
 ```css
@@ -170,7 +170,7 @@ theme for a page with a `#121212` background:
 
 ## Overriding styles
 
-For anything that isn't a color, override the rules of the stylesheet. Indentation, for example:
+For anything that isn't a color, override the rules of the style sheet. Indentation, for example:
 
 ```css
 ul.tree-element ul.tree-element-common {
@@ -182,7 +182,7 @@ The tree line is the left border of that list, so it moves along with the margin
 
 ## Toggler size
 
-`--tree-element-toggler-size` is the width of the toggler. The stylesheet derives the rest from it:
+`--tree-element-toggler-size` is the width of the toggler. The style sheet derives the rest from it:
 the indentation is half of it, so the tree line is under the center of the toggler, and the titles
 of nodes without children are indented by all of it, so they line up with the titles of folders.
 
@@ -253,7 +253,7 @@ You can also set it on the element:
 ```
 
 The mirroring comes from the `tree-element-rtl` class that the option adds to the root `ul`, so it is
-all in `tree_element.css`: if you replace the stylesheet, carry those rules over.
+all in `tree_element.css`: if you replace the style sheet, carry those rules over.
 
 ## Customizing the markup
 

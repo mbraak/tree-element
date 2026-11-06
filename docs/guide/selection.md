@@ -41,7 +41,7 @@ tree.selectNode(node, { mustToggle: true });
 ## Multiple nodes
 
 Set `multiSelect: true` to let the user select more than one node. A click adds a node to the
-selection, or removes it when it is already selected; the other selected nodes stay selected.
+selection, or removes it when it is already selected. The other selected nodes stay selected.
 
 ```js
 new TreeElement({
@@ -89,7 +89,7 @@ new TreeElement({
 });
 ```
 
-Only the folders in this tree can be selected; clicking a leaf does nothing:
+Only the folders in this tree can be selected. Clicking a leaf does nothing:
 
 <TreeDemo demo="onlyFoldersSelectable" />
 

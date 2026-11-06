@@ -10,7 +10,7 @@ All notable changes to tree-element are documented here. The format is based on
 
 - `multiSelect` can be turned on or off with `setOption`.
 - Vertical lines from a folder to its children. Their color is the
-  `--tree-element-line-color` custom property; set it to `transparent` to hide
+  `--tree-element-line-color` custom property. Set it to `transparent` to hide
   them.
 - The `--tree-element-toggler-size` custom property: the width of the
   toggler. The indentation and the tree lines follow it. It defaults to
@@ -27,7 +27,7 @@ All notable changes to tree-element are documented here. The format is based on
 ### Fixed
 
 - Changing `dragAndDrop` with `setOption` also updates the `tree-element-dnd`
-  class, so touch dragging follows the new value.
+  class, so tap dragging follows the new value.
 - Changing `slide` with `setOption` also applies to folders that open while
   dragging over them.
 - Changing `keyboardSupport` with `setOption` turns the keyboard handling on
@@ -84,16 +84,16 @@ All notable changes to tree-element are documented here. The format is based on
 - The tree can be reached with the tab key when no node is selected.
 - Do not set `aria-label` for tree nodes. Rely on the node text instead.
 - Screen readers no longer read the open/close toggler. It has
-  `aria-hidden="true"`; `aria-expanded` on the node already has the state.
+  `aria-hidden="true"`. `aria-expanded` on the node already has the state.
 - When loading the children of a folder fails, the tree no longer requests them
-  again and again. The folder stays closed; opening it again retries.
+  again and again. The folder stays closed. Opening it again retries.
 
 ### Changed
 
 - The toggler and the rows are at least 24px high, and the toggler is at least
-  24px wide: the WCAG 2.5.8 minimum for click targets. This makes the tree a
-  bit taller. The toggler no longer has a margin; the space around its icon
-  separates it from the title.
+  24px wide: the Web Content Accessibility Guidelines 2.5.8 minimum for click
+  targets. This makes the tree a bit taller. The toggler no longer has a
+  margin. The space around its icon separates it from the title.
 - The toggler is a `span` instead of an `a` without `href`. Update CSS that
   selects `a.tree-element-toggler`.
 - When the user prefers reduced motion (`prefers-reduced-motion: reduce`),

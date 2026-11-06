@@ -15,7 +15,7 @@ The package contains:
 | `lib/`                  | The source compiled to ES modules, with type declarations. This is what `import "tree-element"` resolves to.       |
 | `tree_element.js`       | The bundle: an [IIFE](https://developer.mozilla.org/en-US/docs/Glossary/IIFE) that defines a global `TreeElement`. |
 | `tree_element.debug.js` | The same bundle, unminified.                                                                                       |
-| `tree_element.css`      | The stylesheet.                                                                                                    |
+| `tree_element.css`      | The style sheet.                                                                                                   |
 
 If you do not use a bundler, copy `tree_element.js` and `tree_element.css` from
 `node_modules/tree-element` into your project and load them with a `<link>` and a `<script>` tag, as
@@ -25,7 +25,7 @@ in the example below. You can also build these files yourself from a checkout wi
 ## Create a tree
 
 `tree-element` renders into an element that you pass to the constructor. That element does not have
-to contain anything; the tree fills it.
+to contain anything. The tree fills it.
 
 ```html
 <link rel="stylesheet" href="tree_element.css" />
@@ -65,9 +65,9 @@ That gives you this:
 
 <TreeDemo demo="basic" />
 
-`htmlElement` is the only required option; everything else has a default. See
+`htmlElement` is the only required option. Everything else has a default. See
 [Options](../reference/options) for the full list, and [Styling](./styling) for the class names
-the stylesheet uses.
+the style sheet uses.
 
 ::: tip
 Every tree on this site is the real widget, compiled from `src`. If a demo behaves differently
@@ -89,7 +89,7 @@ const tree = new TreeElement({
 });
 ```
 
-The stylesheet can be imported the same way:
+The style sheet can be imported the same way:
 
 ```js fixture=standalone
 import "tree-element/tree_element.css";
@@ -99,7 +99,7 @@ import "tree-element/tree_element.css";
 
 [tree-element-example](https://mbraak.github.io/tree-element-example/) is a small Vite project that
 uses the package from npm, with a page for each topic: the basics and events, drag and drop,
-loading on demand, saving state, styling and accessibility. Clone it to see a complete setup, or to
+loading on demand, saving state, styling, and accessibility. Clone it to see a complete setup, or to
 start your own project from it.
 
 ## Try it in this repository

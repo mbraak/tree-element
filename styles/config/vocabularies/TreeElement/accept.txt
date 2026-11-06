@@ -1,9 +1,10 @@
+[Tt]oggler(s)?
 autoscroll
 focusable
 IIFE
 jQuery
 rtl
-[Tt]oggler(s)?
 treeitem
 unminified
+URL
 Vitest

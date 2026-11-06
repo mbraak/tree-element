@@ -11,7 +11,7 @@ node.isFolder(); // true
 node.getLevel(); // 1
 ```
 
-The root node is not rendered; it is a container for the top-level nodes:
+The root node is not rendered. It is a container for the top-level nodes:
 
 ```js
 tree.getTree().children; // the top-level nodes

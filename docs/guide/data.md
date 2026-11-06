@@ -2,7 +2,7 @@
 
 ## Node data
 
-The `data` option takes an array of node records. A record needs a `name`; everything else is
+The `data` option takes an array of node records. A record needs a `name`. Everything else is
 optional:
 
 ```js
@@ -35,12 +35,12 @@ const data = ["node1", "node2"];
 
 ### Reserved keys
 
-| Key              | Type                 | Meaning                                                        |
-| ---------------- | -------------------- | -------------------------------------------------------------- |
-| `name`           | `string`             | The label that is displayed. `label` also works, as a legacy alias. |
-| `id`             | `number \| string`   | Used by `getNodeById`, by [saving state](./saving-state) and by [loading on demand](./loading-on-demand). |
-| `children`       | `NodeData[]`         | The child nodes.                                               |
-| `load_on_demand` | `boolean`            | Mark the node as a folder whose children are fetched when it is opened. |
+| Key              | Type               | Meaning                                                                                                    |
+| ---------------- | ------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `name`           | `string`           | The label that is displayed. `label` also works, as a legacy alias.                                        |
+| `id`             | `number \| string` | Used by `getNodeById`, by [saving state](./saving-state), and by [loading on demand](./loading-on-demand). |
+| `children`       | `NodeData[]`       | The child nodes.                                                                                           |
+| `load_on_demand` | `boolean`          | Mark the node as a folder whose children are fetched when it is opened.                                    |
 
 Nodes without an `id` render fine, but `getNodeById`, `saveState` and load-on-demand all key off
 the id, so give your nodes ids unless you are certain you need none of that.

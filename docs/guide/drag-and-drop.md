@@ -1,6 +1,6 @@
 # Drag and drop
 
-Set `dragAndDrop: true` to let the user move nodes with the mouse or by touch:
+Set `dragAndDrop: true` to let the user move nodes with the mouse or by tap:
 
 ```js
 new TreeElement({
@@ -14,9 +14,9 @@ Drag a node in this tree—onto a folder, or between two nodes:
 
 <TreeDemo demo="dragAndDrop" events />
 
-While dragging, a ghost element shows where the node will land: a line between two nodes for a
-`before` or `after` drop, and a highlight on the folder for an `inside` drop. Dragging over a closed
-folder opens it after `openFolderDelay` milliseconds (500 by default; `false` disables it).
+While dragging, a ghost element shows where the node lands: a line between two nodes for a `before`
+or `after` drop, and a highlight on the folder for an `inside` drop. Dragging over a closed folder
+opens it after `openFolderDelay` milliseconds (500 by default, `false` disables it).
 
 Dragging starts after `startDndDelay` milliseconds (300 by default), so a plain click still selects
 instead of starting a drag.
@@ -150,7 +150,7 @@ new TreeElement({
 });
 ```
 
-`isDragging()` tells you whether a drag is in progress:
+`isDragging()` returns whether a drag is in progress:
 
 ```js
 if (tree.isDragging()) {

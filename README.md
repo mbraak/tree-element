@@ -15,7 +15,7 @@ npm package: https://www.npmjs.com/package/tree-element
 
 ![screenshot](https://raw.github.com/mbraak/tree-element/master/screenshot.png)
 
-The screenshot above is from https://mbraak.github.io/tree-element-example/
+The preceding screenshot is from https://mbraak.github.io/tree-element-example/
 
 ## Install
 
@@ -23,7 +23,7 @@ The screenshot above is from https://mbraak.github.io/tree-element-example/
 npm install tree-element
 ```
 
-Or use the bundle directly with a script tag; it exposes a global `TreeElement`:
+Or use the bundle directly with a script tag. It exposes a global `TreeElement`:
 
 ```html
 <link rel="stylesheet" href="tree_element.css" />
@@ -177,7 +177,7 @@ Nodes are `Node` instances. Get one with `getNodeById`, `getNodeByName`,
 
 **Other**: `scrollToNode(node)`, `isDragging()`, `refreshHitAreas()`, `setOption(name, value)`, `getTree()`, `getVersion()`, `deinit()`
 
-## Typescript
+## TypeScript
 
 The public types are exported from the package entry point:
 
@@ -203,7 +203,7 @@ const data: NodeData[] = [{ name: "root", id: 1 }];
 | ------------------------------- | ------------------------------------------------------------------ |
 | `import "tree-element"`         | `lib/index.js`, unbundled es modules                               |
 | `require`, script tag           | `tree_element.js`, minified IIFE exposing the global `TreeElement` |
-| `tree-element/tree_element.css` | The stylesheet                                                     |
+| `tree-element/tree_element.css` | The style sheet                                                    |
 
 `tree_element.debug.js` is the same bundle without minification.
 
@@ -243,9 +243,9 @@ pnpm release patch    # or minor, major, or an explicit version
 Add `--dry-run` to see the version bump and changelog change without committing.
 
 This bumps the version, moves the unreleased changes in the changelog to the new
-version, commits, tags `v<version>` and pushes. The
+version, commits, tags `v<version>`, and pushes. The
 [Release workflow](.github/workflows/release.yml) then runs the checks, publishes
-to npm with provenance and creates the GitHub release.
+to npm with provenance, and creates the GitHub release.
 
 ## License
 
