@@ -1,6 +1,7 @@
 {
   "name": "tree-element",
   "version": "0.4.0",
+  "packageManager": "pnpm@12.16.1",
   "description": "Tree widget in plain javascript",
   "keywords": [
     "tree"
