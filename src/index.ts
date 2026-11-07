@@ -511,7 +511,7 @@ export default class TreeElement {
   }
 
   /**
-   * Returns the current state — `open_nodes` and `selected_node` — whether or
+   * Returns the current state—`open_nodes` and `selected_node`—whether or
    * not `saveState` is enabled.
    *
    * @group State
@@ -530,7 +530,7 @@ export default class TreeElement {
   }
 
   /**
-   * Returns the root node. It is not rendered; its `children` are the
+   * Returns the root node. It is not rendered, and its `children` are the
    * top-level nodes. Also available as the `tree` property.
    *
    * @group Finding nodes
@@ -646,7 +646,7 @@ export default class TreeElement {
   }
 
   /**
-   * Opens a folder, and the folders above it. A node marked `load_on_demand`
+   * Opens a folder, and the folders that contain it. A node marked `load_on_demand`
    * is fetched first, so await the promise when you need to know it is really
    * open.
    *
@@ -796,7 +796,7 @@ export default class TreeElement {
   }
 
   /**
-   * Changes an option after construction. Only some options can be changed;
+   * Changes an option after construction. Only some options can be changed:
    * the others throw an error. See
    * [Options](/reference/options#changing-an-option-later).
    *
@@ -870,8 +870,8 @@ export default class TreeElement {
   }
 
   /**
-   * Returns the tree as a json string, including changes made through the
-   * api.
+   * Returns the tree as a JSON string, including changes made through the
+   * API.
    *
    * @group Other
    */
@@ -884,7 +884,7 @@ export default class TreeElement {
    * name.
    *
    * Changing the `id` re-indexes the node. `children` and `parent` are
-   * ignored — use `loadData` or `moveNode` for those.
+   * ignored—use `loadData` or `moveNode` for those.
    *
    * @example
    * ```js

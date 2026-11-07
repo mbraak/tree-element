@@ -1,9 +1,9 @@
 # Tree-element
 
-Tree widget in plain javascript. No jQuery, no framework, no runtime dependencies.
+Tree widget in plain JavaScript. No jQuery, no framework, no runtime dependencies.
 
-- Loads data from a javascript array or from a url
-- Drag and drop, with autoscroll
+- Loads data from a JavaScript array or from a URL
+- Drag and drop, with automatic scrolling
 - Keyboard support
 - Saves the open and selected nodes to local storage
 - Right-to-left support
@@ -15,7 +15,7 @@ npm package: https://www.npmjs.com/package/tree-element
 
 ![screenshot](https://raw.github.com/mbraak/tree-element/master/screenshot.png)
 
-The screenshot above is from https://mbraak.github.io/tree-element-example/
+The preceding screenshot is from https://mbraak.github.io/tree-element-example/
 
 ## Install
 
@@ -23,7 +23,7 @@ The screenshot above is from https://mbraak.github.io/tree-element-example/
 npm install tree-element
 ```
 
-Or use the bundle directly with a script tag; it exposes a global `TreeElement`:
+Or use the bundle directly with a script tag. It exposes a global `TreeElement`:
 
 ```html
 <link rel="stylesheet" href="tree_element.css" />
@@ -59,7 +59,7 @@ Nodes are plain objects. `name` is displayed, `children` nests, and `id` is
 optional but needed for `getNodeById` and for saving state. Any other key you
 set is kept on the node and can be read back with `getNodesByProperty`.
 
-### Loading from a url
+### Loading from a URL
 
 ```js
 new TreeElement({
@@ -68,7 +68,7 @@ new TreeElement({
 });
 ```
 
-The url can also be set with a `data-url` attribute on the element. Pass a
+The URL can also be set with a `data-url` attribute on the element. Pass a
 function to compute it per node, which is how load-on-demand works: set
 `load_on_demand: true` on a node and its children are fetched when it opens.
 
@@ -86,21 +86,21 @@ new TreeElement({
 | `animationSpeed`  | `"fast"`                | `"fast"`, `"slow"`, or a number of milliseconds. `0` for reduced motion           |
 | `ariaLabel`       |                         | The accessible name of the tree                                                   |
 | `ariaLabelledBy`  |                         | The id of the element that names the tree                                         |
-| `autoEscape`      | `true`                  | Escape node names. Set to `false` to render html in a name                        |
+| `autoEscape`      | `true`                  | Escape node names. Set to `false` to render HTML in a name                        |
 | `autoOpen`        | `false`                 | `true` opens everything, a number opens that many levels (`0` is the first level) |
 | `buttonLeft`      | `true`                  | Put the open/close button left of the title                                       |
-| `classPrefix`     | `"tree-element"`        | The prefix of all css classes                                                     |
-| `closedIcon`      | svg triangle ▶ (◀ rtl)  | Html string or element                                                            |
+| `classPrefix`     | `"tree-element"`        | The prefix of all CSS classes                                                     |
+| `closedIcon`      | SVG triangle ▶ (◀ rtl)  | HTML string or element                                                            |
 | `commonClassName` | `"tree-element-common"` | The class that every element gets                                                 |
 | `data`            |                         | The nodes to display                                                              |
 | `dataFilter`      |                         | Transforms the response of `dataUrl` into node data                               |
-| `dataUrl`         | `data-url` attribute    | Url, or a function returning a url                                                |
+| `dataUrl`         | `data-url` attribute    | URL, or a function returning a URL                                                |
 | `dragAndDrop`     | `false`                 | Enable drag and drop                                                              |
 | `keyboardSupport` | `true`                  | Navigate with the keyboard                                                        |
 | `multiSelect`     | `false`                 | A click adds a node to the selection, or removes it                               |
 | `nodeClass`       | `Node`                  | Subclass of `Node` to use for nodes                                               |
 | `openFolderDelay` | `500`                   | Milliseconds before a folder opens while dragging over it. `false` disables it    |
-| `openedIcon`      | svg triangle ▼          | Html string or element                                                            |
+| `openedIcon`      | SVG triangle ▼          | HTML string or element                                                            |
 | `rtl`             | `data-rtl` attribute    | Right-to-left rendering                                                           |
 | `saveState`       | `false`                 | `true`, or a string to use as the storage key                                     |
 | `selectable`      | `true`                  | Allow selecting nodes                                                             |
@@ -169,7 +169,7 @@ Nodes are `Node` instances. Get one with `getNodeById`, `getNodeByName`,
 **Nodes**: `appendNode(data, parentNode)`, `prependNode(data, parentNode)`, `addNodeAfter(data, node)`, `addNodeBefore(data, node)`, `addParentNode(data, node)`, `updateNode(node, data)`, `removeNode(node)`, `moveNode(node, targetNode, position)`
 
 **Opening**: `openNode(node, slide?)`, `closeNode(node, slide?)`, `toggle(node, slide?)`.
-`openNode`, `closeNode` and `toggle` return a promise that is resolved when the folder is open or closed.
+`openNode`, `closeNode` and `toggle` return a promise that's resolved when the folder is open or closed.
 
 **Selection**: `selectNode(node, options?)`, `getSelectedNode()`, `getSelectedNodes()`, `isNodeSelected(node)`, `addToSelection(node, mustSetFocus?)`, `removeFromSelection(node)`, `moveUp()`, `moveDown()`
 
@@ -177,7 +177,7 @@ Nodes are `Node` instances. Get one with `getNodeById`, `getNodeByName`,
 
 **Other**: `scrollToNode(node)`, `isDragging()`, `refreshHitAreas()`, `setOption(name, value)`, `getTree()`, `getVersion()`, `deinit()`
 
-## Typescript
+## TypeScript
 
 The public types are exported from the package entry point:
 
@@ -195,15 +195,15 @@ const options: Partial<TreeElementOptions> = { dragAndDrop: true };
 const data: NodeData[] = [{ name: "root", id: 1 }];
 ```
 
-`Node` is exported as a type only, so it cannot be used with `instanceof`.
+`Node` is exported as a type only, so it can't be used with `instanceof`.
 
 ## Entry points
 
 |                                 |                                                                    |
 | ------------------------------- | ------------------------------------------------------------------ |
 | `import "tree-element"`         | `lib/index.js`, unbundled es modules                               |
-| `require`, script tag           | `tree_element.js`, minified iife exposing the global `TreeElement` |
-| `tree-element/tree_element.css` | The stylesheet                                                     |
+| `require`, script tag           | `tree_element.js`, minified IIFE exposing the global `TreeElement` |
+| `tree-element/tree_element.css` | The style sheet                                                    |
 
 `tree_element.debug.js` is the same bundle without minification.
 
@@ -225,10 +225,10 @@ pnpm docs-check    # type-check the code snippets in the docs
 pnpm ci            # lint, typecheck, check the docs and test
 ```
 
-`pnpm test` runs the vitest unit tests and the playwright browser tests. The
+`pnpm test` runs the Vitest unit tests and the Playwright browser tests. The
 browser tests include accessibility checks: axe scans the rendered tree
 (including color contrast) and keyboard-only tests cover tabbing into the tree,
-the arrow keys, `Home`, `End` and `Enter`. They are in
+the arrow keys, `Home`, `End` and `Enter`. They're in
 `playwright/accessibility.test.ts`.
 
 ### Releasing
@@ -243,9 +243,9 @@ pnpm release patch    # or minor, major, or an explicit version
 Add `--dry-run` to see the version bump and changelog change without committing.
 
 This bumps the version, moves the unreleased changes in the changelog to the new
-version, commits, tags `v<version>` and pushes. The
+version, commits, tags `v<version>`, and pushes. The
 [Release workflow](.github/workflows/release.yml) then runs the checks, publishes
-to npm with provenance and creates the GitHub release.
+to npm with provenance, and creates the GitHub release.
 
 ## License
 

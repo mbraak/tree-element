@@ -1,8 +1,7 @@
 # Node
 
-Every node in the tree is a `Node` object. You get them from the tree —
-`getNodeById`, `getSelectedNode`, an event's `detail.node` — and they are what you pass back into the
-tree's [methods](./methods).
+Every node in the tree is a `Node` object. You get them from the tree—`getNodeById`, `getSelectedNode`, an
+event's `detail.node`—and they are what you pass back into the tree's [methods](./methods).
 
 ```js
 const node = tree.getNodeById(1);
@@ -12,7 +11,7 @@ node.isFolder(); // true
 node.getLevel(); // 1
 ```
 
-The root node is not rendered; it is a container for the top-level nodes:
+The root node is not rendered. It is a container for the top-level nodes:
 
 ```js
 tree.getTree().children; // the top-level nodes

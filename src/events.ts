@@ -25,7 +25,7 @@ export interface TreeEvents {
   /**
    * Dispatched once, after the tree is rendered for the first time. With
    * `dataUrl` this is after the data has arrived, so it is the moment the
-   * api is safe to use:
+   * API is safe to use:
    *
    * ```js
    * element.addEventListener("tree.init", () => {
@@ -85,7 +85,7 @@ export interface TreeEvents {
     originalEvent: MouseEvent;
   };
   /**
-   * Dispatched on a right click on a node, unless `useContextMenu` is
+   * Dispatched when a node is right-clicked, unless `useContextMenu` is
    * `false`. The browser's own menu is suppressed.
    *
    * @group Mouse
@@ -96,7 +96,7 @@ export interface TreeEvents {
   };
   /**
    * Dispatched when `Enter` is pressed on the selected node, or on the
-   * focused node when no node is selected. Use it for what a click on a
+   * focused node when no node is selected. Use it for what clicking a
    * link would do, like opening the edit page of the node:
    *
    * ```js
@@ -143,8 +143,8 @@ export interface TreeEvents {
   "tree.select": {
     /**
     The node that was selected before, if any. When several nodes were
-    selected, this is the first; the others get a `tree.deselect`, dispatched
-    before this event.
+    selected, this is the first, and the others get a `tree.deselect`,
+    dispatched before this event.
     */
     deselectedNode: Node | null;
     /**
@@ -167,7 +167,7 @@ export interface TreeEvents {
    * });
    * ```
    *
-   * Selecting another node does not dispatch it — that is a `tree.select`
+   * Selecting another node does not dispatch it—that is a `tree.select`
    * with the previous node in `deselectedNode`. It is also not dispatched
    * by `selectNode` without `mustToggle: true`, `selectNode(null)`,
    * `removeFromSelection`, `removeNode`, `loadData` and restoring a saved
@@ -204,7 +204,7 @@ export interface TreeEvents {
   };
   /**
    * Dispatched when data is set on the tree, both from the `data` option
-   * and from a url.
+   * and from a URL.
    *
    * @group Loading data
    */
@@ -229,7 +229,7 @@ export interface TreeEvents {
   };
   /**
    * Dispatched when a request finishes. It is dispatched when the request
-   * fails too; a [`tree.load_failed`](#tree-load-failed) follows it.
+   * fails too, and a [`tree.load_failed`](#tree-load-failed) follows it.
    *
    * @group Loading data
    */

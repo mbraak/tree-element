@@ -55,8 +55,8 @@ export type ChangeableOption = (typeof changeableOptions)[number];
 
 export interface TreeElementOptions {
   /**
-   * The duration of the slide animation: `"fast"` is 200ms, `"slow"` is
-   * 600ms, a number is milliseconds.
+   * The duration of the slide animation: `"fast"` is 200 milliseconds,
+   * `"slow"` is 600, and a number is milliseconds.
    *
    * @defaultValue `"fast"`, or `0` when the user prefers reduced motion
    * (`prefers-reduced-motion: reduce`).
@@ -78,7 +78,7 @@ export interface TreeElementOptions {
    */
   ariaLabelledBy?: string;
   /**
-   * Escape node names. With `false`, names are inserted as html — only do
+   * Escape node names. With `false`, names are inserted as HTML—only do
    * that for data you control.
    *
    * @defaultValue `true`
@@ -103,10 +103,10 @@ export interface TreeElementOptions {
    */
   buttonLeft: boolean;
   /**
-   * The prefix of the css classes the widget puts on the elements it
+   * The prefix of the CSS classes the widget puts on the elements it
    * creates: with `"my-tree"` a title gets `my-tree-title` instead of
-   * `tree-element-title`. The bundled stylesheet uses the default prefix, so
-   * change it only if you bring your own css. See
+   * `tree-element-title`. The bundled style sheet uses the default prefix,
+   * so change it only if you bring your own CSS. See
    * [Styling](/guide/styling#changing-the-class-names).
    *
    * @defaultValue `"tree-element"`
@@ -114,12 +114,12 @@ export interface TreeElementOptions {
    */
   classPrefix: string;
   /**
-   * The icon of a closed folder. A string is inserted as html; an element is
-   * cloned for every node.
+   * The icon of a closed folder. A string is inserted as HTML, and an element
+   * is cloned for every node.
    *
    * Type: `HTMLElement | string`
    *
-   * @defaultValue An svg triangle pointing right, or left when `rtl` is
+   * @defaultValue An SVG triangle pointing right, or left when `rtl` is
    * true. It is sized in em and filled with `currentColor`.
    * @group Appearance
    */
@@ -147,7 +147,7 @@ export interface TreeElementOptions {
    */
   dataFilter?: DataFilter;
   /**
-   * A url to fetch the data from, or a function that returns one. The
+   * A URL to fetch the data from, or a function that returns one. The
    * function is called with the node that is being loaded, and without an
    * argument for the initial load. See
    * [Loading on demand](/guide/loading-on-demand).
@@ -259,7 +259,7 @@ export interface TreeElementOptions {
    */
   onDragStop?: DragMethod;
   /**
-   * Read the saved state, as a json string, from somewhere other than
+   * Read the saved state, as a JSON string, from somewhere other than
    * `localStorage`.
    *
    * Type: `() => string`
@@ -277,7 +277,7 @@ export interface TreeElementOptions {
    */
   onIsMoveHandle?: OnIsMoveHandle;
   /**
-   * Write the state, as a json string, to somewhere other than
+   * Write the state, as a JSON string, to somewhere other than
    * `localStorage`.
    *
    * Type: `(state: string) => void`
@@ -290,7 +290,7 @@ export interface TreeElementOptions {
    *
    * Type: `HTMLElement | string`
    *
-   * @defaultValue An svg triangle pointing down, sized in em and filled with
+   * @defaultValue An SVG triangle pointing down, sized in em and filled with
    * `currentColor`.
    * @group Appearance
    */
@@ -312,7 +312,7 @@ export interface TreeElementOptions {
   rtl?: boolean;
   /**
    * Remember the open and selected nodes in `localStorage`. A string is used
-   * as the storage key; `true` uses `tree`. See
+   * as the storage key, and `true` uses `tree`. See
    * [Saving state](/guide/saving-state).
    *
    * @defaultValue `false`

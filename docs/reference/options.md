@@ -20,7 +20,7 @@ src/options.ts. Run `pnpm docs-api` to regenerate it; `docs-dev` and
 
 <!--@include: ./generated/interfaces/TreeElementOptions.md-->
 
-### overrideTriggerEventProvider
+### `overrideTriggerEventProvider`
 
 - Type: `(element: HTMLElement, eventName: TreeEventName, values?: TreeEvents[TreeEventName]) => boolean`
 - Default: dispatches a cancelable, bubbling `CustomEvent`
@@ -60,7 +60,7 @@ These can only be set in the constructor, `setOption` throws an error for them:
 - `buttonLeft`
 - `classPrefix`, `commonClassName`, `treeClassName`
 - `closedIcon`, `openedIcon`
-- `data` — use `loadData` to replace the nodes
+- `data`—use `loadData` to replace the nodes
 - `dataFilter`
 - `nodeClass`
 - `onCanMove`, `onCanMoveTo`, `onDragMove`, `onDragStop`, `onIsMoveHandle`

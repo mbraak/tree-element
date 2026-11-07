@@ -1,0 +1,10 @@
+[Tt]oggler(s)?
+autoscroll
+focusable
+IIFE
+jQuery
+rtl
+treeitem
+unminified
+URL
+Vitest
