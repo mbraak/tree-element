@@ -1178,14 +1178,6 @@ export default class TreeElement {
     }
   }
 
-  private isSelectedNodeInSubtree(subtree: Node): boolean {
-    const selectedNode = this.getSelectedNode();
-
-    return selectedNode
-      ? subtree === selectedNode || subtree.isParentOf(selectedNode)
-      : false;
-  }
-
   private async loadFolderOnDemand(node: Node, slide: boolean): Promise<void> {
     node.is_loading = true;
 
@@ -1260,16 +1252,9 @@ export default class TreeElement {
   */
   private refreshElements(fromNode: Node | null): void {
     const focusedNode = this.getFocusedNode();
-    const mustSetFocus = focusedNode !== null;
-    const mustSelect = fromNode
-      ? this.isSelectedNodeInSubtree(fromNode)
-      : false;
 
+    // The renderer marks the selected nodes, so only the focus needs restoring
     this.renderer.render(fromNode);
-
-    if (mustSelect) {
-      this.selectCurrentNode(mustSetFocus);
-    }
 
     if (focusedNode) {
       this.restoreFocus(focusedNode);
@@ -1300,16 +1285,6 @@ export default class TreeElement {
 
   private saveState(): void {
     this.saveStateHandler.saveState();
-  }
-
-  private selectCurrentNode(mustSetFocus: boolean): void {
-    const node = this.getSelectedNode();
-    if (!node) {
-      return;
-    }
-
-    const nodeElement = this.getNodeElementForNode(node);
-    nodeElement.select(mustSetFocus);
   }
 
   // Set initial state, either by restoring the state or auto-opening nodes

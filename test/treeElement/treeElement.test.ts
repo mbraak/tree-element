@@ -239,6 +239,33 @@ describe("TreeElement", () => {
       expect(getTreeItem("renamed")).toHaveFocus();
     });
 
+    it("keeps the focus on the focused node when a subtree with the selected node is rendered again", () => {
+      const tree = createTreeElement({ autoOpen: true });
+      tree.selectNode(tree.getNodeByNameMustExist("child1"));
+      getTreeItem("child2").focus();
+
+      tree.updateNode(tree.getNodeByNameMustExist("node1"), "node1");
+
+      expect(getTreeItem("child2")).toHaveFocus();
+      expect(getTreeItem("child1")).toHaveAttribute("aria-selected", "true");
+    });
+
+    it("keeps the focus on a link in a node when another node is rendered again", () => {
+      const tree = createTreeElement({
+        autoEscape: false,
+        data: [
+          { id: 1, name: '<a href="#node1">node1</a>' },
+          { id: 2, name: "node2" },
+        ],
+      });
+      const link = screen.getByRole("link", { name: "node1" });
+      link.focus();
+
+      tree.updateNode(tree.getNodeByNameMustExist("node2"), "renamed");
+
+      expect(link).toHaveFocus();
+    });
+
     it("doesn't take the focus when the selected node is rendered again while the tree is not focused", () => {
       const tree = createTreeElement();
       const node1 = tree.getNodeByNameMustExist("node1");
