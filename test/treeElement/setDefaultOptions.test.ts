@@ -14,11 +14,21 @@ describe("setDefaultOptions", () => {
 
       expect(options).toMatchObject({
         autoEscape: true,
+        autoOpen: false,
+        buttonLeft: true,
         dragAndDrop: false,
+        keyboardSupport: true,
+        multiSelect: false,
         nodeClass: Node,
         openedIcon: triangleDown,
+        openFolderDelay: 500,
         saveState: false,
         selectable: true,
+        showEmptyFolder: false,
+        slide: true,
+        startDndDelay: 300,
+        tabIndex: 0,
+        useContextMenu: true,
       });
     });
 
@@ -111,6 +121,35 @@ describe("setDefaultOptions", () => {
       const options = setDefaultOptions(element, {});
 
       expect(options.animationSpeed).toBe("fast");
+    });
+  });
+
+  describe("the default icons", () => {
+    const getPoints = (icon: string) => {
+      const template = document.createElement("template");
+      template.innerHTML = icon;
+
+      return template.content.querySelector("polygon")?.getAttribute("points");
+    };
+
+    it.each([
+      {
+        direction: "down",
+        icon: triangleDown,
+        points: "0.5,0.5 9.5,0.5 5,9.5",
+      },
+      {
+        direction: "left",
+        icon: triangleLeft,
+        points: "9.5,0.5 9.5,9.5 0.5,5",
+      },
+      {
+        direction: "right",
+        icon: triangleRight,
+        points: "0.5,0.5 0.5,9.5 9.5,5",
+      },
+    ])("draws a triangle pointing $direction", ({ icon, points }) => {
+      expect(getPoints(icon)).toBe(points);
     });
   });
 
