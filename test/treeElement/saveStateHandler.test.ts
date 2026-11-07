@@ -19,6 +19,7 @@ interface CreateSaveStateHandlerParams {
   addToSelection?: AddToSelection;
   getNodeById?: GetNodeById;
   getSelectedNodes?: GetSelectedNodes;
+  getTree?: GetTree;
   onGetStateFromStorage?: OnGetStateFromStorage;
   onSetStateFromStorage?: OnSetStateFromStorage;
   openNode?: OpenNode;
@@ -31,6 +32,7 @@ const createSaveStateHandler = ({
   addToSelection = vi.fn<AddToSelection>(),
   getNodeById = vi.fn<GetNodeById>(),
   getSelectedNodes = vi.fn<GetSelectedNodes>(() => []),
+  getTree = vi.fn<GetTree>(),
   onGetStateFromStorage,
   onSetStateFromStorage,
   openNode = vi.fn<OpenNode>(),
@@ -38,8 +40,6 @@ const createSaveStateHandler = ({
   removeFromSelection = vi.fn<RemoveFromSelection>(),
   saveState = true,
 }: CreateSaveStateHandlerParams) => {
-  const getTree = vi.fn<GetTree>();
-
   return new SaveStateHandler({
     addToSelection,
     getNodeById,
@@ -297,5 +297,78 @@ describe("setInitialStateOnDemand", () => {
     expect(openNode).toHaveBeenNthCalledWith(1, node1, false);
     expect(openNode).toHaveBeenNthCalledWith(2, node1, false);
     expect(openNode).toHaveBeenNthCalledWith(3, node2, false);
+  });
+});
+
+describe("getState", () => {
+  it("returns the open folders at all levels", () => {
+    const tree = new Node(null, true).loadFromData([
+      {
+        children: [
+          { children: [{ id: 3, name: "child" }], id: 2, name: "folder2" },
+        ],
+        id: 1,
+        name: "folder1",
+      },
+    ]);
+
+    for (const id of [1, 2]) {
+      (tree.getNodeById(id) as Node).is_open = true;
+    }
+
+    const saveStateHandler = createSaveStateHandler({ getTree: () => tree });
+
+    expect(saveStateHandler.getState().open_nodes).toStrictEqual([1, 2]);
+  });
+});
+
+describe("setInitialState: loading on demand", () => {
+  it("doesn't need to load on demand when the state has no open nodes", () => {
+    const saveStateHandler = createSaveStateHandler({});
+
+    expect(
+      saveStateHandler.setInitialState({ selected_node: [1] }),
+    ).toBeFalse();
+  });
+
+  it("doesn't need to load on demand when the open nodes are not loaded on demand", () => {
+    const folder = new Node({ children: [{ name: "child" }], id: 1 });
+    const saveStateHandler = createSaveStateHandler({
+      getNodeById: () => folder,
+    });
+
+    expect(saveStateHandler.setInitialState({ open_nodes: [1] })).toBeFalse();
+    expect(folder.is_open).toBeTrue();
+  });
+});
+
+describe("setInitialStateOnDemand: edge cases", () => {
+  it("doesn't open a node that is already loading", async () => {
+    const node = new Node({ id: 1, load_on_demand: true });
+    node.is_loading = true;
+    const openNode = vi.fn<OpenNode>();
+    const saveStateHandler = createSaveStateHandler({
+      getNodeById: () => node,
+      openNode,
+    });
+
+    await saveStateHandler.setInitialStateOnDemand({ open_nodes: [1] });
+
+    expect(openNode).not.toHaveBeenCalled();
+  });
+
+  it("doesn't redraw the tree when none of the selected nodes exist", async () => {
+    const refreshElements = vi.fn<RefreshElements>();
+    const saveStateHandler = createSaveStateHandler({
+      getNodeById: () => null,
+      refreshElements,
+    });
+
+    await saveStateHandler.setInitialStateOnDemand({
+      open_nodes: [],
+      selected_node: [1],
+    });
+
+    expect(refreshElements).not.toHaveBeenCalled();
   });
 });
