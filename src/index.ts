@@ -1233,14 +1233,14 @@ export default class TreeElement {
     return this.dndHandler.mouseStart(positionInfo);
   }
 
-  private mouseStop(positionInfo: PositionInfo): boolean {
+  private mouseStop(positionInfo: PositionInfo): void {
     /* istanbul ignore if */
     if (!this.options.dragAndDrop) {
-      return false;
+      return;
     }
 
     this.scrollHandler.stopScrolling();
-    return this.dndHandler.mouseStop(positionInfo);
+    this.dndHandler.mouseStop(positionInfo);
   }
 
   private openParents(node: Node) {
