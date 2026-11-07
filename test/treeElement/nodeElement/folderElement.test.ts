@@ -339,3 +339,57 @@ describe("addDropHint", () => {
     expect(folderElement.addDropHint("after")).toBeInstanceOf(GhostDropHint);
   });
 });
+
+describe("open: a folder that is not rendered", () => {
+  beforeEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it("opens the node without changing the tree element", async () => {
+    // The subfolder is inside a closed folder, so it has no element
+    const tree = new Node().loadFromData([
+      {
+        children: [{ children: [{ name: "child" }], name: "subfolder" }],
+        name: "folder",
+      },
+    ]);
+    const subfolder = tree.getNodeByNameMustExist("subfolder");
+
+    const treeElement = document.createElement("div");
+    document.body.append(treeElement);
+
+    const renderer = new ElementsRenderer({
+      autoEscape: true,
+      buttonLeft: false,
+      classNames: defaultClassNames,
+      dragAndDrop: false,
+      getTree: () => tree,
+      htmlElement: treeElement,
+      isNodeSelected: () => false,
+      multiSelect: false,
+      setNodeElement: vi.fn(),
+      showEmptyFolder: false,
+    });
+    renderer.renderFromRoot();
+    const treeHtml = treeElement.outerHTML;
+
+    const triggerEvent = vi.fn();
+    const folderElement = new FolderElement({
+      classNames: defaultClassNames,
+      getScrollLeft: () => 0,
+      icons: { closed: undefined, opened: undefined },
+      node: subfolder,
+      renderChildren: renderer.renderChildren.bind(renderer),
+      treeElement,
+      triggerEvent,
+    });
+
+    await folderElement.open(false, 0);
+
+    expect(subfolder.is_open).toBeTrue();
+    expect(treeElement.outerHTML).toBe(treeHtml);
+    expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.open", {
+      node: subfolder,
+    });
+  });
+});
