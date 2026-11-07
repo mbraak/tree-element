@@ -666,7 +666,7 @@ export default class TreeElement {
       openedNode: Node,
       slideOption: boolean,
     ): Promise<void> => {
-      if (!node.children.length) {
+      if (!openedNode.children.length) {
         return;
       }
 

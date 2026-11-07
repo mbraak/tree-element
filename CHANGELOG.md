@@ -26,6 +26,7 @@ All notable changes to tree-element are documented here. The format is based on
 
 ### Fixed
 
+- `openNode` on an empty folder also opens its closed parents.
 - Changing `dragAndDrop` with `setOption` also updates the `tree-element-dnd`
   class, so tap dragging follows the new value.
 - Changing `slide` with `setOption` also applies to folders that open while

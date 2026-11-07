@@ -348,6 +348,18 @@ describe("TreeElement", () => {
       expect(animate).not.toHaveBeenCalled();
     });
 
+    it("opens the parents of an empty folder", async () => {
+      const tree = createTreeElement({
+        autoOpen: false,
+        data: [{ children: [{ children: [], name: "empty" }], name: "parent" }],
+      });
+
+      await tree.openNode(tree.getNodeByNameMustExist("empty"), false);
+
+      expect(tree.getNodeByNameMustExist("parent").is_open).toBeTrue();
+      expect(screen.getByRole("treeitem", { name: "empty" })).toBeVisible();
+    });
+
     it("opens the parents without animation when a node is added to the selection", () => {
       const tree = createTreeElement({ autoOpen: false });
       const animate = vi.spyOn(HTMLElement.prototype, "animate");
