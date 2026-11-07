@@ -185,6 +185,16 @@ describe("renderFromNode", () => {
     ]);
   });
 
+  it("renders the children of the node in a group", () => {
+    const { renderer, tree } = createRenderer({ openFolders: true });
+    renderer.renderFromRoot();
+
+    renderer.renderFromNode(tree.getNodeByNameMustExist("node1"));
+
+    expect(screen.getAllByRole("tree")).toHaveLength(1);
+    expect(within(getTreeItem("node1")).getByRole("group")).toBeInTheDocument();
+  });
+
   it("doesn't render the children when the node is closed", () => {
     const { element, renderer, tree } = createRenderer();
     renderer.renderFromRoot();
@@ -733,6 +743,14 @@ describe("renderFromRoot", () => {
     renderer.renderFromRoot();
 
     expect(getTreeButton(getTreeItem("node1"))).toHaveTextContent("-");
+  });
+
+  it("renders the default icon of an open folder", () => {
+    const { renderer } = createRenderer({ openFolders: true });
+
+    renderer.renderFromRoot();
+
+    expect(getTreeButton(getTreeItem("node1"))).toHaveTextContent("+");
   });
 
   it("clones an icon element for every folder", () => {
