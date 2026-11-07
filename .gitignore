@@ -10,6 +10,8 @@ docs/.vitepress/dist/
 docs/reference/generated/
 
 # Test output
+.stryker-tmp/
+reports/
 .nyc_output/
 js-coverage/
 playwright-report/
