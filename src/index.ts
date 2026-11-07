@@ -1152,6 +1152,9 @@ export default class TreeElement {
       this.triggerEvent("tree.init");
     };
 
+    // Before the tree is replaced: then the focused node is no longer in it
+    const focusedNode = this.getFocusedNode();
+
     this.tree = new this.options.nodeClass(null, true, this.options.nodeClass);
 
     this.selectNodeHandler.clear();
@@ -1162,17 +1165,16 @@ export default class TreeElement {
 
     this.refreshElements(null);
 
+    if (focusedNode) {
+      this.restoreFocus(focusedNode);
+    }
+
     if (mustLoadOnDemand) {
       // Load data on demand and then init the tree
       void this.setInitialStateOnDemand().then(doInit);
     } else {
       doInit();
     }
-  }
-
-  // Does an HTML element of the tree have the focus?
-  private isFocusOnTree(): boolean {
-    return this.getFocusedNode() !== null;
   }
 
   private isSelectedNodeInSubtree(subtree: Node): boolean {
@@ -1256,7 +1258,8 @@ export default class TreeElement {
     from_node: redraw this subtree
   */
   private refreshElements(fromNode: Node | null): void {
-    const mustSetFocus = this.isFocusOnTree();
+    const focusedNode = this.getFocusedNode();
+    const mustSetFocus = focusedNode !== null;
     const mustSelect = fromNode
       ? this.isSelectedNodeInSubtree(fromNode)
       : false;
@@ -1267,9 +1270,31 @@ export default class TreeElement {
       this.selectCurrentNode(mustSetFocus);
     }
 
+    if (focusedNode) {
+      this.restoreFocus(focusedNode);
+    }
+
     this.updateTabStop();
 
     this.triggerEvent("tree.refresh");
+  }
+
+  // Rendering replaces the elements of the nodes, so a focused element can be
+  // gone. Then move the focus to the new element of the same node. After
+  // loadData the nodes are new objects, so look the node up by its id.
+  private restoreFocus(focusedNode: Node): void {
+    if (this.htmlElement.contains(document.activeElement)) {
+      return;
+    }
+
+    const node =
+      (focusedNode.id == null ? null : this.getNodeById(focusedNode.id)) ??
+      focusedNode;
+    const element = node.element;
+
+    if (element && this.htmlElement.contains(element)) {
+      element.focus();
+    }
   }
 
   private saveState(): void {
@@ -1366,7 +1391,6 @@ export default class TreeElement {
     this.activeNode = multiSelect ? focusedNode : null;
     this.fallbackTabStop = null;
     this.refreshElements(null);
-    focusedNode?.element?.focus();
   }
 
   // Set this HTML element to this node in the node map.

@@ -27,6 +27,9 @@ All notable changes to tree-element are documented here. The format is based on
 ### Fixed
 
 - `openNode` on an empty folder also opens its closed parents.
+- The focus stays on the focused node when the tree is rendered again, for
+  example by `refresh`, `loadData`, `updateNode` or a drop. Before, the focus
+  was lost and keyboard users had to find their place again.
 - Changing `dragAndDrop` with `setOption` also updates the `tree-element-dnd`
   class, so tap dragging follows the new value.
 - Changing `slide` with `setOption` also applies to folders that open while

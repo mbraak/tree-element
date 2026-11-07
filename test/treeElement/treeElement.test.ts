@@ -210,6 +210,35 @@ describe("TreeElement", () => {
   });
 
   describe("the focus when nodes are rendered again", () => {
+    it("keeps the focus on the focused node when the tree is rendered again", () => {
+      const tree = createTreeElement({ autoOpen: true });
+      tree.selectNode(tree.getNodeByNameMustExist("child1"));
+      getTreeItem("node3").focus();
+
+      tree.refresh();
+
+      expect(getTreeItem("node3")).toHaveFocus();
+    });
+
+    it("keeps the focus on the node with the same id when new data is loaded", () => {
+      const tree = createTreeElement({ autoOpen: true });
+      getTreeItem("node3").focus();
+
+      tree.loadData(exampleData);
+
+      expect(getTreeItem("node3")).toHaveFocus();
+    });
+
+    it("keeps the focus on a focused node that is rendered again", () => {
+      const tree = createTreeElement({ autoOpen: true });
+      tree.selectNode(tree.getNodeByNameMustExist("child1"));
+      getTreeItem("node3").focus();
+
+      tree.updateNode(tree.getNodeByNameMustExist("node3"), "renamed");
+
+      expect(getTreeItem("renamed")).toHaveFocus();
+    });
+
     it("doesn't take the focus when the selected node is rendered again while the tree is not focused", () => {
       const tree = createTreeElement();
       const node1 = tree.getNodeByNameMustExist("node1");
