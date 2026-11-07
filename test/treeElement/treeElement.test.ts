@@ -235,6 +235,45 @@ describe("TreeElement", () => {
     });
   });
 
+  describe("the keyboard", () => {
+    it.each([
+      { content: '<a href="#node1">node1</a>', element: "a link" },
+      { content: '<span tabindex="0">node1</span>', element: "a span" },
+    ])(
+      "selects the node when $element in it has the focus and ArrowDown is pressed",
+      async ({ content }) => {
+        const tree = createTreeElement({
+          autoEscape: false,
+          data: [
+            { id: 1, name: content },
+            { id: 2, name: "node2" },
+          ],
+        });
+        // The innermost element with the text: the link or the span
+        screen.getByText("node1").focus();
+
+        await userEvent.keyboard("{ArrowDown}");
+
+        expect(tree.getSelectedNode()).toBe(tree.getNodeById(1));
+      },
+    );
+
+    it("leaves the keys to an input in a node", async () => {
+      const tree = createTreeElement({
+        autoEscape: false,
+        data: [
+          { id: 1, name: 'node1 <input aria-label="field">' },
+          { id: 2, name: "node2" },
+        ],
+      });
+      screen.getByRole("textbox", { name: "field" }).focus();
+
+      await userEvent.keyboard("{ArrowDown}");
+
+      expect(tree.getSelectedNode()).toBeNull();
+    });
+  });
+
   describe("deinit", () => {
     it("removes the keyboard listener from the document", () => {
       const tree = createTreeElement();
