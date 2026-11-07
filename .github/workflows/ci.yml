@@ -50,6 +50,11 @@ jobs:
       - name: Lint
         run: |
           pnpm run lint
+      # The API reference is generated from the doc comments in src, so Vale
+      # checks those comments through the generated markdown.
+      - name: Generate the API reference
+        run: |
+          pnpm run docs-api
       # Fails on any alert, including warnings and suggestions. CI runs on push,
       # so every line is checked instead of only the lines a PR changed. Keep
       # the files and glob in sync with the lint-docs script in package.json.
@@ -59,7 +64,7 @@ jobs:
           version: 3.26.0
           files: README.md,CHANGELOG.md,docs
           separator: ","
-          glob: "!docs/{reference/generated,.vitepress}/**"
+          glob: "!docs/.vitepress/**"
           fail_level: any
           filter_mode: nofilter
       - name: Check types

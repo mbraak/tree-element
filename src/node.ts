@@ -28,14 +28,14 @@ type IterateCallback = (node: Node, level: number) => boolean;
  *
  * @groupDescription Searching
  * These work on any node, and search that node's subtree. Called on the root
- * node, they search the whole tree — which is what the tree's own methods of
+ * node, they search the whole tree—which is what the tree's own methods of
  * the same name do.
  *
  * @groupDescription Changing the tree
  * ::: warning
  * These methods change the data without re-rendering. The tree's
- * [methods](/reference/methods) — `appendNode`, `removeNode`, `moveNode` and
- * friends — do the same and refresh the display, so prefer those. If you do
+ * [methods](/reference/methods)—`appendNode`, `removeNode`, `moveNode` and
+ * friends—do the same and refresh the display, so prefer those. If you do
  * use these, call `tree.refresh()` afterwards.
  * :::
  */
@@ -85,7 +85,7 @@ export class Node {
   */
   public nodeClass?: typeof Node;
   /**
-  The parent; `null` for the root node.
+  The parent, or `null` for the root node.
   */
   public parent: Node | null;
   /**
@@ -268,7 +268,7 @@ export class Node {
    * Returns the subtree as plain data, ready for `JSON.stringify`.
    * Internal properties (`parent`, `children`, `element`, `tree`,
    * `idMapping`, `nodeClass`, `load_on_demand`, `isEmptyFolder`) are left
-   * out; your own properties are kept.
+   * out. Your own properties are kept.
    *
    * ```js
    * tree.getTree().getData();
@@ -384,7 +384,7 @@ export class Node {
   }
 
   /**
-   * Like `getNextNode`, but skipping nodes inside closed folders — this is
+   * Like `getNextNode`, but skipping nodes inside closed folders. This is
    * what the arrow keys use.
    *
    * @group Moving around the tree
@@ -472,7 +472,7 @@ export class Node {
   }
 
   /**
-   * Returns the parent: `null` for a top-level node — the root node is not
+   * Returns the parent, or `null` for a top-level node: the root node is not
    * returned.
    *
    * @group Moving around the tree
@@ -525,8 +525,8 @@ export class Node {
   }
 
   /**
-   * Like `getPreviousNode`, but skipping nodes inside closed folders —
-   * this is what the arrow keys use.
+   * Like `getPreviousNode`, but skipping nodes inside closed folders.
+   * This is what the arrow keys use.
    *
    * @group Moving around the tree
    */
