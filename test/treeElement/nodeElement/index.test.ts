@@ -268,3 +268,60 @@ describe("deselect", () => {
     expect(blur).toHaveBeenCalledExactlyOnceWith();
   });
 });
+
+describe("a NodeElement without the multiSelect parameter", () => {
+  it("sets the tabindex when it is selected, like without multiSelect", () => {
+    const node = new Node({ id: 1, name: "node1" });
+    const element = document.createElement("li");
+    node.element = element;
+
+    const nodeElement = new NodeElement({
+      classNames: defaultClassNames,
+      getScrollLeft: () => 0,
+      node,
+      tabIndex: 0,
+      treeElement: document.createElement("ul"),
+    });
+    nodeElement.select(false);
+
+    expect(element).toHaveAttribute("tabindex", "0");
+  });
+});
+
+describe("a node that is not rendered", () => {
+  // A node inside a closed folder has no element. The node element then
+  // falls back to the tree element, which must stay unchanged.
+  const createUnrenderedNodeElement = () => {
+    const treeElement = document.createElement("ul");
+    treeElement.setAttribute("tabindex", "0");
+
+    const nodeElement = new NodeElement({
+      classNames: defaultClassNames,
+      getScrollLeft: () => 0,
+      node: new Node({ id: 1, name: "node1" }),
+      tabIndex: 0,
+      treeElement,
+    });
+
+    return { nodeElement, treeElement };
+  };
+
+  it("doesn't change the tree element when it is selected", () => {
+    const { nodeElement, treeElement } = createUnrenderedNodeElement();
+
+    nodeElement.select(false);
+
+    expect(treeElement).not.toHaveClass("tree-element-selected");
+    expect(treeElement).not.toHaveAttribute("aria-selected");
+  });
+
+  it("doesn't change the tree element when it is deselected", () => {
+    const { nodeElement, treeElement } = createUnrenderedNodeElement();
+    treeElement.classList.add("tree-element-selected");
+
+    nodeElement.deselect();
+
+    expect(treeElement).toHaveClass("tree-element-selected");
+    expect(treeElement).toHaveAttribute("tabindex", "0");
+  });
+});
