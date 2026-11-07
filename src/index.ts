@@ -324,8 +324,9 @@ export default class TreeElement {
   }
 
   /**
-   * Inserts a new node between a node and its parent, taking the node as its
-   * child.
+   * Inserts a new node between a node and its parent. The siblings of the node
+   * move along: the new node takes all children of the parent, and becomes its
+   * only child.
    *
    * @returns The new node, or `null` when the node has no parent.
    * @group Changing the tree
