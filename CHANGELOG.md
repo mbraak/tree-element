@@ -23,6 +23,10 @@ All notable changes to tree-element are documented here. The format is based on
   constructor. Before, the change was ignored or only partly applied. See
   [Changing an option later](https://mbraak.github.io/tree-element/reference/options#changing-an-option-later)
   for the options it accepts.
+- The requests for `dataUrl` send an `Accept: application/json` header instead
+  of `Content-Type: application/json`. The requests have no body, and without
+  the `Content-Type` header a request to another origin no longer needs a
+  preflight request.
 
 ### Fixed
 
