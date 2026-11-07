@@ -153,10 +153,6 @@ export class DragAndDropHandler {
     const area = this.findHoveredArea(positionInfo.pageX, positionInfo.pageY);
 
     if (area && this.canMoveToArea(area, this.currentItem)) {
-      if (!area.node.isFolder()) {
-        this.stopOpenFolderTimer();
-      }
-
       if (this.hoveredArea !== area) {
         this.hoveredArea = area;
 
@@ -208,7 +204,7 @@ export class DragAndDropHandler {
     return true;
   }
 
-  public mouseStop(positionInfo: PositionInfo): boolean {
+  public mouseStop(positionInfo: PositionInfo): void {
     this.moveItem(positionInfo);
     this.clear();
     this.removeHover();
@@ -227,8 +223,6 @@ export class DragAndDropHandler {
     if (!this.hoveredArea && currentItem && this.onDragStop) {
       this.onDragStop(currentItem.node, positionInfo.originalEvent);
     }
-
-    return false;
   }
 
   public refresh(): void {

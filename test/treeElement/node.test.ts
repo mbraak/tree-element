@@ -3,6 +3,19 @@ import { Node } from "treeElement/node";
 import exampleData from "../support/exampleData";
 
 describe("addAfter", () => {
+  it("adds after a node in the middle of its siblings", () => {
+    const tree = new Node(null, true).loadFromData(["a", "b", "c"]);
+
+    tree.getNodeByNameMustExist("b").addAfter("new node");
+
+    expect(tree.children.map((node) => node.name)).toStrictEqual([
+      "a",
+      "b",
+      "new node",
+      "c",
+    ]);
+  });
+
   it("returns the new node when moving after node1", () => {
     const tree = new Node().loadFromData(exampleData);
     const node1 = tree.getNodeByNameMustExist("node1");
@@ -197,6 +210,17 @@ describe("addChildAtPosition", () => {
 });
 
 describe("addParent", () => {
+  it("keeps the moved nodes in the tree", () => {
+    const tree = new Node(null, true).loadFromData(exampleData);
+    const child1 = tree.getNodeByNameMustExist("child1");
+    const child2 = tree.getNodeByNameMustExist("child2");
+
+    child1.addParent("parent1");
+
+    expect(child1.tree).toBe(tree);
+    expect(child2.tree).toBe(tree);
+  });
+
   it("adds a parent node", () => {
     const node1 = new Node("node1");
     const tree = new Node({}, true);
@@ -425,6 +449,15 @@ describe("getChildIndex", () => {
 });
 
 describe("getData", () => {
+  it("doesn't include the index and the node class of the tree", () => {
+    const tree = new Node(null, true).loadFromData(exampleData);
+
+    expect(tree.getData(true)[0]).not.toContainAnyKeys([
+      "idMapping",
+      "nodeClass",
+    ]);
+  });
+
   it("returns the tree data", () => {
     const tree = new Node().loadFromData(exampleData);
 
@@ -1127,6 +1160,16 @@ describe("remove", () => {
 });
 
 describe("removeChild", () => {
+  it("removes the child and its descendants from the index", () => {
+    const tree = new Node(null, true).loadFromData(exampleData);
+
+    tree.removeChild(tree.getNodeByNameMustExist("node2"));
+
+    expect(tree.getNodeById(124)).toBeNull();
+    expect(tree.getNodeById(127)).toBeNull();
+    expect(tree.getNodeById(128)).toBeNull();
+  });
+
   it("removes the child", () => {
     const tree = new Node().loadFromData(exampleData);
     const child1 = tree.getNodeByNameMustExist("child1");
@@ -1136,5 +1179,67 @@ describe("removeChild", () => {
     expect(node1.children).toStrictEqual([
       expect.objectContaining({ name: "child2" }),
     ]);
+  });
+});
+
+describe("filter", () => {
+  it("returns the matching nodes at all levels", () => {
+    const tree = new Node(null, true).loadFromData(exampleData);
+
+    const nodes = tree.filter((node) => node.name.startsWith("child"));
+
+    expect(nodes.map((node) => node.name)).toStrictEqual([
+      "child1",
+      "child2",
+      "child3",
+    ]);
+  });
+});
+
+describe("removeChildren", () => {
+  it("removes the descendants from the index", () => {
+    const tree = new Node(null, true).loadFromData(exampleData);
+    const node2 = tree.getNodeByNameMustExist("node2");
+
+    node2.removeChildren();
+
+    expect(node2.children).toBeEmpty();
+    expect(tree.getNodeById(127)).toBeNull();
+    expect(tree.getNodeById(128)).toBeNull();
+  });
+});
+
+describe("setData", () => {
+  it("ignores children", () => {
+    const tree = new Node(null, true).loadFromData(exampleData);
+    const node1 = tree.getNodeByNameMustExist("node1");
+
+    node1.setData({ children: [{ name: "new child" }], name: "node1" });
+
+    expect(node1.children.map((node) => node.name)).toStrictEqual([
+      "child1",
+      "child2",
+    ]);
+  });
+
+  it("ignores parent", () => {
+    const tree = new Node(null, true).loadFromData(exampleData);
+    const node1 = tree.getNodeByNameMustExist("node1");
+    const node2 = tree.getNodeByNameMustExist("node2");
+
+    node1.setData({ name: "node1", parent: node2 });
+
+    expect(node1.parent).toBe(tree);
+  });
+
+  it("ignores inherited properties", () => {
+    const node = new Node("node");
+    const data = Object.create({ color: "red" }) as Record<string, unknown>;
+    data.name = "renamed";
+
+    node.setData(data);
+
+    expect(node.name).toBe("renamed");
+    expect(node).not.toHaveProperty("color");
   });
 });

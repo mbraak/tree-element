@@ -8,9 +8,9 @@ import {
 } from "treeElement/dragAndDropHandler/generateHitAreas";
 import { Node } from "treeElement/node";
 
-const mockHtmlElement = (y: number) =>
+const mockHtmlElement = (y: number, clientHeight = 20) =>
   ({
-    clientHeight: 20,
+    clientHeight,
     getBoundingClientRect: () => ({
       x: 10,
       y,
@@ -318,6 +318,113 @@ describe("generatePositions", () => {
         position: null,
         top: 135,
       }),
+    ]);
+  });
+
+  it("doesn't allow a drop after an open folder that is followed by the current node", () => {
+    const tree = new Node().loadFromData([
+      { children: [{ id: 2, name: "child1" }], id: 1, name: "folder" },
+      { id: 3, name: "node2" },
+    ]);
+    const folder = tree.children[0] as Node;
+    const child1 = folder.children[0] as Node;
+    const node2 = tree.children[1] as Node;
+
+    folder.element = mockHtmlElement(100);
+    folder.is_open = true;
+    child1.element = mockHtmlElement(120);
+    node2.element = mockHtmlElement(140);
+
+    expect(generateHitPositions(tree, node2)).toStrictEqual([
+      { node: folder, position: "before", top: 100 },
+      { node: folder, position: "inside", top: 100 },
+      { node: child1, position: "inside", top: 120 },
+      { node: child1, position: "after", top: 120 },
+      { node: folder, position: null, top: 120 },
+      { node: node2, position: null, top: 140 },
+      { node: node2, position: null, top: 140 },
+    ]);
+  });
+
+  it("doesn't allow a drop inside or after a closed folder that is the current node", () => {
+    const tree = new Node().loadFromData([
+      { id: 1, name: "node1" },
+      { children: [{ id: 3, name: "child1" }], id: 2, name: "folder" },
+    ]);
+    const node1 = tree.children[0] as Node;
+    const folder = tree.children[1] as Node;
+
+    node1.element = mockHtmlElement(100);
+    folder.element = mockHtmlElement(120);
+
+    expect(generateHitPositions(tree, folder)).toStrictEqual([
+      { node: node1, position: "before", top: 100 },
+      { node: node1, position: "inside", top: 100 },
+      { node: node1, position: null, top: 100 },
+      { node: folder, position: null, top: 120 },
+    ]);
+  });
+
+  it("doesn't allow a drop after a closed folder that is followed by the current node", () => {
+    const tree = new Node().loadFromData([
+      { children: [{ id: 2, name: "child1" }], id: 1, name: "folder" },
+      { id: 3, name: "node2" },
+    ]);
+    const folder = tree.children[0] as Node;
+    const node2 = tree.children[1] as Node;
+
+    folder.element = mockHtmlElement(100);
+    node2.element = mockHtmlElement(120);
+
+    expect(generateHitPositions(tree, node2)).toStrictEqual([
+      { node: folder, position: "before", top: 100 },
+      { node: folder, position: "inside", top: 100 },
+      { node: node2, position: null, top: 120 },
+      { node: node2, position: null, top: 120 },
+    ]);
+  });
+
+  it("adds no position for the bottom of an open folder that is the current node when it is 5px high or less", () => {
+    const tree = new Node().loadFromData([
+      { children: [{ id: 2, name: "child1" }], id: 1, name: "folder" },
+    ]);
+    const folder = tree.children[0] as Node;
+
+    folder.element = mockHtmlElement(100, 5);
+    folder.is_open = true;
+
+    expect(generateHitPositions(tree, folder)).toStrictEqual([
+      { node: folder, position: null, top: 100 },
+    ]);
+  });
+
+  it("doesn't allow a drop inside an open folder when its first child is the current node", () => {
+    const tree = new Node().loadFromData([
+      {
+        children: [
+          { id: 2, name: "child1" },
+          { id: 3, name: "child2" },
+        ],
+        id: 1,
+        name: "folder",
+      },
+    ]);
+    const folder = tree.children[0] as Node;
+    const child1 = folder.children[0] as Node;
+    const child2 = folder.children[1] as Node;
+
+    folder.element = mockHtmlElement(100);
+    folder.is_open = true;
+    child1.element = mockHtmlElement(120);
+    child2.element = mockHtmlElement(140);
+
+    expect(generateHitPositions(tree, child1)).toStrictEqual([
+      { node: folder, position: "before", top: 100 },
+      { node: child1, position: null, top: 120 },
+      { node: child1, position: null, top: 120 },
+      { node: child2, position: "inside", top: 140 },
+      { node: child2, position: "after", top: 140 },
+      { node: folder, position: "after", top: 140 },
     ]);
   });
 });

@@ -25,6 +25,7 @@ interface CreateDragAndDropHandlerParams {
   onIsMoveHandle?: OnIsMoveHandle;
   openFolderDelay?: false | number;
   openNode?: OpenNode;
+  scrollLeft?: number;
   tree: Node;
 }
 
@@ -37,9 +38,10 @@ const createDragAndDropHandler = ({
   onIsMoveHandle,
   openFolderDelay = false,
   openNode,
+  scrollLeft = 0,
   tree,
 }: CreateDragAndDropHandlerParams) => {
-  const getScrollLeft = vi.fn<GetScrollLeft>();
+  const getScrollLeft = vi.fn<GetScrollLeft>(() => scrollLeft);
   const refreshElements = vi.fn();
 
   const treeElement = generateHtmlElementsForTree(tree);
@@ -101,7 +103,7 @@ const createDragAndDropHandler = ({
     triggerEvent,
   });
 
-  return { dragAndDropHandler, treeElement, triggerEvent };
+  return { dragAndDropHandler, refreshElements, treeElement, triggerEvent };
 };
 
 describe("DragAndDropHandler", () => {
@@ -1138,4 +1140,419 @@ describe("DragAndDropHandler", () => {
       expect(dragAndDropHandler.hitAreas).toBeEmpty();
     });
   });
+});
+
+/*
+The example tree, with the hit areas it has while leaf1 is dragged. The tree
+is 100px wide and, with the margin for dropping after the last node, 116px
+high.
+
+  leaf1
+  closed (closed folder)   inside 20-30, after 30-40
+    c1
+  open (open folder)       inside 40-60
+    o1                     inside 60-67, after 67-74
+                           (open) after 74-81
+  leaf2                    inside 80-98, after 98-116
+*/
+const createExampleTree = () => {
+  const tree = new Node(null, true);
+
+  tree.loadFromData([
+    { name: "leaf1" },
+    { children: [{ name: "c1" }], name: "closed" },
+    { children: [{ name: "o1" }], is_open: true, name: "open" },
+    { name: "leaf2" },
+  ]);
+
+  return tree;
+};
+
+const startDragging = ({
+  nodeName = "leaf1",
+  pageX: startX = 10,
+  pageY: startY = 10,
+  ...params
+}: Partial<CreateDragAndDropHandlerParams> & {
+  nodeName?: string;
+  pageX?: number;
+  pageY?: number;
+} = {}) => {
+  const tree = params.tree ?? createExampleTree();
+  const result = createDragAndDropHandler({ ...params, tree });
+  const { dragAndDropHandler, treeElement } = result;
+  const draggedNode = tree.getNodeByNameMustExist(nodeName);
+
+  const positionInfo = {
+    originalEvent: new Event("mousedown"),
+    pageX: startX,
+    pageY: startY,
+    target: draggedNode.element as HTMLElement,
+  };
+
+  dragAndDropHandler.mouseCapture(positionInfo);
+  dragAndDropHandler.mouseStart(positionInfo);
+
+  const dragTo = (pageX: number, pageY: number) =>
+    dragAndDropHandler.mouseDrag({
+      originalEvent: new Event("mousemove"),
+      pageX,
+      pageY,
+      target: treeElement,
+    });
+
+  const drop = (pageX: number, pageY: number) => {
+    dragAndDropHandler.mouseStop({
+      originalEvent: new Event("mouseup"),
+      pageX,
+      pageY,
+      target: treeElement,
+    });
+  };
+
+  return { ...result, draggedNode, dragTo, drop, tree };
+};
+
+const getDropHints = () =>
+  document.querySelectorAll(".tree-element-border, .tree-element-ghost");
+
+describe("DragAndDropHandler with the example tree", () => {
+  beforeEach(() => {
+    document.body.replaceChildren();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  describe("finding the hovered area", () => {
+    it.each([
+      { nodeName: "closed", pageX: 50, pageY: 20, position: "inside" },
+      { nodeName: "leaf2", pageX: 50, pageY: 100, position: "after" },
+      { nodeName: "open", pageX: 0, pageY: 50, position: "inside" },
+      { nodeName: "open", pageX: 100, pageY: 50, position: "inside" },
+      { nodeName: "leaf2", pageX: 50, pageY: 116, position: "after" },
+    ])(
+      "finds $nodeName $position at ($pageX, $pageY)",
+      ({ nodeName, pageX, pageY, position }) => {
+        const { dragAndDropHandler, dragTo, tree } = startDragging();
+
+        dragTo(pageX, pageY);
+
+        expect(dragAndDropHandler.hoveredArea).toMatchObject({
+          node: tree.getNodeByNameMustExist(nodeName),
+          position,
+        });
+      },
+    );
+
+    it.each([
+      { pageX: -1, pageY: 50 },
+      { pageX: 101, pageY: 50 },
+      { pageX: 50, pageY: -1 },
+      { pageX: 50, pageY: 117 },
+    ])(
+      "finds nothing outside the tree at ($pageX, $pageY)",
+      ({ pageX, pageY }) => {
+        const { dragAndDropHandler, dragTo } = startDragging();
+
+        dragTo(pageX, pageY);
+
+        expect(dragAndDropHandler.hoveredArea).toBeNull();
+      },
+    );
+
+    it("finds the area at the top edge of the tree", () => {
+      // While leaf1 is dragged no area starts at the top, so drag leaf2
+      const { dragAndDropHandler, dragTo, tree } = startDragging({
+        nodeName: "leaf2",
+        pageY: 90,
+      });
+
+      dragTo(50, 0);
+
+      expect(dragAndDropHandler.hoveredArea).toMatchObject({
+        node: tree.getNodeByNameMustExist("leaf1"),
+      });
+    });
+
+    it("moves the bounds of the tree with the horizontal scroll", () => {
+      const { dragAndDropHandler, dragTo } = startDragging({ scrollLeft: 50 });
+
+      dragTo(20, 50);
+
+      expect(dragAndDropHandler.hoveredArea).toBeNull();
+
+      dragTo(120, 50);
+
+      expect(dragAndDropHandler.hoveredArea).toMatchObject({
+        position: "inside",
+      });
+    });
+  });
+
+  describe("starting a drag", () => {
+    it("keeps the drag element at the same offset from the mouse", () => {
+      // o1 is at 10, 60, so the mouse is 5px right of and below its corner
+      const { dragTo } = startDragging({
+        nodeName: "o1",
+        pageX: 15,
+        pageY: 65,
+      });
+
+      dragTo(50, 90);
+
+      expect(document.querySelector(".tree-element-dragging")).toHaveStyle({
+        left: "45px",
+        top: "85px",
+      });
+    });
+
+    it("escapes the node name in the drag element by default", () => {
+      const tree = new Node(null, true);
+      tree.loadFromData([{ name: "<b>leaf1</b>" }, { name: "leaf2" }]);
+
+      startDragging({ nodeName: "<b>leaf1</b>", tree });
+
+      const dragElement = document.querySelector(".tree-element-dragging");
+
+      expect(dragElement).toHaveTextContent("<b>leaf1</b>");
+    });
+  });
+
+  describe("opening a folder while dragging", () => {
+    it("opens a closed folder that stays hovered, also when the mouse moves within it", () => {
+      vi.useFakeTimers();
+      const openNode = vi.fn(() => Promise.resolve());
+      const { dragTo, tree } = startDragging({
+        openFolderDelay: 100,
+        openNode,
+      });
+
+      dragTo(50, 22);
+      vi.advanceTimersByTime(60);
+      dragTo(50, 28);
+      vi.advanceTimersByTime(50);
+
+      expect(openNode).toHaveBeenCalledExactlyOnceWith(
+        tree.getNodeByNameMustExist("closed"),
+      );
+    });
+
+    it("doesn't open a closed folder when the mouse moves on to an open folder", () => {
+      vi.useFakeTimers();
+      const openNode = vi.fn(() => Promise.resolve());
+      const { dragTo } = startDragging({ openFolderDelay: 100, openNode });
+
+      dragTo(50, 25);
+      vi.advanceTimersByTime(50);
+      dragTo(50, 50);
+      vi.advanceTimersByTime(100);
+
+      expect(openNode).not.toHaveBeenCalled();
+    });
+
+    it("opens only the last of two hovered closed folders", () => {
+      vi.useFakeTimers();
+      const tree = new Node(null, true);
+      tree.loadFromData([
+        { name: "leaf1" },
+        { children: [{ name: "a1" }], name: "closedA" },
+        { children: [{ name: "b1" }], name: "closedB" },
+      ]);
+      const openNode = vi.fn(() => Promise.resolve());
+      const { dragAndDropHandler, dragTo } = startDragging({
+        openFolderDelay: 100,
+        openNode,
+        tree,
+      });
+
+      dragTo(50, 25);
+      vi.advanceTimersByTime(50);
+      dragTo(50, 45);
+
+      expect(dragAndDropHandler.hoveredArea).toMatchObject({
+        node: tree.getNodeByNameMustExist("closedB"),
+        position: "inside",
+      });
+
+      vi.advanceTimersByTime(200);
+
+      expect(openNode).toHaveBeenCalledExactlyOnceWith(
+        tree.getNodeByNameMustExist("closedB"),
+      );
+    });
+
+    it("doesn't open a folder for the area after a closed folder, an open folder or a leaf", () => {
+      vi.useFakeTimers();
+      const openNode = vi.fn(() => Promise.resolve());
+      const { dragTo } = startDragging({ openFolderDelay: 100, openNode });
+
+      dragTo(50, 35);
+      vi.advanceTimersByTime(200);
+      dragTo(50, 50);
+      vi.advanceTimersByTime(200);
+      dragTo(50, 90);
+      vi.advanceTimersByTime(200);
+
+      expect(openNode).not.toHaveBeenCalled();
+    });
+
+    it("updates the hit areas and the drop hint after the folder is opened", async () => {
+      vi.useFakeTimers();
+      const tree = createExampleTree();
+      const closed = tree.getNodeByNameMustExist("closed");
+
+      // Like the tree, render the folder again after opening it
+      const openNode = vi.fn((node: Node) => {
+        node.is_open = true;
+        document.body.replaceChildren();
+        generateHtmlElementsForTree(tree);
+        return Promise.resolve();
+      });
+
+      const { dragAndDropHandler, dragTo } = startDragging({
+        openFolderDelay: 100,
+        openNode,
+        tree,
+      });
+
+      dragTo(50, 25);
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(openNode).toHaveBeenCalledExactlyOnceWith(closed);
+      expect(
+        dragAndDropHandler.hitAreas.map((area) => area.node.name),
+      ).toContain("c1");
+      expect(
+        (closed.element as HTMLElement).querySelector(
+          ".tree-element-border, .tree-element-ghost",
+        ),
+      ).not.toBeNull();
+    });
+  });
+
+  describe("drop hints", () => {
+    it("replaces the drop hint when another area is hovered", () => {
+      const { dragTo } = startDragging();
+
+      dragTo(50, 25);
+
+      expect(getDropHints()).toHaveLength(1);
+
+      dragTo(50, 50);
+
+      expect(getDropHints()).toHaveLength(1);
+    });
+
+    it("removes the drop hint when the mouse leaves the tree", () => {
+      const { dragTo } = startDragging();
+
+      dragTo(50, 25);
+      dragTo(-10, 50);
+
+      expect(getDropHints()).toBeEmpty();
+    });
+  });
+
+  describe("dropping", () => {
+    it("cleans up after the drop", () => {
+      const { dragAndDropHandler, draggedNode, dragTo, drop, treeElement } =
+        startDragging();
+
+      // Cancel the move, so the tree is not re-rendered
+      treeElement.addEventListener("tree.move", (e) => {
+        e.preventDefault();
+      });
+
+      dragTo(50, 25);
+      drop(50, 25);
+
+      expect(document.querySelector(".tree-element-dragging")).toBeNull();
+      expect(getDropHints()).toBeEmpty();
+      expect(dragAndDropHandler.hitAreas).toBeEmpty();
+      expect(dragAndDropHandler.currentItem).toBeNull();
+      expect(draggedNode.element).not.toHaveClass("tree-element-moving");
+    });
+
+    it("opens the folder that a node is dropped into and renders the tree again", () => {
+      const { dragTo, drop, refreshElements, tree, treeElement } =
+        startDragging();
+      const closed = tree.getNodeByNameMustExist("closed");
+
+      dragTo(50, 25);
+      drop(50, 25);
+
+      expect(closed.is_open).toBeTrue();
+      expect(treeElement).toBeEmptyDOMElement();
+      expect(refreshElements).toHaveBeenCalledExactlyOnceWith(null);
+    });
+
+    it("doesn't open a folder that a node is dropped after", () => {
+      const { dragTo, drop, tree } = startDragging();
+
+      dragTo(50, 35);
+      drop(50, 35);
+
+      expect(tree.getNodeByNameMustExist("closed").is_open).not.toBeTrue();
+    });
+  });
+
+  describe("refresh", () => {
+    it("clears the hit areas when there is no current item", () => {
+      const { dragAndDropHandler } = startDragging();
+
+      dragAndDropHandler.currentItem = null;
+      dragAndDropHandler.refresh();
+
+      expect(dragAndDropHandler.hitAreas).toBeEmpty();
+    });
+
+    it("marks the element of the dragged node as moving after it is rendered again", () => {
+      const { dragAndDropHandler, draggedNode } = startDragging();
+
+      const newElement = document.createElement("li");
+      draggedNode.element = newElement;
+      dragAndDropHandler.refresh();
+
+      expect(newElement).toHaveClass("tree-element-moving");
+    });
+
+    it("doesn't mark the node as moving before the drag has started", () => {
+      const tree = createExampleTree();
+      const { dragAndDropHandler } = createDragAndDropHandler({ tree });
+      const leaf1 = tree.getNodeByNameMustExist("leaf1");
+
+      dragAndDropHandler.mouseCapture({
+        originalEvent: new Event("mousedown"),
+        pageX: 10,
+        pageY: 10,
+        target: leaf1.element as HTMLElement,
+      });
+      dragAndDropHandler.refresh();
+
+      expect(leaf1.element).not.toHaveClass("tree-element-moving");
+    });
+  });
+
+  it.each(["select", "textarea"])(
+    "doesn't capture the node when a %s element is clicked",
+    (tagName) => {
+      const tree = createExampleTree();
+      const { dragAndDropHandler } = createDragAndDropHandler({ tree });
+      const element = document.createElement(tagName);
+      (tree.getNodeByNameMustExist("leaf1").element as HTMLElement).append(
+        element,
+      );
+
+      expect(
+        dragAndDropHandler.mouseCapture({
+          originalEvent: new Event("mousedown"),
+          pageX: 10,
+          pageY: 10,
+          target: element,
+        }),
+      ).toBeNull();
+    },
+  );
 });

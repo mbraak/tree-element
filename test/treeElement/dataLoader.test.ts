@@ -4,6 +4,7 @@ import type { DataFilter } from "treeElement/options";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import DataLoader from "treeElement/dataLoader";
+import { Node } from "treeElement/node";
 import RequestUrl from "treeElement/requestUrl";
 import { vi } from "vitest";
 
@@ -174,5 +175,53 @@ describe("loadFromUrl", () => {
 
     expect(cacheBuster).toBeString();
     expect(cacheBuster).not.toBeEmpty();
+  });
+
+  it("marks the tree as loading, but not as busy, while the whole tree loads", async () => {
+    setupResponse();
+    const { dataLoader, treeElement } = createDataLoader();
+
+    const promise = dataLoader.loadFromUrl(new RequestUrl("/test"));
+
+    expect(treeElement).toHaveClass("tree-element-loading");
+    expect(treeElement).not.toHaveAttribute("aria-busy");
+
+    await promise;
+
+    expect(treeElement).not.toHaveClass("tree-element-loading");
+  });
+
+  it("marks the folder as loading and busy while its children load", async () => {
+    setupResponse();
+    const { dataLoader } = createDataLoader();
+    const node = new Node({ id: 1 });
+    const element = document.createElement("li");
+    node.element = element;
+
+    const promise = dataLoader.loadFromUrl(new RequestUrl("/test"), node);
+
+    expect(element).toHaveClass("tree-element-loading");
+    expect(element).toHaveAttribute("aria-busy", "true");
+
+    await promise;
+
+    expect(element).not.toHaveClass("tree-element-loading");
+    expect(element).not.toHaveAttribute("aria-busy");
+  });
+
+  it("asks for json, without a content type for a request without a body", async () => {
+    let requestHeaders: Headers | undefined;
+    server.use(
+      http.get("/test", ({ request }) => {
+        requestHeaders = request.headers;
+        return HttpResponse.json([]);
+      }),
+    );
+    const { dataLoader } = createDataLoader();
+
+    await dataLoader.loadFromUrl(new RequestUrl("/test"));
+
+    expect(requestHeaders?.get("Accept")).toBe("application/json");
+    expect(requestHeaders?.has("Content-Type")).toBeFalse();
   });
 });

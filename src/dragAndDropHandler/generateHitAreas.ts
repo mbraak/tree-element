@@ -31,8 +31,9 @@ export const generateHitPositions = (
   };
 
   const handleAfterOpenFolder = (node: Node, nextNode: Node | null) => {
-    if (node === currentNode || nextNode === currentNode) {
-      // Cannot move before or after current item
+    // Not called for the current node: handleOpenFolder stops iterating there
+    if (nextNode === currentNode) {
+      // Dropping the current node after this folder would leave it where it is
       addHitPosition(node, null, lastTop);
     } else {
       addHitPosition(node, "after", lastTop);

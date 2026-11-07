@@ -191,7 +191,9 @@ export class Node {
   }
 
   /**
-   * Inserts a new parent between this node and its current parent.
+   * Inserts a new parent between this node and its current parent. Its
+   * siblings move along: the new node takes all children of the current
+   * parent, and becomes its only child.
    *
    * @returns The new node, or `null` when the node has no parent.
    * @group Changing the tree
