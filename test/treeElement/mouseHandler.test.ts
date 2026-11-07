@@ -24,6 +24,7 @@ interface CreateMouseHandlerParams {
   onMouseStart?: MouseStart;
   onMouseStop?: (positionInfo: PositionInfo) => void;
   triggerEvent?: TriggerEvent;
+  useContextMenu?: boolean;
 }
 
 const createMouseHandler = ({
@@ -37,8 +38,9 @@ const createMouseHandler = ({
   onMouseStart = vi.fn(),
   onMouseStop = vi.fn(),
   triggerEvent = vi.fn(),
+  useContextMenu = true,
 }: CreateMouseHandlerParams) => {
-  return new MouseHandler({
+  const mouseHandler = new MouseHandler({
     classNames: defaultClassNames,
     element,
     getMouseDelay,
@@ -50,8 +52,16 @@ const createMouseHandler = ({
     onMouseStart,
     onMouseStop,
     triggerEvent,
-    useContextMenu: true,
+    useContextMenu,
   });
+
+  // A drag adds listeners to the document. Remove them after the test, so that
+  // the handler of an earlier test can't react to the events of a later one.
+  onTestFinished(() => {
+    mouseHandler.deinit();
+  });
+
+  return mouseHandler;
 };
 
 describe("handleClick", () => {
@@ -78,10 +88,18 @@ describe("handleClick", () => {
 
     createMouseHandler({ element, getNode, onClickButton });
 
-    const event = new MouseEvent("click", { bubbles: true });
+    const onBodyClick = vi.fn();
+    document.body.addEventListener("click", onBodyClick);
+    onTestFinished(() => {
+      document.body.removeEventListener("click", onBodyClick);
+    });
+
+    const event = new MouseEvent("click", { bubbles: true, cancelable: true });
     button.dispatchEvent(event);
 
     expect(onClickButton).toHaveBeenCalledExactlyOnceWith(node);
+    expect(event.defaultPrevented).toBeTrue();
+    expect(onBodyClick).not.toHaveBeenCalled();
   });
 
   it("handles a click with an empty target", () => {
@@ -178,13 +196,52 @@ describe("handleContextmenu", () => {
 
     createMouseHandler({ element: nodeElement, getNode, triggerEvent });
 
-    const event = new MouseEvent("contextmenu", { bubbles: true });
+    const onBodyContextmenu = vi.fn();
+    document.body.addEventListener("contextmenu", onBodyContextmenu);
+    onTestFinished(() => {
+      document.body.removeEventListener("contextmenu", onBodyContextmenu);
+    });
+
+    const event = new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+    });
     nodeElement.dispatchEvent(event);
 
     expect(triggerEvent).toHaveBeenCalledExactlyOnceWith("tree.contextmenu", {
       node,
       originalEvent: event,
     });
+    expect(event.defaultPrevented).toBeTrue();
+    expect(onBodyContextmenu).not.toHaveBeenCalled();
+  });
+
+  it("ignores a context menu event when useContextMenu is false", () => {
+    const treeElement = document.createElement("ul");
+    treeElement.classList.add("tree-element");
+    document.body.append(treeElement);
+
+    const nodeElement = document.createElement("div");
+    nodeElement.className = "tree-element-element";
+    treeElement.append(nodeElement);
+
+    const triggerEvent = vi.fn<TriggerEvent>();
+
+    createMouseHandler({
+      element: nodeElement,
+      getNode: () => new Node(),
+      triggerEvent,
+      useContextMenu: false,
+    });
+
+    const event = new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+    });
+    nodeElement.dispatchEvent(event);
+
+    expect(triggerEvent).not.toHaveBeenCalled();
+    expect(event.defaultPrevented).toBeFalse();
   });
 
   it("handles a context menu event that's not on a node", () => {
@@ -477,11 +534,13 @@ describe("touchMove", () => {
 
     const onMouseCapture = vi.fn(() => true);
     const onMouseDrag = vi.fn();
+    const onMouseStart = vi.fn(() => true);
 
     createMouseHandler({
       element,
       onMouseCapture,
       onMouseDrag,
+      onMouseStart,
     });
 
     const touch = {
@@ -616,5 +675,284 @@ describe("mouseMove", () => {
         target: nodeElement,
       }),
     );
+  });
+});
+
+const createDragHandler = ({
+  getMouseDelay = () => 0,
+  onMouseCapture = vi.fn<MouseCapture>(() => true),
+  onMouseStart = vi.fn<MouseStart>(() => true),
+}: {
+  getMouseDelay?: GetMouseDelay;
+  onMouseCapture?: MouseCapture;
+  onMouseStart?: MouseStart;
+} = {}) => {
+  const element = document.createElement("div");
+  document.body.append(element);
+
+  const onMouseDrag = vi.fn<(positionInfo: PositionInfo) => void>();
+  const onMouseStop = vi.fn<(positionInfo: PositionInfo) => void>();
+
+  const mouseHandler = createMouseHandler({
+    element,
+    getMouseDelay,
+    onMouseCapture,
+    onMouseDrag,
+    onMouseStart,
+    onMouseStop,
+  });
+
+  return {
+    element,
+    mouseHandler,
+    onMouseCapture,
+    onMouseDrag,
+    onMouseStart,
+    onMouseStop,
+  };
+};
+
+const dispatchMouseEvent = (
+  element: HTMLElement,
+  type: string,
+  init: MouseEventInit = {},
+) => {
+  const event = new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    ...init,
+  });
+  element.dispatchEvent(event);
+  return event;
+};
+
+const withEvent = (event: Event): unknown =>
+  expect.objectContaining({ originalEvent: event });
+
+describe("dragging", () => {
+  beforeEach(() => {
+    document.body.replaceChildren();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("prevents the default of a mousedown that is captured", () => {
+    const { element } = createDragHandler();
+
+    const mouseDown = dispatchMouseEvent(element, "mousedown");
+
+    expect(mouseDown.defaultPrevented).toBeTrue();
+  });
+
+  it("starts the drag on the first mousemove", () => {
+    const { element, onMouseDrag, onMouseStart } = createDragHandler();
+
+    const mouseDown = dispatchMouseEvent(element, "mousedown");
+    const move = dispatchMouseEvent(element, "mousemove");
+
+    expect(onMouseStart).toHaveBeenCalledExactlyOnceWith(withEvent(mouseDown));
+    expect(onMouseDrag).toHaveBeenCalledExactlyOnceWith(withEvent(move));
+    expect(move.defaultPrevented).toBeTrue();
+  });
+
+  it("keeps dragging on the following mousemove events", () => {
+    const { element, onMouseDrag, onMouseStart } = createDragHandler();
+
+    const mouseDown = dispatchMouseEvent(element, "mousedown");
+    dispatchMouseEvent(element, "mousemove");
+    const move = dispatchMouseEvent(element, "mousemove");
+
+    expect(onMouseStart).toHaveBeenCalledExactlyOnceWith(withEvent(mouseDown));
+    expect(onMouseDrag).toHaveBeenCalledTimes(2);
+    expect(onMouseDrag).toHaveBeenLastCalledWith(withEvent(move));
+    expect(move.defaultPrevented).toBeTrue();
+  });
+
+  it("stops the drag on mouseup", () => {
+    const { element, onMouseDrag, onMouseStop } = createDragHandler();
+
+    dispatchMouseEvent(element, "mousedown");
+    const move = dispatchMouseEvent(element, "mousemove");
+    const mouseUp = dispatchMouseEvent(element, "mouseup");
+
+    // The move and up listeners are removed after the drag
+    dispatchMouseEvent(element, "mousemove");
+    dispatchMouseEvent(element, "mouseup");
+
+    // A new mousedown doesn't stop the finished drag again
+    dispatchMouseEvent(element, "mousedown");
+
+    expect(onMouseDrag).toHaveBeenCalledExactlyOnceWith(withEvent(move));
+    expect(onMouseStop).toHaveBeenCalledExactlyOnceWith(withEvent(mouseUp));
+  });
+
+  it("doesn't call onMouseStop for a mouseup without a drag", () => {
+    const { element, onMouseStop } = createDragHandler();
+
+    dispatchMouseEvent(element, "mousedown");
+    dispatchMouseEvent(element, "mouseup");
+
+    expect(onMouseStop).not.toHaveBeenCalled();
+  });
+
+  it("ignores a mousedown that onMouseCapture doesn't capture", () => {
+    const { element, onMouseStart } = createDragHandler({
+      onMouseCapture: () => false,
+    });
+
+    const mouseDown = dispatchMouseEvent(element, "mousedown");
+    dispatchMouseEvent(element, "mousemove");
+
+    expect(mouseDown.defaultPrevented).toBeFalse();
+    expect(onMouseStart).not.toHaveBeenCalled();
+  });
+
+  it("ignores a mousedown with another button than the left one", () => {
+    const { element, onMouseCapture } = createDragHandler();
+
+    const mouseDown = dispatchMouseEvent(element, "mousedown", { button: 2 });
+
+    expect(onMouseCapture).not.toHaveBeenCalled();
+    expect(mouseDown.defaultPrevented).toBeFalse();
+  });
+
+  it("gives up the drag when onMouseStart refuses it", () => {
+    const { element, onMouseDrag, onMouseStart } = createDragHandler({
+      onMouseStart: vi.fn(() => false),
+    });
+
+    const mouseDown = dispatchMouseEvent(element, "mousedown");
+    const move = dispatchMouseEvent(element, "mousemove");
+
+    expect(onMouseDrag).not.toHaveBeenCalled();
+    expect(move.defaultPrevented).toBeFalse();
+
+    // The move listener is removed, so there is no second attempt
+    dispatchMouseEvent(element, "mousemove");
+
+    expect(onMouseStart).toHaveBeenCalledExactlyOnceWith(withEvent(mouseDown));
+  });
+
+  it("stops a drag whose mouseup was missed on the next mousedown", () => {
+    const { element, onMouseStop } = createDragHandler();
+
+    dispatchMouseEvent(element, "mousedown");
+    dispatchMouseEvent(element, "mousemove");
+    const secondMouseDown = dispatchMouseEvent(element, "mousedown");
+
+    expect(onMouseStop).toHaveBeenCalledExactlyOnceWith(
+      withEvent(secondMouseDown),
+    );
+  });
+
+  it("restarts the mouse delay on a new mousedown", () => {
+    vi.useFakeTimers();
+
+    const { element, onMouseStart } = createDragHandler({
+      getMouseDelay: () => 1000,
+    });
+
+    dispatchMouseEvent(element, "mousedown");
+    vi.advanceTimersByTime(600);
+    dispatchMouseEvent(element, "mouseup");
+
+    vi.advanceTimersByTime(100);
+    const secondMouseDown = dispatchMouseEvent(element, "mousedown");
+
+    // The timer of the first mousedown would have ended here
+    vi.advanceTimersByTime(400);
+    dispatchMouseEvent(element, "mousemove");
+
+    expect(onMouseStart).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(600);
+    dispatchMouseEvent(element, "mousemove");
+
+    expect(onMouseStart).toHaveBeenCalledExactlyOnceWith(
+      withEvent(secondMouseDown),
+    );
+  });
+
+  it("drags with touch events and prevents scrolling", () => {
+    const { element, onMouseDrag, onMouseStop } = createDragHandler();
+    const touch = { pageX: 0, pageY: 0 } as Touch;
+
+    element.dispatchEvent(
+      new TouchEvent("touchstart", { bubbles: true, touches: [touch] }),
+    );
+
+    const move = new TouchEvent("touchmove", {
+      bubbles: true,
+      cancelable: true,
+      touches: [touch],
+    });
+    element.dispatchEvent(move);
+
+    const end = new TouchEvent("touchend", { bubbles: true, touches: [touch] });
+    element.dispatchEvent(end);
+
+    expect(onMouseDrag).toHaveBeenCalledExactlyOnceWith(withEvent(move));
+    expect(move.defaultPrevented).toBeTrue();
+    expect(onMouseStop).toHaveBeenCalledExactlyOnceWith(withEvent(end));
+  });
+});
+
+describe("deinit", () => {
+  beforeEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it("removes the event listeners", () => {
+    const treeElement = document.createElement("ul");
+    treeElement.classList.add("tree-element");
+    document.body.append(treeElement);
+
+    const nodeElement = document.createElement("div");
+    nodeElement.className = "tree-element-element";
+    treeElement.append(nodeElement);
+
+    const onMouseCapture = vi.fn(() => true);
+    const triggerEvent = vi.fn<TriggerEvent>(() => true);
+
+    const mouseHandler = createMouseHandler({
+      element: nodeElement,
+      getNode: () => new Node(),
+      onMouseCapture,
+      triggerEvent,
+    });
+
+    mouseHandler.deinit();
+
+    dispatchMouseEvent(nodeElement, "click");
+    dispatchMouseEvent(nodeElement, "dblclick");
+    dispatchMouseEvent(nodeElement, "contextmenu");
+    dispatchMouseEvent(nodeElement, "mousedown");
+    nodeElement.dispatchEvent(
+      new TouchEvent("touchstart", {
+        bubbles: true,
+        touches: [{ pageX: 0, pageY: 0 } as Touch],
+      }),
+    );
+
+    expect(triggerEvent).not.toHaveBeenCalled();
+    expect(onMouseCapture).not.toHaveBeenCalled();
+  });
+
+  it("removes the listeners of a drag in progress", () => {
+    const { element, mouseHandler, onMouseDrag, onMouseStop } =
+      createDragHandler();
+
+    dispatchMouseEvent(element, "mousedown");
+    const move = dispatchMouseEvent(element, "mousemove");
+
+    mouseHandler.deinit();
+
+    dispatchMouseEvent(element, "mousemove");
+    dispatchMouseEvent(element, "mouseup");
+
+    expect(onMouseDrag).toHaveBeenCalledExactlyOnceWith(withEvent(move));
+    expect(onMouseStop).not.toHaveBeenCalled();
   });
 });
