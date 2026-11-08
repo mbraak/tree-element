@@ -8,7 +8,7 @@ const tree = new TreeElement({ data, htmlElement });
 tree.openNode(tree.getNodeById(1));
 ```
 
-Select a node and try them here — the buttons call `appendNode`, `updateNode`, `removeNode`,
+Select a node and try them here—the buttons call `appendNode`, `updateNode`, `removeNode`,
 `openNode` and `closeNode`:
 
 <TreeDemo demo="basic" api events />

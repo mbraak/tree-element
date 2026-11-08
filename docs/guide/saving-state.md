@@ -11,7 +11,7 @@ new TreeElement({
 });
 ```
 
-Open a few folders in this tree, select a node, then reload the page — it comes back the way you left
+Open a few folders in this tree, select a node, then reload the page—it comes back the way you left
 it:
 
 <TreeDemo demo="saveState" />
@@ -22,7 +22,7 @@ else on the page. Clear it with `localStorage.removeItem("tree-element-docs-demo
 :::
 
 The state is stored in `localStorage` under the key `tree`. Pass a string to choose the key
-yourself — do that when there is more than one tree on the page:
+yourself—do that when there is more than one tree on the page:
 
 ```js
 new TreeElement({
@@ -36,7 +36,7 @@ State is keyed on node ids, so nodes need an `id` for this to work.
 
 ## What is stored
 
-A json object with the ids of the open nodes and of the selected node:
+A JSON object with the ids of the open nodes and of the selected node:
 
 ```json
 { "open_nodes": [1, 3], "selected_node": [4] }
@@ -60,7 +60,7 @@ is enabled, `setState` also saves the state it applied to storage.
 ## Storing state somewhere else
 
 Override where the state is kept with `onSetStateFromStorage` and `onGetStateFromStorage`. Both work
-with the state as a json string:
+with the state as a JSON string:
 
 ```js
 new TreeElement({

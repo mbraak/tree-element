@@ -1,6 +1,7 @@
 {
   "name": "tree-element",
   "version": "0.4.0",
+  "packageManager": "pnpm@12.16.1",
   "description": "Tree widget in plain javascript",
   "keywords": [
     "tree"
@@ -43,6 +44,7 @@
     "vitest": "pnpm build-debug && vitest run --coverage --config config/vitest.config.mjs",
     "vitest-watch": "vitest --config config/vitest.config.mjs",
     "lint": "eslint css src playwright test",
+    "lint-docs": "pnpm docs-api && vale --glob='!docs/.vitepress/**' README.md CHANGELOG.md docs",
     "production": "./config/production",
     "devserver": "SERVE=true rollup --config config/rollup.config.mjs --watch",
     "docs-api": "typedoc && node docs/scripts/fixApiLinks.mjs",
