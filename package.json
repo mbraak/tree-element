@@ -60,7 +60,8 @@
     "release": "node config/release.mjs",
     "playwright": "pnpm build-with-coverage && playwright test --config config/playwright.config.js",
     "test": "pnpm vitest && pnpm playwright",
-    "docs-check": "kiira check"
+    "docs-check": "kiira check",
+    "mutation": "stryker run config/stryker.config.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
@@ -75,6 +76,9 @@
     "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.2",
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/typescript-checker": "^10.1.1",
+    "@stryker-mutator/vitest-runner": "^10.1.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/user-event": "^14.6.8",

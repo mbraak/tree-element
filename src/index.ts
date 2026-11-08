@@ -324,8 +324,9 @@ export default class TreeElement {
   }
 
   /**
-   * Inserts a new node between a node and its parent, taking the node as its
-   * child.
+   * Inserts a new node between a node and its parent. The siblings of the node
+   * move along: the new node takes all children of the parent, and becomes its
+   * only child.
    *
    * @returns The new node, or `null` when the node has no parent.
    * @group Changing the tree
@@ -666,7 +667,7 @@ export default class TreeElement {
       openedNode: Node,
       slideOption: boolean,
     ): Promise<void> => {
-      if (!node.children.length) {
+      if (!openedNode.children.length) {
         return;
       }
 
@@ -1152,6 +1153,9 @@ export default class TreeElement {
       this.triggerEvent("tree.init");
     };
 
+    // Before the tree is replaced: then the focused node is no longer in it
+    const focusedNode = this.getFocusedNode();
+
     this.tree = new this.options.nodeClass(null, true, this.options.nodeClass);
 
     this.selectNodeHandler.clear();
@@ -1162,25 +1166,16 @@ export default class TreeElement {
 
     this.refreshElements(null);
 
+    if (focusedNode) {
+      this.restoreFocus(focusedNode);
+    }
+
     if (mustLoadOnDemand) {
       // Load data on demand and then init the tree
       void this.setInitialStateOnDemand().then(doInit);
     } else {
       doInit();
     }
-  }
-
-  // Does an HTML element of the tree have the focus?
-  private isFocusOnTree(): boolean {
-    return this.getFocusedNode() !== null;
-  }
-
-  private isSelectedNodeInSubtree(subtree: Node): boolean {
-    const selectedNode = this.getSelectedNode();
-
-    return selectedNode
-      ? subtree === selectedNode || subtree.isParentOf(selectedNode)
-      : false;
   }
 
   private async loadFolderOnDemand(node: Node, slide: boolean): Promise<void> {
@@ -1233,14 +1228,14 @@ export default class TreeElement {
     return this.dndHandler.mouseStart(positionInfo);
   }
 
-  private mouseStop(positionInfo: PositionInfo): boolean {
+  private mouseStop(positionInfo: PositionInfo): void {
     /* istanbul ignore if */
     if (!this.options.dragAndDrop) {
-      return false;
+      return;
     }
 
     this.scrollHandler.stopScrolling();
-    return this.dndHandler.mouseStop(positionInfo);
+    this.dndHandler.mouseStop(positionInfo);
   }
 
   private openParents(node: Node) {
@@ -1256,15 +1251,13 @@ export default class TreeElement {
     from_node: redraw this subtree
   */
   private refreshElements(fromNode: Node | null): void {
-    const mustSetFocus = this.isFocusOnTree();
-    const mustSelect = fromNode
-      ? this.isSelectedNodeInSubtree(fromNode)
-      : false;
+    const focusedNode = this.getFocusedNode();
 
+    // The renderer marks the selected nodes, so only the focus needs restoring
     this.renderer.render(fromNode);
 
-    if (mustSelect) {
-      this.selectCurrentNode(mustSetFocus);
+    if (focusedNode) {
+      this.restoreFocus(focusedNode);
     }
 
     this.updateTabStop();
@@ -1272,18 +1265,26 @@ export default class TreeElement {
     this.triggerEvent("tree.refresh");
   }
 
-  private saveState(): void {
-    this.saveStateHandler.saveState();
-  }
-
-  private selectCurrentNode(mustSetFocus: boolean): void {
-    const node = this.getSelectedNode();
-    if (!node) {
+  // Rendering replaces the elements of the nodes, so a focused element can be
+  // gone. Then move the focus to the new element of the same node. After
+  // loadData the nodes are new objects, so look the node up by its id.
+  private restoreFocus(focusedNode: Node): void {
+    if (this.htmlElement.contains(document.activeElement)) {
       return;
     }
 
-    const nodeElement = this.getNodeElementForNode(node);
-    nodeElement.select(mustSetFocus);
+    const node =
+      (focusedNode.id == null ? null : this.getNodeById(focusedNode.id)) ??
+      focusedNode;
+    const element = node.element;
+
+    if (element && this.htmlElement.contains(element)) {
+      element.focus();
+    }
+  }
+
+  private saveState(): void {
+    this.saveStateHandler.saveState();
   }
 
   // Set initial state, either by restoring the state or auto-opening nodes
@@ -1366,7 +1367,6 @@ export default class TreeElement {
     this.activeNode = multiSelect ? focusedNode : null;
     this.fallbackTabStop = null;
     this.refreshElements(null);
-    focusedNode?.element?.focus();
   }
 
   // Set this HTML element to this node in the node map.

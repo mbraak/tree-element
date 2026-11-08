@@ -180,7 +180,7 @@ class MouseHandler {
     }
   };
 
-  private handleContextmenu = (e: MouseEvent) => {
+  private handleContextmenu = (e: MouseEvent): void => {
     if (!e.target) {
       return;
     }
@@ -189,21 +189,23 @@ class MouseHandler {
       `ul.${this.classNames.tree} .${this.classNames.element}`,
     );
 
-    if (div) {
-      const node = this.getNode(div);
-      if (node) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        this.triggerEvent("tree.contextmenu", {
-          node,
-          originalEvent: e,
-        });
-        return false;
-      }
+    if (!div) {
+      return;
     }
 
-    return null;
+    const node = this.getNode(div);
+
+    if (!node) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    this.triggerEvent("tree.contextmenu", {
+      node,
+      originalEvent: e,
+    });
   };
 
   private handleDblclick = (e: MouseEvent): void => {
