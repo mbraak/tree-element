@@ -1533,14 +1533,14 @@ var TreeElement = (function () {
    *
    * @groupDescription Searching
    * These work on any node, and search that node's subtree. Called on the root
-   * node, they search the whole tree — which is what the tree's own methods of
+   * node, they search the whole tree—which is what the tree's own methods of
    * the same name do.
    *
    * @groupDescription Changing the tree
    * ::: warning
    * These methods change the data without re-rendering. The tree's
-   * [methods](/reference/methods) — `appendNode`, `removeNode`, `moveNode` and
-   * friends — do the same and refresh the display, so prefer those. If you do
+   * [methods](/reference/methods)—`appendNode`, `removeNode`, `moveNode` and
+   * friends—do the same and refresh the display, so prefer those. If you do
    * use these, call `tree.refresh()` afterwards.
    * :::
    */
@@ -1589,7 +1589,7 @@ var TreeElement = (function () {
     */
     nodeClass;
     /**
-    The parent; `null` for the root node.
+    The parent, or `null` for the root node.
     */
     parent;
     /**
@@ -1751,7 +1751,7 @@ var TreeElement = (function () {
      * Returns the subtree as plain data, ready for `JSON.stringify`.
      * Internal properties (`parent`, `children`, `element`, `tree`,
      * `idMapping`, `nodeClass`, `load_on_demand`, `isEmptyFolder`) are left
-     * out; your own properties are kept.
+     * out. Your own properties are kept.
      *
      * ```js
      * tree.getTree().getData();
@@ -1843,7 +1843,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Like `getNextNode`, but skipping nodes inside closed folders — this is
+     * Like `getNextNode`, but skipping nodes inside closed folders. This is
      * what the arrow keys use.
      *
      * @group Moving around the tree
@@ -1927,7 +1927,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Returns the parent: `null` for a top-level node — the root node is not
+     * Returns the parent, or `null` for a top-level node: the root node is not
      * returned.
      *
      * @group Moving around the tree
@@ -1975,8 +1975,8 @@ var TreeElement = (function () {
     }
 
     /**
-     * Like `getPreviousNode`, but skipping nodes inside closed folders —
-     * this is what the arrow keys use.
+     * Like `getPreviousNode`, but skipping nodes inside closed folders.
+     * This is what the arrow keys use.
      *
      * @group Moving around the tree
      */
@@ -3662,7 +3662,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Returns the current state — `open_nodes` and `selected_node` — whether or
+     * Returns the current state—`open_nodes` and `selected_node`—whether or
      * not `saveState` is enabled.
      *
      * @group State
@@ -3681,7 +3681,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Returns the root node. It is not rendered; its `children` are the
+     * Returns the root node. It is not rendered, and its `children` are the
      * top-level nodes. Also available as the `tree` property.
      *
      * @group Finding nodes
@@ -3792,7 +3792,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Opens a folder, and the folders above it. A node marked `load_on_demand`
+     * Opens a folder, and the folders that contain it. A node marked `load_on_demand`
      * is fetched first, so await the promise when you need to know it is really
      * open.
      *
@@ -3927,7 +3927,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Changes an option after construction. Only some options can be changed;
+     * Changes an option after construction. Only some options can be changed:
      * the others throw an error. See
      * [Options](/reference/options#changing-an-option-later).
      *
@@ -3996,8 +3996,8 @@ var TreeElement = (function () {
     }
 
     /**
-     * Returns the tree as a json string, including changes made through the
-     * api.
+     * Returns the tree as a JSON string, including changes made through the
+     * API.
      *
      * @group Other
      */
@@ -4010,7 +4010,7 @@ var TreeElement = (function () {
      * name.
      *
      * Changing the `id` re-indexes the node. `children` and `parent` are
-     * ignored — use `loadData` or `moveNode` for those.
+     * ignored—use `loadData` or `moveNode` for those.
      *
      * @example
      * ```js
