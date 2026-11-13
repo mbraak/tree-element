@@ -264,3 +264,79 @@ describe("selectSingleNode", () => {
     expect(triggerEvent).not.toHaveBeenCalled();
   });
 });
+
+describe("nodes without an id", () => {
+  it("only reports the selected node as selected", () => {
+    const nodeA = new Node("a");
+    const nodeB = new Node("b");
+    const selectNodeHandler = createSelectNodeHandler();
+
+    selectNodeHandler.addToSelection(nodeA);
+
+    expect(selectNodeHandler.isNodeSelected(nodeA)).toBeTrue();
+    expect(selectNodeHandler.isNodeSelected(nodeB)).toBeFalse();
+  });
+
+  it("keeps the node selected when another node is removed from the selection", () => {
+    const nodeA = new Node("a");
+    const nodeB = new Node("b");
+    const selectNodeHandler = createSelectNodeHandler();
+    selectNodeHandler.addToSelection(nodeA);
+
+    selectNodeHandler.removeFromSelection(nodeB);
+
+    expect(selectNodeHandler.isNodeSelected(nodeA)).toBeTrue();
+  });
+});
+
+describe("removeFromSelection", () => {
+  it("also removes the descendants at all levels with includeChildren", () => {
+    const node = new Node({ id: 1 });
+    const child = new Node({ id: 2 });
+    const grandchild = new Node({ id: 3 });
+    node.addChild(child);
+    child.addChild(grandchild);
+
+    const selectNodeHandler = createSelectNodeHandler();
+    selectNodeHandler.addToSelection(child);
+    selectNodeHandler.addToSelection(grandchild);
+
+    selectNodeHandler.removeFromSelection(node, true);
+
+    expect(selectNodeHandler.isNodeSelected(child)).toBeFalse();
+    expect(selectNodeHandler.isNodeSelected(grandchild)).toBeFalse();
+  });
+});
+
+describe("toggleNodeInSelection", () => {
+  it("selects the node, focuses it and opens its parents", () => {
+    const node = new Node({ id: 1 });
+    const nodeElement = createMockNodeElement();
+    const openParents = vi.fn();
+
+    const selectNodeHandler = createSelectNodeHandler({
+      getNodeElementForNode: () => asNodeElement(nodeElement),
+      openParents,
+    });
+
+    selectNodeHandler.toggleNodeInSelection(node);
+
+    expect(selectNodeHandler.isNodeSelected(node)).toBeTrue();
+    expect(nodeElement.select).toHaveBeenCalledExactlyOnceWith(true);
+    expect(openParents).toHaveBeenCalledExactlyOnceWith(node);
+  });
+
+  it("updates the tab stop and saves the state", () => {
+    const saveState = vi.fn();
+    const updateTabStop = vi.fn();
+    const selectNodeHandler = createSelectNodeHandler({
+      saveState,
+      updateTabStop,
+    });
+
+    selectNodeHandler.toggleNodeInSelection(new Node({ id: 1 }));
+
+    expect(updateTabStop).toHaveBeenCalledExactlyOnceWith();
+    expect(saveState).toHaveBeenCalledExactlyOnceWith();
+  });
+});

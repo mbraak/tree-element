@@ -80,8 +80,10 @@ export default class DataLoader {
     const signal = this.abortController.signal;
     url.setSearchParam("_", Date.now().toString());
 
+    // Accept, not Content-Type: the request has no body. A cross-origin request
+    // with only an Accept header also needs no CORS preflight.
     return fetch(url.value(), {
-      headers: { "Content-Type": "application/json" },
+      headers: { Accept: "application/json" },
       signal,
     })
       .then(handleResponse)

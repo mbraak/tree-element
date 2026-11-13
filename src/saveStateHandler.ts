@@ -67,10 +67,7 @@ export default class SaveStateHandler {
   }
 
   public getNodeIdToBeSelected(): NodeId | null {
-    if (!this.saveStateOption) {
-      return null;
-    }
-
+    // Without the saveState option there is no state
     const state = this.getStateFromStorage();
 
     return state?.selected_node ? (state.selected_node[0] ?? null) : null;
@@ -243,8 +240,9 @@ export default class SaveStateHandler {
     }
   }
 
+  // result: is a node selected?
   private selectInitialNodes(nodeIds: NodeId[]): boolean {
-    let selectCount = 0;
+    let isNodeSelected = false;
 
     for (const nodeId of nodeIds) {
       const node = this.getNodeById(nodeId);
@@ -253,11 +251,10 @@ export default class SaveStateHandler {
         continue;
       }
 
-      selectCount += 1;
-
       this.addToSelection(node);
+      isNodeSelected = true;
     }
 
-    return selectCount !== 0;
+    return isNodeSelected;
   }
 }
