@@ -111,9 +111,12 @@ var TreeElement = (function () {
       };
       let signal = this._abortController.signal;
       url._setSearchParam("_", Date.now().toString());
+
+      // Accept, not Content-Type: the request has no body. A cross-origin request
+      // with only an Accept header also needs no CORS preflight.
       return fetch(url._value(), {
         headers: {
-          "Content-Type": "application/json"
+          Accept: "application/json"
         },
         signal
       }).then(handleResponse).catch(error => {
@@ -262,8 +265,9 @@ var TreeElement = (function () {
       lastTop = top;
     };
     let handleAfterOpenFolder = (node, nextNode) => {
-      if (node === currentNode || nextNode === currentNode) {
-        // Cannot move before or after current item
+      // Not called for the current node: handleOpenFolder stops iterating there
+      if (nextNode === currentNode) {
+        // Dropping the current node after this folder would leave it where it is
         addHitPosition(node, null, lastTop);
       } else {
         addHitPosition(node, "after", lastTop);
@@ -440,9 +444,6 @@ var TreeElement = (function () {
       this._dragElement._move(positionInfo.pageX, positionInfo.pageY);
       let area = this._findHoveredArea(positionInfo.pageX, positionInfo.pageY);
       if (area && this._canMoveToArea(area, this._currentItem)) {
-        if (!area.node.isFolder()) {
-          this._stopOpenFolderTimer();
-        }
         if (this._hoveredArea !== area) {
           this._hoveredArea = area;
 
@@ -501,7 +502,6 @@ var TreeElement = (function () {
       if (!this._hoveredArea && currentItem && this._onDragStop) {
         this._onDragStop(currentItem._node, positionInfo.originalEvent);
       }
-      return false;
     }
     _refresh() {
       this._removeHitAreas();
@@ -1361,19 +1361,19 @@ var TreeElement = (function () {
         return;
       }
       let div = e.target.closest(`ul.${this._classNames.tree} .${this._classNames.element}`);
-      if (div) {
-        let node = this._getNode(div);
-        if (node) {
-          e.preventDefault();
-          e.stopPropagation();
-          this._triggerEvent("tree.contextmenu", {
-            node,
-            originalEvent: e
-          });
-          return false;
-        }
+      if (!div) {
+        return;
       }
-      return null;
+      let node = this._getNode(div);
+      if (!node) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      this._triggerEvent("tree.contextmenu", {
+        node,
+        originalEvent: e
+      });
     };
     _handleDblclick = e => {
       if (!e.target) {
@@ -1533,14 +1533,14 @@ var TreeElement = (function () {
    *
    * @groupDescription Searching
    * These work on any node, and search that node's subtree. Called on the root
-   * node, they search the whole tree — which is what the tree's own methods of
+   * node, they search the whole tree—which is what the tree's own methods of
    * the same name do.
    *
    * @groupDescription Changing the tree
    * ::: warning
    * These methods change the data without re-rendering. The tree's
-   * [methods](/reference/methods) — `appendNode`, `removeNode`, `moveNode` and
-   * friends — do the same and refresh the display, so prefer those. If you do
+   * [methods](/reference/methods)—`appendNode`, `removeNode`, `moveNode` and
+   * friends—do the same and refresh the display, so prefer those. If you do
    * use these, call `tree.refresh()` afterwards.
    * :::
    */
@@ -1589,7 +1589,7 @@ var TreeElement = (function () {
     */
     nodeClass;
     /**
-    The parent; `null` for the root node.
+    The parent, or `null` for the root node.
     */
     parent;
     /**
@@ -1681,7 +1681,9 @@ var TreeElement = (function () {
     }
 
     /**
-     * Inserts a new parent between this node and its current parent.
+     * Inserts a new parent between this node and its current parent. Its
+     * siblings move along: the new node takes all children of the current
+     * parent, and becomes its only child.
      *
      * @returns The new node, or `null` when the node has no parent.
      * @group Changing the tree
@@ -1751,7 +1753,7 @@ var TreeElement = (function () {
      * Returns the subtree as plain data, ready for `JSON.stringify`.
      * Internal properties (`parent`, `children`, `element`, `tree`,
      * `idMapping`, `nodeClass`, `load_on_demand`, `isEmptyFolder`) are left
-     * out; your own properties are kept.
+     * out. Your own properties are kept.
      *
      * ```js
      * tree.getTree().getData();
@@ -1843,7 +1845,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Like `getNextNode`, but skipping nodes inside closed folders — this is
+     * Like `getNextNode`, but skipping nodes inside closed folders. This is
      * what the arrow keys use.
      *
      * @group Moving around the tree
@@ -1927,7 +1929,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Returns the parent: `null` for a top-level node — the root node is not
+     * Returns the parent, or `null` for a top-level node: the root node is not
      * returned.
      *
      * @group Moving around the tree
@@ -1975,8 +1977,8 @@ var TreeElement = (function () {
     }
 
     /**
-     * Like `getPreviousNode`, but skipping nodes inside closed folders —
-     * this is what the arrow keys use.
+     * Like `getPreviousNode`, but skipping nodes inside closed folders.
+     * This is what the arrow keys use.
      *
      * @group Moving around the tree
      */
@@ -2581,9 +2583,7 @@ var TreeElement = (function () {
       this._saveStateOption = saveState;
     }
     _getNodeIdToBeSelected() {
-      if (!this._saveStateOption) {
-        return null;
-      }
+      // Without the saveState option there is no state
       let state = this._getStateFromStorage();
       return state?.selected_node ? state.selected_node[0] ?? null : null;
     }
@@ -2712,17 +2712,19 @@ var TreeElement = (function () {
         this._removeFromSelection(node);
       }
     }
+
+    // result: is a node selected?
     _selectInitialNodes(nodeIds) {
-      let selectCount = 0;
+      let isNodeSelected = false;
       for (let nodeId of nodeIds) {
         let node = this._getNodeById(nodeId);
         if (!node) {
           continue;
         }
-        selectCount += 1;
         this._addToSelection(node);
+        isNodeSelected = true;
       }
-      return selectCount !== 0;
+      return isNodeSelected;
     }
   }
 
@@ -3491,8 +3493,9 @@ var TreeElement = (function () {
     }
 
     /**
-     * Inserts a new node between a node and its parent, taking the node as its
-     * child.
+     * Inserts a new node between a node and its parent. The siblings of the node
+     * move along: the new node takes all children of the parent, and becomes its
+     * only child.
      *
      * @returns The new node, or `null` when the node has no parent.
      * @group Changing the tree
@@ -3662,7 +3665,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Returns the current state — `open_nodes` and `selected_node` — whether or
+     * Returns the current state—`open_nodes` and `selected_node`—whether or
      * not `saveState` is enabled.
      *
      * @group State
@@ -3681,7 +3684,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Returns the root node. It is not rendered; its `children` are the
+     * Returns the root node. It is not rendered, and its `children` are the
      * top-level nodes. Also available as the `tree` property.
      *
      * @group Finding nodes
@@ -3792,7 +3795,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Opens a folder, and the folders above it. A node marked `load_on_demand`
+     * Opens a folder, and the folders that contain it. A node marked `load_on_demand`
      * is fetched first, so await the promise when you need to know it is really
      * open.
      *
@@ -3808,7 +3811,7 @@ var TreeElement = (function () {
     async openNode(node, slide) {
       let mustSlide = slide ?? this._options.slide;
       let doOpenNode = async (openedNode, slideOption) => {
-        if (!node.children.length) {
+        if (!openedNode.children.length) {
           return;
         }
         let folderElement = this._createFolderElement(openedNode);
@@ -3927,7 +3930,7 @@ var TreeElement = (function () {
     }
 
     /**
-     * Changes an option after construction. Only some options can be changed;
+     * Changes an option after construction. Only some options can be changed:
      * the others throw an error. See
      * [Options](/reference/options#changing-an-option-later).
      *
@@ -3996,8 +3999,8 @@ var TreeElement = (function () {
     }
 
     /**
-     * Returns the tree as a json string, including changes made through the
-     * api.
+     * Returns the tree as a JSON string, including changes made through the
+     * API.
      *
      * @group Other
      */
@@ -4010,7 +4013,7 @@ var TreeElement = (function () {
      * name.
      *
      * Changing the `id` re-indexes the node. `children` and `parent` are
-     * ignored — use `loadData` or `moveNode` for those.
+     * ignored—use `loadData` or `moveNode` for those.
      *
      * @example
      * ```js
@@ -4225,26 +4228,23 @@ var TreeElement = (function () {
         this._isInitialized = true;
         this._triggerEvent("tree.init");
       };
+
+      // Before the tree is replaced: then the focused node is no longer in it
+      let focusedNode = this._getFocusedNode();
       this._tree = new this._options.nodeClass(null, true, this._options.nodeClass);
       this._selectNodeHandler._clear();
       this._tree.loadFromData(data);
       let mustLoadOnDemand = this._setInitialState();
       this._refreshElements(null);
+      if (focusedNode) {
+        this._restoreFocus(focusedNode);
+      }
       if (mustLoadOnDemand) {
         // Load data on demand and then init the tree
         void this._setInitialStateOnDemand().then(doInit);
       } else {
         doInit();
       }
-    }
-
-    // Does an HTML element of the tree have the focus?
-    _isFocusOnTree() {
-      return this._getFocusedNode() !== null;
-    }
-    _isSelectedNodeInSubtree(subtree) {
-      let selectedNode = this.getSelectedNode();
-      return selectedNode ? subtree === selectedNode || subtree.isParentOf(selectedNode) : false;
     }
     async _loadFolderOnDemand(node, slide) {
       node.is_loading = true;
@@ -4286,10 +4286,10 @@ var TreeElement = (function () {
     _mouseStop(positionInfo) {
       /* istanbul ignore if */
       if (!this._options.dragAndDrop) {
-        return false;
+        return;
       }
       this._scrollHandler._stopScrolling();
-      return this._dndHandler._mouseStop(positionInfo);
+      this._dndHandler._mouseStop(positionInfo);
     }
     _openParents(node) {
       let parent = node.parent;
@@ -4303,25 +4303,32 @@ var TreeElement = (function () {
       from_node: redraw this subtree
     */
     _refreshElements(fromNode) {
-      let mustSetFocus = this._isFocusOnTree();
-      let mustSelect = fromNode ? this._isSelectedNodeInSubtree(fromNode) : false;
+      let focusedNode = this._getFocusedNode();
+
+      // The renderer marks the selected nodes, so only the focus needs restoring
       this._renderer._render(fromNode);
-      if (mustSelect) {
-        this._selectCurrentNode(mustSetFocus);
+      if (focusedNode) {
+        this._restoreFocus(focusedNode);
       }
       this._updateTabStop();
       this._triggerEvent("tree.refresh");
     }
-    _saveState() {
-      this._saveStateHandler._saveState();
-    }
-    _selectCurrentNode(mustSetFocus) {
-      let node = this.getSelectedNode();
-      if (!node) {
+
+    // Rendering replaces the elements of the nodes, so a focused element can be
+    // gone. Then move the focus to the new element of the same node. After
+    // loadData the nodes are new objects, so look the node up by its id.
+    _restoreFocus(focusedNode) {
+      if (this._htmlElement.contains(document.activeElement)) {
         return;
       }
-      let nodeElement = this._getNodeElementForNode(node);
-      nodeElement._select(mustSetFocus);
+      let node = (focusedNode.id == null ? null : this.getNodeById(focusedNode.id)) ?? focusedNode;
+      let element = node.element;
+      if (element && this._htmlElement.contains(element)) {
+        element.focus();
+      }
+    }
+    _saveState() {
+      this._saveStateHandler._saveState();
     }
 
     // Set initial state, either by restoring the state or auto-opening nodes
@@ -4393,7 +4400,6 @@ var TreeElement = (function () {
       this._activeNode = multiSelect ? focusedNode : null;
       this._fallbackTabStop = null;
       this._refreshElements(null);
-      focusedNode?.element?.focus();
     }
 
     // Set this HTML element to this node in the node map.

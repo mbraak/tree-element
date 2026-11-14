@@ -14,10 +14,17 @@ const createNodeElement = ({ clientHeight = 0, offsetWidth = 0 } = {}) => {
   elementDiv.classList.add("tree-element-element");
   element.append(elementDiv);
 
+  // jsdom only computes styles for elements that are attached to the document
+  document.body.append(element);
+
   return { element, elementDiv };
 };
 
 describe("BorderDropHint", () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
   it("creates an element", () => {
     const { element, elementDiv } = createNodeElement();
 
