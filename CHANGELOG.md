@@ -6,6 +6,8 @@ All notable changes to tree-element are documented here. The format is based on
 
 ## Unreleased
 
+## 0.4.1 - 2026-11-14
+
 ### Added
 
 - `multiSelect` can be turned on or off with `setOption`.
